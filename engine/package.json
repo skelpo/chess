@@ -1,0 +1,7 @@
+{
+  "name": "@plain-chess/engine",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": "./src/chess.ts",
+  "scripts": { "check": "tsc -p tsconfig.json --noEmit" }
+}

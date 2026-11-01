@@ -1,0 +1,23 @@
+{
+  "name": "typescript-chess",
+  "private": true,
+  "type": "module",
+  "workspaces": ["engine", "tui"],
+  "scripts": {
+    "check": "tsc --noEmit && tsc -p engine/tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node tui/src/main.ts",
+    "start:bun": "bun tui/src/main.ts",
+    "build:perry": "node scripts/prepare.ts && perry compile tui/src/main.ts -o dist/chess --strict-eval --strict-dynamic-import --strict-unimplemented",
+    "test": "node tests/run.ts",
+    "test:bun": "bun tests/run.ts",
+    "test:integration": "node tests/integration.ts",
+    "test:perry": "node scripts/prepare.ts && perry compile tests/run.ts -o dist/chess-tests --strict-eval --strict-dynamic-import --strict-unimplemented && dist/chess-tests",
+    "verify": "npm run check && npm run test && npm run test:bun && npm run build && npm run test:perry && npm run build:perry && npm run test:integration"
+  },
+  "perry": { "strict": true },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "@plain-chess/tui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node src/main.ts", "start:bun": "bun src/main.ts" }
+}
