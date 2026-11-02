@@ -1,5 +1,5 @@
 /**
- * Copies the engine and the session layer into plugin/lib, so the installed plugin is self-contained.
+ * Copies the engine and the session layer into plugin/lib and opencode/plugin/lib, so each installed plugin is self-contained.
  * Run after changing engine/src/chess.ts or mcp/src/tools.ts; tests/mcp.ts fails while the copies are stale.
  */
 import { readFileSync, writeFileSync } from "node:fs";
@@ -14,6 +14,8 @@ export function pluginCopies(): readonly { readonly path: string; readonly text:
   return [
     { path: root + "plugin/lib/chess.ts", text: NOTICE + "engine/src/chess.ts. Do not edit.\n" + engine },
     { path: root + "plugin/lib/session.ts", text: NOTICE + "mcp/src/tools.ts. Do not edit.\n" + tools },
+    { path: root + "opencode/plugin/lib/chess.ts", text: NOTICE + "engine/src/chess.ts. Do not edit.\n" + engine },
+    { path: root + "opencode/plugin/lib/session.ts", text: NOTICE + "mcp/src/tools.ts. Do not edit.\n" + tools },
     // The real server rules behind the plugin's online tests.
     { path: root + "plugin/tests/lobby.ts", text: NOTICE + "server/src/lobby.ts. Do not edit.\n" + readFileSync(root + "server/src/lobby.ts", "utf8").replaceAll("../../engine/src/chess.ts", "../lib/chess.ts") },
   ];
@@ -21,5 +23,5 @@ export function pluginCopies(): readonly { readonly path: string; readonly text:
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const copy of pluginCopies()) writeFileSync(copy.path, copy.text);
-  console.log("plugin/lib synced");
+  console.log("plugin/lib and opencode/plugin/lib synced");
 }

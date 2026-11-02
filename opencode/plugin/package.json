@@ -1,0 +1,26 @@
+{
+  "name": "opencode-tuichess",
+  "version": "0.1.0",
+  "description": "A graphical chess board for opencode: /board opens it, and the agent sees and plays the same game.",
+  "license": "MIT",
+  "type": "module",
+  "repository": { "type": "git", "url": "git+https://github.com/skelpo/chess.git", "directory": "opencode/plugin" },
+  "homepage": "https://tuichess.dev",
+  "keywords": ["opencode", "opencode-plugin", "chess", "tui"],
+  "exports": {
+    ".": "./server.ts",
+    "./server": "./server.ts",
+    "./tui": "./dist/tui.js"
+  },
+  "files": ["server.ts", "tui.tsx", "board.tsx", "controller.ts", "game.ts", "engine-worker.ts", "lib/chess.ts", "lib/session.ts", "dist/tui.js", "dist/board.js"],
+  "scripts": {
+    "build": "node build.ts",
+    "prepack": "node ../../scripts/sync-plugin.ts && node build.ts"
+  },
+  "devDependencies": {
+    "@babel/core": "7.28.0",
+    "@babel/preset-typescript": "7.27.1",
+    "babel-preset-solid": "1.9.12"
+  },
+  "engines": { "opencode": ">=2.0.20" }
+}

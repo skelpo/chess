@@ -7,3 +7,5 @@ dist/
 
 # Built locally; releases ship native binaries through npm.
 plugin/bin/
+opencode/plugin/node_modules/
+opencode/plugin/dist/
