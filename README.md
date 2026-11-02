@@ -32,19 +32,19 @@ The chess tools (`tuichess mcp`) work in any agent that speaks MCP. The game liv
   codex plugin add chess@skelpo-chess
   ```
   Then start a new session and say "let's play chess". The plugin marks the chess tools as approved, since they only touch the game held inside the chess MCP server.
-- **opencode:** the MCP server, plus a `/chess` command ([`opencode/commands/chess.md`](opencode/commands/chess.md)):
+- **opencode, text in the chat:** the MCP server, plus a `/board-plain` command ([`opencode/commands/board-plain.md`](opencode/commands/board-plain.md)):
   ```sh
   mkdir -p ~/.config/opencode/commands
-  curl -fsSL https://raw.githubusercontent.com/skelpo/chess/main/opencode/commands/chess.md -o ~/.config/opencode/commands/chess.md
+  curl -fsSL https://raw.githubusercontent.com/skelpo/chess/main/opencode/commands/board-plain.md -o ~/.config/opencode/commands/board-plain.md
   opencode mcp add chess --global -- npx -y tuichess mcp
   ```
-- **opencode graphical board** (opencode 2.0.20 or later; a plugin, [`opencode/plugin/`](opencode/plugin)): `/board` opens a full-screen board with big pieces, like the Claude Code pane. Use the arrow keys and Enter or Space, or type a move like `e2e4`. The other keys are `u` undo, `i` hint, `t` flip, `+`/`-` level, `l` letters, `m` menu and Esc back. While a game is on, the session sidebar shows a small board. The agent sees and plays the same game through its `chess_board` tool, so you can ask "how's my position?" in the chat. To install it:
+- **opencode graphical board** (opencode 2.0.20 or later; a plugin, [`opencode/plugin/`](opencode/plugin)): `/chess` (or `/board`) opens a full-screen board with big pieces, like the Claude Code pane. Use the arrow keys and Enter or Space, or type a move like `e2e4`. The other keys are `u` undo, `i` hint, `t` flip, `+`/`-` level, `l` letters, `m` menu and Esc back. While a game is on, the session sidebar shows a small board. The agent sees and plays the same game through its `chess_board` tool, so you can ask "how's my position?" in the chat. To install it:
   ```sh
   mkdir -p ~/.config/opencode/plugins/tuichess
   curl -fsSL https://codeload.github.com/skelpo/chess/tar.gz/main | tar -xz -C ~/.config/opencode/plugins/tuichess --strip-components=3 chess-main/opencode/plugin
   opencode reload
   ```
-  Then start opencode and type `/board`. From a clone, `ln -s "$PWD/opencode/plugin" ~/.config/opencode/plugins/tuichess` works too. The board's game is saved in `~/.local/state/tuichess/opencode-board.json`, separate from the `/chess` game in the chat.
+  Then start opencode and type `/chess`. From a clone, `ln -s "$PWD/opencode/plugin" ~/.config/opencode/plugins/tuichess` works too. The board's game is saved in `~/.local/state/tuichess/opencode-board.json`, separate from the `/board-plain` game in the chat.
 - **Anything else:** run `npx -y tuichess mcp` as a stdio MCP server.
 
 ## Play from source

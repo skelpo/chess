@@ -1,4 +1,4 @@
-// opencode TUI plugin: a graphical chess board. /board opens it full screen; while a game is on,
+// opencode TUI plugin: a graphical chess board. /chess (or /board) opens it full screen; while a game is on,
 // a small board sits in the session sidebar. The agent sees and plays the same game with the
 // chess_board tool from server.ts.
 import { createSignal, Show } from "solid-js";
@@ -149,7 +149,7 @@ export default {
               id: "tuichess.board.open",
               title: "Chess board",
               group: "Chess",
-              slash: { name: "board", aliases: ["chessboard"] },
+              slash: { name: "chess", aliases: ["board", "chessboard"] },
               palette: true,
               run: open,
             },

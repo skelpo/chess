@@ -357,7 +357,7 @@ export function MiniBoard(props: { readonly game: Game; readonly theme: () => Th
           </box>
         )}
       </For>
-      <text fg={props.theme().text.muted}>/board to play</text>
+      <text fg={props.theme().text.muted}>/chess to play</text>
     </box>
   );
 }

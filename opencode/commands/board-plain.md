@@ -1,14 +1,14 @@
 ---
-description: Play chess against the tuichess engine (/chess, /chess e4, /chess black level 3, /chess hint)
+description: Play chess against the tuichess engine in the chat as text (/board-plain, /board-plain e4, /board-plain black level 3, /board-plain hint)
 ---
 
 Use the `chess` MCP tools (chess_new_game, chess_move, chess_show, chess_legal_moves, chess_hint,
 chess_undo, chess_claim_draw, chess_settings, chess_engine_move) for everything; never invent a move,
 a position or the engine's reply.
 
-The user typed: /chess $ARGUMENTS
+The user typed: /board-plain $ARGUMENTS
 
-- Nothing after /chess: if a game is in progress (check with chess_show), show it; otherwise start one
+- Nothing after /board-plain: if a game is in progress (check with chess_show), show it; otherwise start one
   with chess_new_game (player white, level 5) and show the board.
 - "white", "black", "both" and/or "level N": start a new game with those settings via chess_new_game.
 - A move ("e4", "Nf3", "e2e4", "castle", "O-O"): translate it to UCI coordinates (e2e4, g1f3, e1g1,

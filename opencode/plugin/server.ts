@@ -37,7 +37,7 @@ const INPUT = {
 } as const;
 
 const DESCRIPTION =
-  "The chess game on the user's graphical board in opencode (they open it with /board). " +
+  "The chess game on the user's graphical board in opencode (they open it with /chess). " +
   "Use it whenever the user talks about 'the board', their game, or asks for a comment or hint on their position: " +
   "action show returns the current position, whose turn it is, the move list and the FEN. " +
   "Changes you make (moves, undo, new game) show up on the user's board right away. " +
