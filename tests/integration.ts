@@ -15,7 +15,7 @@ const runtimes: readonly Runtime[] = nativeCandidate !== undefined ? [
 ];
 interface Scenario { readonly name: string; readonly arguments: readonly string[]; readonly input: string; readonly status: number; readonly expected: string }
 const scenarios: readonly Scenario[] = [
-  { name: "help", arguments: ["--help"], input: "", status: 0, expected: "Usage: chess" },
+  { name: "help", arguments: ["--help"], input: "", status: 0, expected: "Usage: tuichess" },
   { name: "bad level", arguments: ["--level", "11"], input: "", status: 1, expected: "Level must" },
   { name: "bad FEN", arguments: ["--fen", "invalid"], input: "", status: 1, expected: "FEN must" },
   { name: "local play", arguments: ["--plain", "--side", "both"], input: "e2e4\ne7e5\nfen\nundo\nfen\nquit\n", status: 0, expected: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2" },

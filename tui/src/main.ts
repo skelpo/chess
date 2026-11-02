@@ -1,8 +1,15 @@
 import { ChessApp, KeyDecoder, defaultOptions } from "./app.ts";
+import { DEFAULT_SERVER, OnlineClient } from "./online.ts";
+import { VERSION } from "./version.ts";
+import type { Account, AccountStore, Network } from "./online.ts";
 import { parseLevel } from "../../engine/src/chess.ts";
 import type { Color } from "../../engine/src/chess.ts";
+import { serve } from "../../mcp/src/serve.ts";
+import { answer } from "../../cli/src/move.ts";
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
-const USAGE = `Usage: chess [options]
+const USAGE = `Usage: tuichess [options]
+       tuichess mcp     serve the chess tools to an AI agent (Model Context Protocol, stdio)
 
   --level 1..10          Difficulty (default: 5)
   --side white|black|both  Your side, or local two-player (default: white)
@@ -10,6 +17,8 @@ const USAGE = `Usage: chess [options]
   --plain               Line-based terminal mode, also selected for pipes
   --no-color            Disable ANSI colors
   --unicode             Use chess symbols instead of ASCII letters
+  --online              Start in online play (also: type online in the game)
+  --server <url>        Online server (default: ${DEFAULT_SERVER}, or $TUICHESS_SERVER)
   --help                Show this help
 
 Move with arrows and Space/Enter, or type e2e4 and press Enter.
@@ -24,7 +33,68 @@ function setTerminalRawMode(enabled: boolean): void {
   process.stdin.setRawMode(enabled);
 }
 
+/** Where the online username is kept: one account per server, readable only by this user. */
+function configDirectory(): string {
+  const env = process.env;
+  if (env["TUICHESS_HOME"] !== undefined && env["TUICHESS_HOME"] !== "") return env["TUICHESS_HOME"];
+  if (process.platform === "win32") return (env["APPDATA"] ?? env["USERPROFILE"] ?? ".") + "\\tuichess";
+  const xdg = env["XDG_CONFIG_HOME"];
+  return (xdg !== undefined && xdg !== "" ? xdg : (env["HOME"] ?? ".") + "/.config") + "/tuichess";
+}
+
+function fileStore(): AccountStore {
+  const directory = configDirectory();
+  const path = directory + (process.platform === "win32" ? "\\" : "/") + "accounts.json";
+  const readAll = (): Record<string, Account> => {
+    try {
+      if (!existsSync(path)) return {};
+      const value = JSON.parse(readFileSync(path, "utf8")) as unknown;
+      return typeof value === "object" && value !== null ? value as Record<string, Account> : {};
+    } catch { return {}; }
+  };
+  return {
+    load(server: string): Account | null {
+      const account = readAll()[server];
+      return account !== undefined && typeof account.name === "string" && typeof account.token === "string" ? account : null;
+    },
+    save(server: string, account: Account | null): void {
+      const all = readAll();
+      if (account === null) delete all[server]; else all[server] = account;
+      try {
+        mkdirSync(directory, { recursive: true });
+        writeFileSync(path, JSON.stringify(all, null, 2) + "\n");
+        try { chmodSync(path, 0o600); } catch { /* not on every platform */ }
+      } catch { /* the account lasts for this run */ }
+    },
+  };
+}
+
+const network: Network = {
+  async request(method, url, headers, body) {
+    const response = await fetch(url, body === null ? { method, headers } : { method, headers, body });
+    return { status: response.status, text: await response.text() };
+  },
+  later(ms, then) { setTimeout(then, ms); },
+};
+
+function readStdin(done: (text: string) => void): void {
+  let text = "";
+  process.stdin.setEncoding("utf8");
+  process.stdin.on("data", (chunk: string) => { text += chunk; });
+  process.stdin.on("end", () => { done(text); });
+  process.stdin.resume();
+}
+
 function run(): void {
+  const mode = process.argv[2] ?? "";
+  if (mode === "mcp") { serve(); return; }
+  if (mode === "move") {
+    readStdin((text) => {
+      const started = Date.now();
+      process.stdout.write(answer(text, () => Date.now() - started) + "\n");
+    });
+    return;
+  }
   const defaults = defaultOptions();
   let level = defaults.level;
   let human: Color | "both" = defaults.human;
@@ -32,12 +102,22 @@ function run(): void {
   let plain = !process.stdin.isTTY || !process.stdout.isTTY || process.env["TERM"] === "dumb";
   let color = process.env["NO_COLOR"] === undefined;
   let unicode = false;
+  let startOnline = false;
+  let server = process.env["TUICHESS_SERVER"] ?? DEFAULT_SERVER;
   for (let i = 2; i < process.argv.length; i++) {
     const argument = process.argv[i] ?? "";
     if (argument === "--help" || argument === "-h") { process.stdout.write(USAGE); return; }
     if (argument === "--plain") { plain = true; continue; }
     if (argument === "--no-color") { color = false; continue; }
     if (argument === "--unicode") { unicode = true; continue; }
+    if (argument === "--online") { startOnline = true; continue; }
+    if (argument === "--version" || argument === "-v") { process.stdout.write("tuichess " + VERSION + "\n"); return; }
+    if (argument === "--server") {
+      const value = process.argv[++i];
+      if (value === undefined || !/^https?:\/\//.test(value)) throw new Error("--server needs an http(s) URL.");
+      server = value;
+      continue;
+    }
     if (argument === "--level" || argument === "--side" || argument === "--fen") {
       const value = process.argv[++i];
       if (value === undefined) throw new Error("Missing value for " + argument);
@@ -52,11 +132,24 @@ function run(): void {
     throw new Error("Unknown option: " + argument);
   }
   const app = new ChessApp({ level, human, fen, color: color && !plain, unicode });
+  const client = new OnlineClient(server, network, fileStore());
+  app.online = client;
+  let usedNetwork = false;
   const decoder = new KeyDecoder();
   let pending = "";
   let closed = false;
   let escapeTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // Online answers arrive between keypresses; several in a row draw once.
+  let drawQueued = false;
+  function drawSoon(): void {
+    usedNetwork = true;
+    if (drawQueued || closed) return;
+    drawQueued = true;
+    setTimeout(() => { drawQueued = false; draw(); }, 10);
+  }
+  client.onChange = drawSoon;
+  app.onAsync = drawSoon;
   function draw(): void {
     if (closed) return;
     const frame = app.render(process.stdout.columns || 80);
@@ -81,7 +174,10 @@ function run(): void {
   }
   function finish(): void {
     restore();
+    client.stop();
     process.stdout.write("Thanks for playing.\n");
+    // A held long poll would keep the process alive for up to 25 s.
+    if (usedNetwork) setTimeout(() => process.exit(process.exitCode ?? 0), 50);
   }
   function advance(): void {
     if (!app.running) { finish(); return; }
@@ -151,6 +247,7 @@ function run(): void {
   process.stdin.on("data", receive);
   process.stdin.on("end", onEnd);
   process.stdin.resume();
+  if (startOnline) app.goOnline();
   advance();
 }
 

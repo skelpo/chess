@@ -7,7 +7,22 @@ Two projects, zero runtime packages:
 
 All source, tooling and tests are TypeScript. Imports are static. There is no `any`, `eval`, generated code, reflection, dynamic import, runtime plugin loading, JavaScript fallback, or dependency on a chess library. `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, and the other checks in `tsconfig.json` are enabled. The engine is also checked without Node or DOM types.
 
-## Play
+## Install: `tuichess` on npm
+
+```sh
+npm install -g tuichess     # or: npx tuichess
+tuichess --level 5          # play the engine
+tuichess --online           # play people, with high scores at https://tuichess.dev
+tuichess mcp                # the chess tools for AI agents (MCP over stdio)
+```
+
+`tuichess` is one native binary per platform, compiled from `tui/src/main.ts` with Perry: macOS arm64/x64, Linux x64/arm64 and Windows x64. The `tuichess` package is a small launcher; npm installs only the matching `tuichess-<os>-<cpu>` package (optional dependencies picked by `os`/`cpu`, the layout Perry's own npm package uses).
+
+**Online in the terminal:** type `online` (or start with `--online`), then a username (3 to 20 letters, digits, `_` or `-`). `play` meets the next player who is waiting; `challenge <name>`, `accept <name>` and `decline <name>` handle challenges; `resign`, `draw` (claim), `lobby` and `offline` do what they say. The account is kept in `~/.config/tuichess/accounts.json` (`$TUICHESS_HOME` overrides; `%APPDATA%\tuichess` on Windows). `--server <url>` or `$TUICHESS_SERVER` picks another server.
+
+**Releases** run in GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)): each platform builds on its own runner with the pinned Perry, then runs the smoke, output-parity, terminal and online tests against its binary. Pushing a tag `vX.Y.Z` publishes all packages to npm with provenance (npm trusted publishing); running the workflow by hand without "publish" only builds. [`scripts/npm-pack.ts`](scripts/npm-pack.ts) lays out the packages from the binaries.
+
+## Play from source
 
 From this directory:
 

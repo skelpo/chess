@@ -1,0 +1,113 @@
+# Builds tuichess natively with Perry on each platform's own runner, tests each binary, and
+# publishes the npm packages (tuichess + tuichess-<os>-<cpu>) with provenance via npm trusted publishing.
+#   Release:  git tag v0.2.0 && git push origin v0.2.0
+#   Dry run:  Actions -> release -> Run workflow (publish unchecked): builds and uploads the binaries only.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (e.g. 0.1.0)"
+        required: true
+      publish:
+        description: "Publish to npm"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  PERRY_VERSION: "0.5.1664"
+
+jobs:
+  build:
+    name: build ${{ matrix.key }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { key: darwin-arm64, runner: macos-14 }
+          - { key: darwin-x64, runner: macos-15-intel }
+          - { key: linux-x64, runner: ubuntu-22.04 }
+          - { key: linux-arm64, runner: ubuntu-22.04-arm }
+          - { key: win32-x64, runner: windows-2022, exe: ".exe" }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Version
+        run: |
+          version="${{ inputs.version }}"
+          if [ -z "$version" ]; then version="${GITHUB_REF_NAME#v}"; fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          printf '/** The release version; the release workflow writes the tag'"'"'s version here before compiling. */\nexport const VERSION = "%s";\n' "$version" > tui/src/version.ts
+      - name: Install Perry
+        run: npm install -g "@perryts/perry@$PERRY_VERSION" && perry --version
+      - name: Compile
+        run: |
+          mkdir -p out
+          bin="out/tuichess-${{ matrix.key }}${{ matrix.exe }}"
+          perry compile tui/src/main.ts -o "$bin" --strict-eval --strict-dynamic-import --strict-unimplemented
+          case "${{ matrix.key }}" in
+            darwin-*) strip "$bin" && codesign --force --sign - "$bin" ;;
+            linux-*) strip "$bin" ;;
+          esac
+          ls -l out
+      - name: Smoke test
+        run: |
+          bin="out/tuichess-${{ matrix.key }}${{ matrix.exe }}"
+          "$bin" --version | grep -q "tuichess $VERSION"
+          "$bin" --help | grep -q "Usage: tuichess"
+          printf 'e2e4\nquit\n' | "$bin" --plain --level 1 | grep -q "Thanks for playing"
+          printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+            | "$bin" mcp | grep -q chess_new_game
+      - name: Same output as Node
+        if: matrix.exe == ''
+        run: node tests/text-parity.ts "out/tuichess-${{ matrix.key }}"
+      - name: Terminal and online play
+        if: matrix.exe == ''
+        run: |
+          python3 tests/terminal.py "out/tuichess-${{ matrix.key }}"
+          python3 tests/native-online.py "out/tuichess-${{ matrix.key }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tuichess-${{ matrix.key }}
+          path: out/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+      - uses: actions/download-artifact@v4
+        with:
+          path: binaries
+          merge-multiple: true
+      - name: Pack
+        run: |
+          version="${{ inputs.version }}"
+          if [ -z "$version" ]; then version="${GITHUB_REF_NAME#v}"; fi
+          node scripts/npm-pack.ts "$version" binaries npm-out
+      - name: Publish (platform packages first, then the launcher)
+        run: |
+          npm install -g npm@latest
+          for dir in npm-out/tuichess-*; do (cd "$dir" && npm publish --provenance --access public); done
+          (cd npm-out/tuichess && npm publish --provenance --access public)

@@ -105,6 +105,8 @@ footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--f
       <p class="lede">A Claude Code plugin: a board pane next to the chat, an engine compiled to native code with Perry, and online games against other people. Ask Claude about your position while you play.</p>
       <div class="cmd"><code id="install-cmd">/plugin install chess --marketplace skelpo/chess</code><button class="copy" data-copy="install-cmd">copy</button></div>
       <p class="small">Then type <code>/chess</code>. Needs Claude Code 2.1.316 or later.</p>
+      <p class="small">Just the terminal game, native on macOS, Linux and Windows:</p>
+      <div class="cmd"><code id="npm-cmd">npm install -g tuichess</code><button class="copy" data-copy="npm-cmd">copy</button></div>
     </div>
     <div class="pane" aria-label="The chess pane in Claude Code">
       <div class="board" id="board"></div>
@@ -140,6 +142,8 @@ footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--f
       <li>For the board beside the chat instead of below it, switch Claude Code to its fullscreen layout: <code>/tui fullscreen</code>. There you can also click the board.</li>
     </ol>
     <p class="muted">Update later with <code>/plugin marketplace update skelpo-chess</code> and <code>/plugin update chess@skelpo-chess</code>.</p>
+    <h3>In any terminal</h3>
+    <p><code>npm install -g tuichess</code> (or <code>npx tuichess</code>), then <code>tuichess</code>. Arrows and Space move, or type <code>e2e4</code>; <code>help</code> lists every command. Type <code>online</code> (or start with <code>tuichess --online</code>), pick a username, then <code>play</code> or <code>challenge &lt;name&gt;</code>: the same server, lobby and high scores as the plugin.</p>
   </section>
 
   <section id="docs">
