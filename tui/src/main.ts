@@ -106,8 +106,20 @@ function run(): void {
 
   // Online answers arrive between keypresses; several in a row draw once.
   let drawQueued = false;
+  // Online clocks: redraw in place (no full clear, so no flicker) whenever a shown time changes.
+  let ticker: ReturnType<typeof setInterval> | null = null;
+  let shownClock = "";
+  function tick(): void {
+    if (closed || plain || !app.clockRunning()) return;
+    const key = app.clockKey();
+    if (key === shownClock) return;
+    shownClock = key;
+    const frame = app.render(process.stdout.columns || 80);
+    process.stdout.write("\u001b[H" + frame.replace(/\n/g, "\u001b[K\r\n") + "\u001b[J");
+  }
   function drawSoon(): void {
     usedNetwork = true;
+    if (ticker === null && !plain) ticker = setInterval(tick, 100);
     if (drawQueued || closed) return;
     drawQueued = true;
     setTimeout(() => { drawQueued = false; draw(); }, 10);
@@ -125,6 +137,7 @@ function run(): void {
     if (closed) return;
     closed = true;
     if (escapeTimer !== null) clearTimeout(escapeTimer);
+    if (ticker !== null) clearInterval(ticker);
     if (!plain) {
       setTerminalRawMode(false);
       process.stdout.write("\u001b[0m\u001b[?25h\u001b[?1049l");

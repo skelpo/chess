@@ -23,6 +23,15 @@ export interface GameView {
   readonly reason: string | null;
   readonly rated: boolean;
   readonly opponentOnline: boolean;
+  /** Null for untimed games. Times are as of the moment the server answered. */
+  readonly clock: ClockView | null;
+}
+export interface ClockView {
+  readonly white: number;
+  readonly black: number;
+  readonly running: Color | null;
+  readonly initial: number;
+  readonly increment: number;
 }
 export interface StateView {
   readonly version: number;
@@ -64,6 +73,8 @@ export class OnlineClient {
   link: Link = "off";
   error = "";
   view: StateView | null = null;
+  /** When `view` arrived, by this computer's clock: the running side's time counts down from here. */
+  viewAt = 0;
   pending = false;
   /** Called after every change the screen should show. */
   onChange: () => void = () => {};
@@ -163,6 +174,7 @@ export class OnlineClient {
   private show(view: StateView): void {
     if (this.view !== null && this.view.version > view.version) return;
     this.view = view;
+    this.viewAt = Date.now();
     this.link = "live";
     this.error = "";
     this.onChange();
@@ -180,12 +192,33 @@ export function record(standing: Standing): string {
   return String(standing.wins) + " W · " + String(standing.losses) + " L · " + String(standing.draws) + " D";
 }
 
+/** Both players' remaining time now, counting the running side down from when the view arrived. */
+export function clockNow(clock: ClockView, viewAt: number, now: number): { readonly white: number; readonly black: number } {
+  const spent = Math.max(0, now - viewAt);
+  return {
+    white: Math.max(0, clock.white - (clock.running === "white" ? spent : 0)),
+    black: Math.max(0, clock.black - (clock.running === "black" ? spent : 0)),
+  };
+}
+
+/** "9:41", or "0:07.3" in the last ten seconds. */
+export function formatClock(ms: number): string {
+  if (ms < 10_000) return "0:0" + (Math.floor(ms / 100) / 10).toFixed(1);
+  const seconds = Math.ceil(ms / 1000);
+  return String(Math.floor(seconds / 60)) + ":" + String(seconds % 60).padStart(2, "0");
+}
+
+/** "10+5" */
+export function timeControl(clock: ClockView): string {
+  return String(Math.round(clock.initial / 60_000)) + "+" + String(Math.round(clock.increment / 1000));
+}
+
 /** The finished game's verdict, from the player's side. */
 export function verdict(game: GameView): string {
   if (game.result === null) return "";
-  const how = (game.reason ?? "").replace(/-/g, " ");
+  const how = game.reason === "timeout" ? "time" : game.reason === "timeout-vs-insufficient-material" ? "time, with no mating material left" : (game.reason ?? "").replace(/-/g, " ");
   const winner = game.result === "draw" ? null : game.result === "white" ? game.white : game.black;
   const mine = game.you === "white" ? game.white : game.black;
   const text = winner === null ? "Draw" : winner === mine ? "You won" : winner + " won";
-  return text + " by " + how + (game.rated ? "." : " (too short to count).");
+  return text + (game.reason === "timeout" ? " on " : " by ") + how + (game.rated ? "." : " (too short to count).");
 }

@@ -6,7 +6,7 @@
  */
 import { createSignal } from "solid-js";
 import { Chess } from "./lib/chess.ts";
-import { DEFAULT_SERVER, NAME, OnlineClient, verdict } from "./lib/online.ts";
+import { clockNow, DEFAULT_SERVER, formatClock, NAME, OnlineClient, verdict } from "./lib/online.ts";
 import type { GameView, Network, StateView } from "./lib/online.ts";
 import { fileStore } from "./lib/accounts.ts";
 import type { View } from "./lib/session.ts";
@@ -109,7 +109,8 @@ export function createOnline(options: { readonly server?: string; readonly onEve
       const before = previous.game;
       if (game !== null && (before === null || before.id !== game.id)) options.onEvent("New game against " + opponentOf(game) + ": you play " + game.you + ".", next);
       else if (game !== null && before !== null && game.moves.length > before.moves.length && game.result === null && game.moves.length % 2 === (game.you === "white" ? 0 : 1))
-        options.onEvent(opponentOf(game) + " played " + (game.moves[game.moves.length - 1] ?? "") + ". Your move.", next);
+        options.onEvent(opponentOf(game) + " played " + (game.moves[game.moves.length - 1] ?? "") + ". Your move" +
+          (game.clock === null ? "." : ", " + formatClock(clockNow(game.clock, client.viewAt, Date.now())[game.you]) + " left."), next);
       else if (game !== null && game.result !== null && before !== null && before.result === null) options.onEvent(verdict(game), next);
       for (const from of next.incoming) if (!previous.incoming.includes(from)) options.onEvent(from + " challenges you to a game.", next);
     }
@@ -176,6 +177,7 @@ export function createOnline(options: { readonly server?: string; readonly onEve
       return {
         pid: process.pid, server: client.server, white: current.white, black: current.black, you: current.you,
         start: current.start, moves: [...current.moves], result: current.result, verdict: verdict(current),
+        clock: current.clock === null ? null : { ...current.clock, at: client.viewAt },
       };
     }),
   };

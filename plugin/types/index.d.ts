@@ -38,6 +38,8 @@ export type ServerGame = {
   reason: string | null
   rated: boolean
   opponentOnline: boolean
+  /** Null for untimed games; milliseconds left as of the server's answer (server/src/lobby.ts ClockView). */
+  clock?: { white: number; black: number; running: 'white' | 'black' | null; initial: number; increment: number } | null
 }
 /** Everything one player sees (server/src/lobby.ts StateView). */
 export type ServerView = {
@@ -58,6 +60,9 @@ export type Online = {
   view: ServerView | null
   pending: boolean
   message: string
+  /** When `view` arrived, and the latest clock tick ($.clock.now()): the running clock counts down between them. */
+  viewAt?: number
+  now?: number
 }
 
 declare module 'claude-code' {

@@ -1,7 +1,7 @@
 // The board's side panel in online mode: the lobby (record, play anyone, challenges, players online,
 // high scores) or the game (players, whose move, result). Wording follows the terminal game.
-import { For, Show } from "solid-js";
-import { record } from "./lib/online.ts";
+import { createSignal, For, onCleanup, Show } from "solid-js";
+import { clockNow, formatClock, record, timeControl } from "./lib/online.ts";
 import { opponentOf, type Online } from "./online-game.ts";
 
 type Theme = {
@@ -15,6 +15,40 @@ export function OnlinePanel(props: { readonly online: Online; readonly theme: ()
   const host = () => props.online.client.host;
   const name = () => props.online.client.account?.name ?? "";
   const status = () => props.online.game.view().status;
+
+  // Live clocks: re-read the time while a clock runs, and redraw only when the shown text changes.
+  // The timer lives with the panel, so it stops when the board closes.
+  const times = (at: number) => {
+    const clock = game()?.clock ?? null;
+    return clock === null ? null : clockNow(clock, props.online.client.viewAt, at);
+  };
+  const shown = (at: number) => { const value = times(at); return value === null ? "" : formatClock(value.white) + "|" + formatClock(value.black); };
+  const [now, setNow] = createSignal(Date.now());
+  const timer = setInterval(() => {
+    const running = game()?.result === null && (game()?.clock?.running ?? null) !== null;
+    if (running && shown(Date.now()) !== shown(now())) setNow(Date.now());
+  }, 100);
+  onCleanup(() => clearInterval(timer));
+  const left = (color: "white" | "black") => times(now())?.[color] ?? 0;
+  const clockColor = (color: "white" | "black") => {
+    const running = game()?.clock?.running === color && game()?.result === null;
+    if (running && left(color) < 30_000) return theme().text.feedback.error.base;
+    return running ? theme().text.base : theme().text.muted;
+  };
+  const player = (color: "white" | "black") => {
+    const current = game()!;
+    const name = (color === "white" ? "White  " : "Black  ") + (color === "white" ? current.white : current.black) + (current.you === color ? " (you)" : "");
+    return (
+      <box flexDirection="row" justifyContent="space-between" width={34}>
+        <text fg={theme().text.base}>{name}</text>
+        <Show when={game()?.clock !== null}>
+          <text fg={clockColor(color)}>
+            {game()?.clock?.running === color && game()?.result === null ? <b>{("▶ " + formatClock(left(color))).padStart(8)}</b> : formatClock(left(color)).padStart(8)}
+          </text>
+        </Show>
+      </box>
+    );
+  };
 
   return (
     <box flexDirection="column">
@@ -75,8 +109,11 @@ export function OnlinePanel(props: { readonly online: Online; readonly theme: ()
                 <text fg={current().result !== null ? theme().text.feedback.warning.base : theme().text.base}>
                   <b>{status() + (props.online.pending() ? " …" : "")}</b>
                 </text>
-                <text fg={theme().text.base}>{"White  " + current().white + (current().you === "white" ? " (you)" : "")}</text>
-                <text fg={theme().text.base}>{"Black  " + current().black + (current().you === "black" ? " (you)" : "")}</text>
+                {player(current().you === "white" ? "black" : "white")}
+                {player(current().you)}
+                <Show when={current().clock !== null}>
+                  <text fg={theme().text.muted}>{timeControl(current().clock!) + " · out of time loses"}</text>
+                </Show>
                 <Show when={current().result === null && !current().opponentOnline}>
                   <text fg={theme().text.muted}>{opponentOf(current()) + " is away: loses after 10 minutes offline."}</text>
                 </Show>

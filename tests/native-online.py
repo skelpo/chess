@@ -47,6 +47,8 @@ bob = call("POST", "/v1/register", body={"name": "py_bob"})["token"]
 wait("py_bob")  # long poll delivers the new player
 type_("play\r"); wait("Waiting for an opponent")
 call("POST", "/v1/action", bob, {"type": "queue"}); wait("YOUR MOVE")
+wait("10+5")  # both clocks and the time control
+assert re.search(r"White\s+perry_t \(you\)\s+▶ (10:00|9:5\d)", last()), last()
 type_("e2e4\r"); wait("PY_BOB TO MOVE")
 call("POST", "/v1/action", bob, {"type": "move", "uci": "e7e5"}); wait("YOUR MOVE")
 # arrows: cursor starts at e4 after our move; move to g1 and play g1f3

@@ -382,7 +382,7 @@ export const register: Register = (on, options) => {
         const playing = match.result === null
         return (
           <Box flexDirection="column" height={docked ? '100%' : undefined}>
-            <Client key="board" module="./board.tsx" props={{ ...gameProps(match, net.pending, net.message), flipped: shown.flipped, engine: shown.engine, native: shown.native, room }} width="100%" flexGrow={1} />
+            <Client key="board" module="./board.tsx" props={{ ...gameProps(match, net.pending, net.message, net.viewAt ?? 0, net.now ?? 0), flipped: shown.flipped, engine: shown.engine, native: shown.native, room }} width="100%" flexGrow={1} />
             <Box flexDirection="row" flexWrap="wrap" columnGap={1} marginTop={1}>
               {playing && <Button key="resign" label="Resign" onPress={run('resign')} />}
               {playing && <Button key="draw" label="Claim draw" onPress={run('draw')} />}

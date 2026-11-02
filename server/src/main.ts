@@ -8,7 +8,7 @@
  *   GET  /health                                -> ok
  *
  * Authenticated calls send "Authorization: Bearer <token>". Environment: PORT (8787), HOST (127.0.0.1),
- * CHESS_DATA (chess-data.json). Run it behind an HTTPS reverse proxy.
+ * CHESS_DATA (chess-data.json), and for tests CHESS_CLOCK_MS / CHESS_INCREMENT_MS (600000 / 5000). Run it behind an HTTPS reverse proxy.
  */
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -21,7 +21,8 @@ const PORT = Number(process.env["PORT"] ?? "8787");
 const HOST = process.env["HOST"] ?? "127.0.0.1";
 const DATA = process.env["CHESS_DATA"] ?? "chess-data.json";
 const HOLD_MS = 25_000;
-const SWEEP_MS = 10_000;
+// Once a second, so a player who runs out of time loses promptly.
+const SWEEP_MS = 1_000;
 const MAX_BODY = 8192;
 const REGISTRATIONS_PER_HOUR = 10;
 
@@ -36,6 +37,11 @@ function load(): Lobby {
 
 const lobby = load();
 lobby.newGameId = () => randomBytes(8).toString("hex");
+// Shorter clocks for testing; the defaults are 10 minutes plus 5 seconds a move.
+const clockMs = Number(process.env["CHESS_CLOCK_MS"] ?? "");
+const incrementMs = Number(process.env["CHESS_INCREMENT_MS"] ?? "");
+if (process.env["CHESS_CLOCK_MS"] !== undefined && Number.isFinite(clockMs) && clockMs > 0) lobby.clockMs = clockMs;
+if (process.env["CHESS_INCREMENT_MS"] !== undefined && Number.isFinite(incrementMs) && incrementMs >= 0) lobby.incrementMs = incrementMs;
 
 // Writes at most once a second after a change, through a temporary file so a crash never leaves half a file.
 let savedVersion = lobby.version;

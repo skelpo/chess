@@ -44,7 +44,48 @@ async function call($: EngineInterface, method: 'GET' | 'POST', path: string, to
 }
 
 async function show($: EngineInterface, view: ServerView): Promise<void> {
-  await update($, online, (x): Online => (x.view !== null && x.view.version > view.version ? x : { ...x, view, link: 'live', error: '' }))
+  const at = await $.clock.now()
+  await update($, online, (x): Online => (x.view !== null && x.view.version > view.version ? x : { ...x, view, link: 'live', error: '', viewAt: at, now: at }))
+  tickClocks($, view)
+}
+
+// While an online game's clock runs, the pane redraws a few times a second so both clocks count down.
+let ticker: { cancel: () => void } | null = null
+function clockRunning(view: ServerView | null): boolean {
+  const game = view?.game ?? null
+  return game !== null && game.result === null && (game.clock?.running ?? null) !== null
+}
+function tickClocks($: EngineInterface, view: ServerView | null): void {
+  if (!clockRunning(view)) { ticker?.cancel(); ticker = null; return }
+  if (ticker !== null) return
+  ticker = $.clock.every(250, () => {
+    void $.clock.now().then(at => update($, online, (x): Online => {
+      if (x.mode !== 'online' || !clockRunning(x.view)) { ticker?.cancel(); ticker = null; return x }
+      return { ...x, now: at }
+    }))
+  })
+}
+
+/** Both clocks as the pane shows them, or null for an untimed game. */
+export function clockProps(game: ServerGame, viewAt: number, now: number): Clocks | null {
+  const clock = game.clock ?? null
+  if (clock === null) return null
+  const spent = clock.running === null ? 0 : Math.max(0, now - viewAt)
+  const white = Math.max(0, clock.white - (clock.running === 'white' ? spent : 0))
+  const black = Math.max(0, clock.black - (clock.running === 'black' ? spent : 0))
+  return {
+    white: formatClock(white), black: formatClock(black), running: clock.running,
+    whiteLow: white < 30_000, blackLow: black < 30_000,
+    control: String(Math.round(clock.initial / 60_000)) + '+' + String(Math.round(clock.increment / 1000)),
+  }
+}
+export type Clocks = { white: string; black: string; running: 'white' | 'black' | null; whiteLow: boolean; blackLow: boolean; control: string }
+
+/** "9:41", or "0:07.3" in the last ten seconds. */
+function formatClock(ms: number): string {
+  if (ms < 10_000) return '0:0' + (Math.floor(ms / 100) / 10).toFixed(1)
+  const seconds = Math.ceil(ms / 1000)
+  return String(Math.floor(seconds / 60)) + ':' + String(seconds % 60).padStart(2, '0')
 }
 
 /** Polls the server until online mode ends; each answer redraws the pane. */
@@ -79,7 +120,7 @@ export async function startPolling($: EngineInterface): Promise<void> {
   await loop(-1)
 }
 
-export function stopPolling(): void { generation++ }
+export function stopPolling(): void { generation++; ticker?.cancel(); ticker = null }
 
 /** Sends one action and shows the server's answer at once, without waiting for the poll. */
 async function send($: EngineInterface, action: Record<string, unknown>): Promise<string> {
@@ -173,13 +214,13 @@ function standing(wins: number, losses: number, draws: number): string {
 function reasonText(game: ServerGame): string {
   if (game.result === null) return ''
   const winner = game.result === 'draw' ? null : game.result === 'white' ? game.white : game.black
-  const how = (game.reason ?? '').replace(/-/g, ' ')
+  const how = game.reason === 'timeout' ? 'on time' : game.reason === 'timeout-vs-insufficient-material' ? 'by time, with no mating material left' : 'by ' + (game.reason ?? '').replace(/-/g, ' ')
   const verdict = winner === null ? 'Draw' : (winner === (game.you === 'white' ? game.white : game.black) ? 'You won' : winner + ' won')
-  return verdict + ' by ' + how + (game.rated ? '.' : ' (too short to count for the high scores).')
+  return verdict + ' ' + how + (game.rated ? '.' : ' (too short to count for the high scores).')
 }
 
 /** The board's props for an online game: the position from the server, the player's side, and what to say. */
-export function gameProps(game: ServerGame, pending: boolean, message: string): Record<string, unknown> {
+export function gameProps(game: ServerGame, pending: boolean, message: string, viewAt = 0, now = 0): Record<string, unknown> {
   const live = ChessSession.restore({ start: game.start, moves: game.moves, player: game.you, level: 1, claimed: false })
   const view = live.view()
   const opponent = game.you === 'white' ? game.black : game.white
@@ -195,6 +236,7 @@ export function gameProps(game: ServerGame, pending: boolean, message: string): 
     status,
     heading: 'Online · ' + game.white + ' (White) vs ' + game.black + ' (Black)',
     online: true,
+    clocks: clockProps(game, viewAt, now),
     thinking: false,
     message,
     hint: null,

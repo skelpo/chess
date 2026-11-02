@@ -22,6 +22,11 @@ export type OnlineRecord = {
   readonly result: "white" | "black" | "draw" | null;
   /** The board's verdict line once the game is over, e.g. "You won by checkmate." */
   readonly verdict: string;
+  /** Milliseconds left as of `clock.at` (local time); null for untimed games. */
+  readonly clock?: {
+    readonly white: number; readonly black: number; readonly running: "white" | "black" | null;
+    readonly initial: number; readonly increment: number; readonly at: number;
+  } | null;
 };
 
 export type Saved = {

@@ -84,6 +84,10 @@ test('pick a username, get paired, play, and Claude stays out of the game', asyn
   await clock.advance(10)
   expect(await ui.find({ type: 'Text', text: 'Online · Eli (White) vs Dana (Black)', in: 'board' })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /Eli to move/, in: 'board' })).toBeDefined()
+  // Both clocks, 10+5, White's running.
+  expect(await ui.find({ type: 'Text', text: '10+5 · out of time loses', in: 'board' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^▶ (10:00|9:\d\d)$/, in: 'board' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^  10:00$/, in: 'board' })).toBeDefined()
 
   // Eli's move arrives through the held poll; Dana answers from the move field.
   net.act(eli, { type: 'move', uci: 'e2e4' })

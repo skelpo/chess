@@ -5,6 +5,7 @@
  */
 import { Chess } from "./lib/chess.ts";
 import { TOOLS } from "./lib/session.ts";
+import { formatClock } from "./lib/online.ts";
 import { liveOnline, parseSaved, readText, restore, save, statePath } from "./game.ts";
 import type { OnlineRecord } from "./game.ts";
 
@@ -73,6 +74,18 @@ export function runBoardTool(input: Input): { text: string; isError: boolean } {
 
 function opponent(online: OnlineRecord): string { return online.you === "white" ? online.black : online.white; }
 
+/** "Clocks (10+5, out of time loses): your clock 8:12 (running), py_bob 9:30." counted down to now. */
+function clockLine(online: OnlineRecord): string[] {
+  const clock = online.clock;
+  if (clock === undefined || clock === null) return [];
+  const spent = clock.running === null ? 0 : Math.max(0, Date.now() - clock.at);
+  const left = (color: "white" | "black") => Math.max(0, clock[color] - (clock.running === color ? spent : 0));
+  const them = online.you === "white" ? "black" : "white";
+  const side = (color: "white" | "black", label: string) => label + " " + formatClock(left(color)) + (clock.running === color ? " (running)" : "");
+  const control = String(Math.round(clock.initial / 60_000)) + "+" + String(Math.round(clock.increment / 1000));
+  return ["Clocks (" + control + ", out of time loses): " + side(online.you, "your clock") + ", " + side(them, opponent(online)) + "."];
+}
+
 /** The online game as the user sees it on the board, from their side. */
 function describeOnline(online: OnlineRecord): string {
   const game = new Chess(online.start);
@@ -94,6 +107,7 @@ function describeOnline(online: OnlineRecord): string {
   return [
     "Live online game on " + online.server.replace(/^https?:\/\//, "") + ": " + online.white + " (White) vs " + online.black + " (Black). The user is " + online.you + ".",
     online.result !== null ? "Finished: " + online.verdict : "In progress: " + toMove + " to move" + (status.check ? ", check" : "") + ".",
+    ...clockLine(online),
     "",
     ...rows,
     "    " + (flipped ? "h g f e d c b a" : "a b c d e f g h"),

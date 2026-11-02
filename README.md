@@ -45,7 +45,7 @@ The chess tools (`tuichess mcp`) work in any agent that speaks MCP. The game liv
   opencode reload
   ```
   Then start opencode and type `/chess`. From a clone, `ln -s "$PWD/opencode/plugin" ~/.config/opencode/plugins/tuichess` works too. The board's game is saved in `~/.local/state/tuichess/opencode-board.json`, separate from the `/board-plain` game in the chat.
-  To play people online, press `o` on the board (or type `/chess-online`). You get the same lobby, play-anyone queue, challenges and high scores as the terminal game, and the same username, kept in `~/.config/tuichess/accounts.json`. In the lobby, `p` plays anyone, `y`/`x` accept or decline a challenge, `m` opens the menu (challenge, resign, claim a draw), `r` resigns and `o` goes back to the engine game. In an online game the agent can read the board but won't give hints or move for you.
+  To play people online, press `o` on the board (or type `/chess-online`). You get the same lobby, play-anyone queue, challenges and high scores as the terminal game, and the same username, kept in `~/.config/tuichess/accounts.json`. In the lobby, `p` plays anyone, `y`/`x` accept or decline a challenge, `m` opens the menu (challenge, resign, claim a draw), `r` resigns and `o` goes back to the engine game. The board shows both clocks (10 min + 5 s per move; out of time loses). In an online game the agent can read the board and the clocks, but won't give hints or move for you.
 - **Anything else:** run `npx -y tuichess mcp` as a stdio MCP server.
 
 ## Play from source
@@ -159,7 +159,7 @@ The same binary's `mcp` mode is a stdio MCP server, so other agents can use the 
 
 ### Online play
 
-**Play online** in the pane's menu (or `online` in its move field) connects to a chess server. Pick a username: 3 to 20 letters, digits, `_` or `-`, first come, first served. There's no password; the plugin keeps a random token for the name in its store on this computer. The lobby offers **Play anyone**, which pairs you with the next waiting player (who waited longer plays White), and a list of who's online to **Challenge** by name. Incoming challenges show **Accept** and **Decline**. There are no clocks and no chat. A player who's been gone from a game for 10 minutes loses it. No takebacks or hints online, and Claude's chess tools refuse to touch an online game while it's in progress.
+**Play online** in the pane's menu (or `online` in its move field) connects to a chess server. Pick a username: 3 to 20 letters, digits, `_` or `-`, first come, first served. There's no password; the plugin keeps a random token for the name in its store on this computer. The lobby offers **Play anyone**, which pairs you with the next waiting player (who waited longer plays White), and a list of who's online to **Challenge** by name. Incoming challenges show **Accept** and **Decline**. Every online game has a clock: 10 minutes per player plus 5 seconds per move. Running out of time loses, unless the opponent has only a king, or a king and one bishop or knight, which makes it a draw. There's no chat. A player who's been gone from a game for 10 minutes loses it. No takebacks or hints online, and Claude's chess tools refuse to touch an online game while it's in progress.
 
 The **high scores** list the top 20 players by wins (then fewer losses, then more draws). Only games of at least 10 half-moves count, so instant resignations don't farm wins. Usernames are free, so someone can still play two of their own accounts against each other; the table is for fun, not a rating.
 

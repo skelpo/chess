@@ -1,6 +1,6 @@
 {
   "name": "chess",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Play chess in a board pane beside the chat (arrow keys or mouse) against a built-in, dependency-free engine, and ask Claude about the position.",
   "author": {
     "name": "Ralph Küpper",

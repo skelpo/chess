@@ -156,7 +156,7 @@ opencode reload</code></pre>
       <li>Type <code>/chess</code> in opencode. Play with the arrows and Enter, or type <code>e2e4</code>.</li>
       <li><code>u</code> undoes, <code>i</code> gives a hint, <code>t</code> flips the board, <code>+</code>/<code>-</code> change the level, <code>m</code> opens the menu, Esc goes back to the chat.</li>
       <li>The session sidebar shows the position while you chat, and the agent sees the same game through its <code>chess_board</code> tool. Ask it how your position looks.</li>
-      <li><b>Online:</b> press <code>o</code> on the board (or type <code>/chess-online</code>) and pick a username. In the lobby, <code>p</code> plays anyone and <code>y</code>/<code>x</code> answer challenges. It's the same username as the terminal game. In online games the agent gives no hints and makes no moves.</li>
+      <li><b>Online:</b> press <code>o</code> on the board (or type <code>/chess-online</code>) and pick a username. In the lobby, <code>p</code> plays anyone and <code>y</code>/<code>x</code> answer challenges. It's the same username as the terminal game. The board shows both clocks. In online games the agent can read the position and the clocks, but gives no hints and makes no moves.</li>
     </ul>
     <p class="muted">Optional, a text board in the chat as well (<code>/board-plain</code>, played by the agent through the engine's tools):</p>
     <pre><code id="oc-plain">opencode mcp add chess --global -- npx -y tuichess mcp
@@ -215,7 +215,7 @@ codex plugin add chess@skelpo-chess</code></pre>
     <ul>
       <li><b>Play online</b> in the menu (or <code>online</code> in the move field). Pick a username: 3 to 20 letters, digits, <code>_</code> or <code>-</code>, first come, first served. No password or email: the plugin keeps a random token for the name on your computer.</li>
       <li><b>Play anyone</b> pairs you with the next waiting player; whoever waited longer plays White. Or <b>Challenge</b> someone from the online list; they can Accept or Decline.</li>
-      <li>No clocks and no chat. Someone gone from a game for 10 minutes loses it. No takebacks or hints online.</li>
+      <li>Clocks: 10 minutes per player plus 5 seconds per move. Running out of time loses; it's a draw if the opponent has only a king, or a king and one bishop or knight. No chat. Someone gone from a game for 10 minutes loses it. No takebacks or hints online.</li>
       <li>The high scores rank wins, then fewer losses, then more draws. Games shorter than 10 half-moves don't count.</li>
     </ul>
 

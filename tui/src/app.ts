@@ -1,6 +1,6 @@
 import { Chess, START_FEN, levelSettings, parseLevel } from "../../engine/src/chess.ts";
 import type { Color, Level, Move, Piece, SearchResult } from "../../engine/src/chess.ts";
-import { NAME, record, verdict } from "./online.ts";
+import { NAME, clockNow, formatClock, record, timeControl, verdict } from "./online.ts";
 import type { GameView, OnlineClient } from "./online.ts";
 
 export interface AppOptions {
@@ -224,6 +224,23 @@ export class ChessApp {
     this.message = "Back to the engine game.";
   }
 
+  /** The time for clocks; tests can replace it. */
+  now: () => number = () => Date.now();
+
+  /** True while an online game's clock is running: the screen redraws every second then. */
+  clockRunning(): boolean {
+    const game = this.mode === "online" ? this.onlineGame() : null;
+    return game !== null && game.result === null && game.clock !== null && game.clock.running !== null;
+  }
+
+  /** The clock text as shown now; it changes when the screen needs a redraw for the clocks. */
+  clockKey(): string {
+    const game = this.onlineGame();
+    if (game === null || game.clock === null || this.online === null) return "";
+    const times = clockNow(game.clock, this.online.viewAt, this.now());
+    return formatClock(times.white) + "|" + formatClock(times.black);
+  }
+
   /** The current online game, if any. */
   onlineGame(): GameView | null { return this.online?.view?.game ?? null; }
 
@@ -336,8 +353,18 @@ export class ChessApp {
         : (this.game.turn() === game.you ? "YOUR MOVE" : opponent.toUpperCase() + " TO MOVE") + (status.check ? " · CHECK" : "");
       if (client.pending) line += " …";
       panel.push(head(line), "");
-      panel.push("White  " + game.white + (game.you === "white" ? " (you)" : ""));
-      panel.push("Black  " + game.black + (game.you === "black" ? " (you)" : ""));
+      const times = game.clock === null ? null : clockNow(game.clock, client.viewAt, this.now());
+      const side = (color: "white" | "black", name: string): string => {
+        const label = (color === "white" ? "White  " : "Black  ") + (name + (game.you === color ? " (you)" : "")).padEnd(20, " ").slice(0, 20);
+        if (times === null || game.clock === null) return label;
+        const time = formatClock(times[color]);
+        const running = game.clock.running === color;
+        const low = times[color] < 30_000;
+        return label + " " + this.paint((running ? "▶ " : "  ") + time, running ? (low ? "1;38;5;203" : "1;38;5;151") : "38;5;245");
+      };
+      panel.push(side("white", game.white));
+      panel.push(side("black", game.black));
+      if (game.clock !== null) panel.push(this.paint(timeControl(game.clock) + " · out of time loses", "38;5;245"));
       if (game.result === null && !game.opponentOnline) panel.push(dim(opponent + " is away: loses"), dim("after 10 minutes offline."));
       panel.push("");
       if (game.result === null) panel.push("e2e4       Your move", "resign     Give up", "draw       Claim a draw");

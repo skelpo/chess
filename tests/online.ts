@@ -93,6 +93,14 @@ async function main(): Promise<void> {
   assert(a.app.game.history().length === 0, "online board starts fresh");
   assert(b.app.flipped && !a.app.flipped, "boards face each player");
   assert(a.app.render(100).includes("YOUR MOVE"), "alice to move");
+  // Clocks: 10+5, White's running; the shown time counts down locally between server answers.
+  const start = a.app.render(100);
+  assert(start.includes("10+5 · out of time loses") && /White\s+alice_t \(you\)\s+▶ (10:00|9:5\d)/.test(start), "clocks shown, White's running");
+  assert(a.app.clockRunning() && b.app.clockRunning(), "both boards tick");
+  const later = a.client.viewAt;
+  a.app.now = () => later + 61_000;
+  assert(/▶ 8:5\d/.test(a.app.render(100)), "the running clock counts down locally");
+  a.app.now = () => Date.now();
 
   b.app.command("e7e5");
   assert(b.app.message.includes("Wait"), "bob must wait");
@@ -103,6 +111,8 @@ async function main(): Promise<void> {
   assert(b.app.render(100).includes("YOUR MOVE"), "bob to move");
   b.app.command("e7e5");
   await until(() => (a.client.view?.game?.moves.length ?? 0) === 2, "alice receives e7e5");
+  const clock = a.client.view?.game?.clock;
+  assert(clock !== null && clock !== undefined && clock.white > 600_000 && clock.white <= 605_000 && clock.running === "white", "a move adds the 5 s increment");
   a.app.command("undo");
   assert(a.app.message.includes("Not in online"), "no takebacks online");
   a.app.command("e2e5");

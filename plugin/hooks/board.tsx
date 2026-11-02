@@ -2,6 +2,7 @@ import type { ClientKeyEvent, ClientModule, ClientPointerEvent, ClientSurface } 
 
 import type { View } from '../lib/session.ts'
 import type { Extras } from '../types'
+import type { Clocks } from './online.tsx'
 
 type Props = View & Extras & {
   room: { columns: number; rows: number; focused: boolean; docked: boolean }
@@ -9,6 +10,8 @@ type Props = View & Extras & {
   heading: string
   /** An online game: no engine line. */
   online: boolean
+  /** Both players' clocks in an online game; null or missing for untimed and engine games. */
+  clocks?: Clocks | null
 }
 type Local = {
   cursor: number
@@ -234,6 +237,18 @@ const Board: ClientModule<Props, Local> = (props, surface: ClientSurface<Local>)
   const panel = (
     <Box flexDirection="column" width={beside ? SIDE_PANEL - 2 : undefined} marginLeft={beside ? 2 : 0} marginTop={beside ? 0 : 1}>
       <Text bold wrap="wrap">{props.heading !== '' ? props.heading : 'Chess · level ' + String(props.level) + ' (' + props.levelName + ')'}</Text>
+      {props.clocks !== undefined && props.clocks !== null && (['white', 'black'] as const).map(side => {
+        const clocks = props.clocks as Clocks
+        const running = clocks.running === side
+        const low = side === 'white' ? clocks.whiteLow : clocks.blackLow
+        return (
+          <Text key={'clock:' + side}>
+            <Text bold={running} color={running ? (low ? 'error' : 'success') : undefined} dimColor={!running}>{(running ? '▶ ' : '  ') + (side === 'white' ? clocks.white : clocks.black)}</Text>
+            <Text dimColor>{'  ' + (side === 'white' ? 'White' : 'Black')}</Text>
+          </Text>
+        )
+      })}
+      {props.clocks !== undefined && props.clocks !== null && <Text dimColor>{props.clocks.control + ' · out of time loses'}</Text>}
       <Text color={props.over ? 'warning' : props.thinking ? 'suggestion' : undefined} bold={props.playerTurn || props.over} wrap="wrap">{turnText}</Text>
       {!props.online && <Text>
         <Text dimColor>Engine </Text>

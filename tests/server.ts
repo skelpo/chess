@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ABANDON_MS, Lobby, ONLINE_MS, RATED_PLIES } from "../server/src/lobby.ts";
+import { ABANDON_MS, CLOCK_MS, INCREMENT_MS, Lobby, ONLINE_MS, RATED_PLIES } from "../server/src/lobby.ts";
 import type { User } from "../server/src/lobby.ts";
 
 let passed = 0;
@@ -71,6 +71,7 @@ function assert(condition: boolean, label: string): void {
   lobby.act(alice, { type: "challenge", name: "Carol" }, now);
   lobby.act(carol, { type: "challenge", name: "Alice" }, now);
   assert(lobby.view(alice, now).game?.result === null, "crossed challenges start a game");
+  lobby.act(alice, { type: "move", uci: "e2e4" }, now);
   now += ONLINE_MS + 1;
   lobby.authenticate("ta", now);
   assert(!lobby.view(alice, now).online.some((p) => p.name === "Carol"), "carol drops off the online list");
@@ -78,11 +79,79 @@ function assert(condition: boolean, label: string): void {
   lobby.authenticate("ta", now);
   assert(lobby.sweep(now), "sweep finds the abandoned game");
   const abandoned = lobby.view(alice, now).game;
-  assert(abandoned?.result === "white" && abandoned.reason === "abandoned", "the player who stayed wins an abandoned game");
+  // In a timed game the absent player's clock runs out first; the abandon rule covers untimed (older) games.
+  assert(abandoned?.result === "white" && (abandoned.reason === "timeout" || abandoned.reason === "abandoned"), "the player who stayed wins an abandoned game");
 
   // Saved state round-trips.
   const copy = new Lobby(JSON.parse(JSON.stringify(lobby.save())));
   assert(copy.authenticate("tc", now)?.name === "Carol" && copy.leaderboard()[0]?.name === "Carol", "save and load keep players and scores");
+}
+
+// Clocks: 10 minutes each plus 5 seconds per move; running out of time loses.
+{
+  const lobby = new Lobby();
+  let now = 5_000_000;
+  lobby.register("Wendy", "tw", now);
+  lobby.register("Bert", "tb", now);
+  const w = lobby.authenticate("tw", now) as User;
+  const b = lobby.authenticate("tb", now) as User;
+  lobby.act(w, { type: "queue" }, now);
+  lobby.act(b, { type: "queue" }, now);
+  let clock = lobby.view(w, now).game?.clock;
+  assert(clock !== null && clock !== undefined && clock.white === CLOCK_MS && clock.black === CLOCK_MS && clock.running === "white", "clocks start full, White's running");
+  assert(clock?.initial === CLOCK_MS && clock.increment === INCREMENT_MS, "view carries the time control");
+  now += 30_000;
+  assert(lobby.view(b, now).game?.clock?.white === CLOCK_MS - 30_000, "White's clock runs while White thinks");
+  lobby.act(w, { type: "move", uci: "e2e4" }, now);
+  clock = lobby.view(w, now).game?.clock;
+  assert(clock?.white === CLOCK_MS - 30_000 + INCREMENT_MS && clock.running === "black" && clock.black === CLOCK_MS, "a move charges the time and adds the increment");
+  now += 12_000;
+  lobby.act(b, { type: "move", uci: "e7e5" }, now);
+  clock = lobby.view(b, now).game?.clock;
+  assert(clock?.black === CLOCK_MS - 12_000 + INCREMENT_MS && clock.running === "white", "Black's move charged too");
+  assert(!lobby.sweep(now + 60_000), "no flag while time remains");
+  now += CLOCK_MS;
+  assert(lobby.sweep(now), "the sweep notices a fallen flag");
+  const over = lobby.view(b, now).game;
+  assert(over?.result === "black" && over.reason === "timeout", "out of time loses");
+  assert(over?.clock?.white === 0 && over.clock.running === null, "the clock stops at zero");
+  assert(!lobby.act(w, { type: "move", uci: "g1f3" }, now).ok, "no moves after the flag");
+  lobby.act(w, { type: "leave" }, now); lobby.act(b, { type: "leave" }, now);
+
+  // A flag falls between sweeps: the next action ends the game first.
+  lobby.authenticate("tw", now); lobby.authenticate("tb", now);
+  lobby.act(w, { type: "challenge", name: "Bert" }, now);
+  lobby.act(b, { type: "accept", name: "Wendy" }, now);
+  lobby.act(w, { type: "move", uci: "d2d4" }, now);
+  now += CLOCK_MS + 1;
+  const late = lobby.act(b, { type: "move", uci: "d7d5" }, now);
+  assert(!late.ok && lobby.view(b, now).game?.reason === "timeout" && lobby.view(b, now).game?.result === "white", "a late move loses on time");
+  lobby.act(w, { type: "leave" }, now); lobby.act(b, { type: "leave" }, now);
+
+  // Out of time against a bare king is a draw.
+  const bare = new Lobby({
+    users: [
+      { name: "Kim", token: "tk", created: 0, seen: now, wins: 0, losses: 0, draws: 0, game: "g" },
+      { name: "Lee", token: "tl", created: 0, seen: now, wins: 0, losses: 0, draws: 0, game: "g" },
+    ],
+    games: [{ id: "g", white: "Kim", black: "Lee", start: "4k3/8/8/8/8/8/8/QK6 w - - 0 1", moves: [], result: null, reason: null, rated: false,
+      created: now, updated: now, clock: { white: 1000, black: 1000, since: now, running: "white" } }],
+  });
+  bare.sweep(now + 1000);
+  const drawn = bare.view(bare.authenticate("tk", now + 1000) as User, now + 1000).game;
+  assert(drawn?.result === "draw" && drawn.reason === "timeout-vs-insufficient-material", "a flag against a bare king is a draw");
+
+  // Games saved before clocks existed stay untimed.
+  const old = new Lobby({
+    users: [
+      { name: "Old", token: "to", created: 0, seen: now, wins: 0, losses: 0, draws: 0, game: "h" },
+      { name: "Timer", token: "tt", created: 0, seen: now, wins: 0, losses: 0, draws: 0, game: "h" },
+    ],
+    games: [{ id: "h", white: "Old", black: "Timer", start: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", moves: [], result: null, reason: null, rated: false, created: now, updated: now }],
+  });
+  assert(old.view(old.authenticate("to", now) as User, now).game?.clock === null, "old games show no clock");
+  old.authenticate("tt", now + CLOCK_MS * 3); old.authenticate("to", now + CLOCK_MS * 3);
+  assert(!old.sweep(now + CLOCK_MS * 3) && old.view(old.authenticate("to", now + CLOCK_MS * 3) as User, now + CLOCK_MS * 3).game?.result === null, "old games have no flag");
 }
 
 // HTTP with long polling, against the real server.

@@ -10,6 +10,9 @@ import type { Color } from "../lib/chess.ts";
 export const ONLINE_MS = 60_000;
 /** A player gone this long from a game in progress loses it. */
 export const ABANDON_MS = 10 * 60_000;
+/** The time control: each player's clock starts at CLOCK_MS and gains INCREMENT_MS with every move they make. */
+export const CLOCK_MS = 10 * 60_000;
+export const INCREMENT_MS = 5_000;
 /** Only games of at least this many half-moves count for the high-score table. */
 export const RATED_PLIES = 10;
 const LEADERBOARD_SIZE = 20;
@@ -18,7 +21,7 @@ const RESERVED = new Set(["admin", "administrator", "engine", "perry", "server",
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export type Result = "white" | "black" | "draw";
-export type Reason = "checkmate" | "resignation" | "abandoned" | "stalemate" | "insufficient-material" |
+export type Reason = "checkmate" | "resignation" | "abandoned" | "timeout" | "timeout-vs-insufficient-material" | "stalemate" | "insufficient-material" |
   "fivefold-repetition" | "seventy-five-move" | "threefold-repetition" | "fifty-move";
 
 export interface User {
@@ -42,6 +45,26 @@ export interface Game {
   rated: boolean;
   created: number;
   updated: number;
+  /** Missing on games saved before clocks existed: those stay untimed. */
+  clock?: Clock | null;
+}
+/** Remaining milliseconds per side as of `since`; the side in `running` is spending time since then. */
+export interface Clock {
+  white: number;
+  black: number;
+  since: number;
+  running: Color | null;
+  /** The game's own time control (missing on clocks saved before it was stored: the lobby's then applies). */
+  initial?: number;
+  increment?: number;
+}
+/** The clock as a player sees it: remaining time at the moment of the view, and whose clock is running. */
+export interface ClockView {
+  readonly white: number;
+  readonly black: number;
+  readonly running: Color | null;
+  readonly initial: number;
+  readonly increment: number;
 }
 export interface Saved {
   readonly users: readonly User[];
@@ -60,6 +83,7 @@ export interface GameView {
   readonly reason: Reason | null;
   readonly rated: boolean;
   readonly opponentOnline: boolean;
+  readonly clock: ClockView | null;
 }
 export interface StateView {
   readonly version: number;
@@ -93,6 +117,9 @@ export class Lobby {
   /** Challenges by challenger key: one open challenge each. */
   private readonly challenges = new Map<string, string>();
   private changes = 0;
+  /** The time control for new games and moves; main.ts can shorten it for tests (CHESS_CLOCK_MS, CHESS_INCREMENT_MS). */
+  clockMs = CLOCK_MS;
+  incrementMs = INCREMENT_MS;
 
   constructor(saved: Saved | null = null) {
     if (saved === null) return;
@@ -128,14 +155,16 @@ export class Lobby {
   }
 
   act(user: User, action: Action, now: number): Outcome<null> {
+    // A flag that fell since the last sweep ends the game before anything else happens.
+    const expired = this.expireClocks(now);
     const result = this.dispatch(user, action, now);
-    if (result.ok) this.bump();
+    if (result.ok || expired) this.bump();
     return result;
   }
 
   /** Expires presence and abandoned games; true when anything changed. */
   sweep(now: number): boolean {
-    let changed = false;
+    let changed = this.expireClocks(now);
     for (let i = this.queue.length - 1; i >= 0; i--) {
       const user = this.users.get(this.queue[i] ?? "");
       if (user === undefined || !this.isOnline(user, now)) { this.queue.splice(i, 1); changed = true; }
@@ -248,7 +277,7 @@ export class Lobby {
       }
       case "move": {
         const game = this.activeGame(user);
-        if (game === null) return no(409, "You are not in a game.");
+        if (game === null) return no(409, user.game !== null ? "The game is over." : "You are not in a game.");
         const board = this.board(game);
         const color: Color = key(game.white) === me ? "white" : "black";
         if (board.turn() !== color) return no(409, "It is not your turn.");
@@ -256,6 +285,12 @@ export class Lobby {
         if (played === null) return no(400, "Illegal move: " + action.uci + ".");
         game.moves.push(played.uci);
         game.updated = now;
+        const clock = game.clock;
+        if (clock !== undefined && clock !== null) {
+          clock[color] = clock[color] - (now - clock.since) + (clock.increment ?? this.incrementMs);
+          clock.since = now;
+          clock.running = color === "white" ? "black" : "white";
+        }
         const status = board.status();
         if (status.state === "checkmate") this.finish(game, color, "checkmate", now);
         else if (status.state === "draw") this.finish(game, "draw", status.drawReason ?? "stalemate", now);
@@ -285,7 +320,10 @@ export class Lobby {
 
   private startGame(white: User, black: User, now: number): void {
     const id = this.newGameId();
-    const game: Game = { id, white: white.name, black: black.name, start: START, moves: [], result: null, reason: null, rated: false, created: now, updated: now };
+    const game: Game = {
+      id, white: white.name, black: black.name, start: START, moves: [], result: null, reason: null, rated: false, created: now, updated: now,
+      clock: { white: this.clockMs, black: this.clockMs, since: now, running: "white", initial: this.clockMs, increment: this.incrementMs },
+    };
     this.games.set(id, game);
     white.game = id;
     black.game = id;
@@ -297,6 +335,12 @@ export class Lobby {
   }
 
   private finish(game: Game, result: Result, reason: Reason, now: number): void {
+    const clock = game.clock;
+    if (clock !== undefined && clock !== null && clock.running !== null) {
+      clock[clock.running] = Math.max(0, clock[clock.running] - (now - clock.since));
+      clock.since = now;
+      clock.running = null;
+    }
     game.result = result;
     game.reason = reason;
     game.updated = now;
@@ -309,6 +353,23 @@ export class Lobby {
     if (result === "draw") { white.draws++; black.draws++; }
     else if (result === "white") { white.wins++; black.losses++; }
     else { black.wins++; white.losses++; }
+  }
+
+  /** Ends every game whose running clock has reached zero; true when any did. */
+  private expireClocks(now: number): boolean {
+    let changed = false;
+    for (const game of this.games.values()) {
+      const clock = game.clock;
+      if (game.result !== null || clock === undefined || clock === null || clock.running === null) continue;
+      if (clock[clock.running] - (now - clock.since) > 0) continue;
+      const loser = clock.running;
+      const winner: Color = loser === "white" ? "black" : "white";
+      // Out of time against a side that can't possibly checkmate is a draw.
+      if (canMate(this.board(game), winner)) this.finish(game, winner, "timeout", now);
+      else this.finish(game, "draw", "timeout-vs-insufficient-material", now);
+      changed = true;
+    }
+    return changed;
   }
 
   private board(game: Game): Chess {
@@ -328,6 +389,7 @@ export class Lobby {
       id: game.id, white: game.white, black: game.black, you, start: game.start, moves: [...game.moves],
       result: game.result, reason: game.reason, rated: game.rated,
       opponentOnline: opponent !== undefined && this.isOnline(opponent, now),
+      clock: clockView(game.clock, now, game.clock?.initial ?? this.clockMs, game.clock?.increment ?? this.incrementMs),
     };
   }
 
@@ -350,6 +412,30 @@ export class Lobby {
   }
 
   private bump(): void { this.changes++; }
+}
+
+function clockView(clock: Clock | null | undefined, now: number, initial: number, increment: number): ClockView | null {
+  if (clock === undefined || clock === null) return null;
+  const spent = clock.running === null ? 0 : now - clock.since;
+  return {
+    white: Math.max(0, clock.white - (clock.running === "white" ? spent : 0)),
+    black: Math.max(0, clock.black - (clock.running === "black" ? spent : 0)),
+    running: clock.running, initial, increment,
+  };
+}
+
+/** False when `color` has only a king, or a king and one bishop or knight: no checkmate is possible. */
+function canMate(board: Chess, color: Color): boolean {
+  let minors = 0;
+  for (const file of "abcdefgh") {
+    for (let rank = 1; rank <= 8; rank++) {
+      const piece = board.pieceAt(file + String(rank));
+      if (piece === null || piece.color !== color || piece.type === "king") continue;
+      if (piece.type === "bishop" || piece.type === "knight") minors++;
+      else return true;
+    }
+  }
+  return minors >= 2;
 }
 
 function standing(user: User): Standing {
