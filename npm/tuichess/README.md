@@ -35,5 +35,5 @@ player who is waiting, or `challenge <name>`. No password: your computer keeps t
 codex mcp add chess -- npx -y tuichess mcp
 ```
 
-Builds: macOS (Apple silicon), Linux (x64, arm64). Intel Macs and Windows are waiting on a Perry fix; on Windows, use WSL. Source and the Claude Code plugin:
+Builds: macOS (Apple silicon, Intel), Linux (x64, arm64). Windows is waiting on a Perry fix; until then, use WSL. Source and the Claude Code plugin:
 [github.com/skelpo/chess](https://github.com/skelpo/chess). MIT license.

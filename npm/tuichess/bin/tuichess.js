@@ -7,6 +7,7 @@ const { spawn } = require("child_process");
 
 const PACKAGES = {
   "darwin-arm64": "tuichess-darwin-arm64",
+  "darwin-x64": "tuichess-darwin-x64",
   "linux-arm64": "tuichess-linux-arm64",
   "linux-x64": "tuichess-linux-x64",
 };

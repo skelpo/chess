@@ -10,9 +10,10 @@ import { join } from "node:path";
 
 const PLATFORMS = [
   { key: "darwin-arm64", os: "darwin", cpu: "arm64", label: "macOS Apple silicon" },
+  { key: "darwin-x64", os: "darwin", cpu: "x64", label: "macOS Intel" },
   { key: "linux-x64", os: "linux", cpu: "x64", label: "Linux x64" },
   { key: "linux-arm64", os: "linux", cpu: "arm64", label: "Linux arm64" },
-  // darwin-x64 and win32-x64 return when Perry 0.5.1664's x86-64 stack-map assembly works on Mach-O and COFF.
+  // win32-x64 returns when Perry builds it (see .github/workflows/release.yml).
 ] as { readonly key: string; readonly os: string; readonly cpu: string; readonly label: string }[];
 
 const [version, binaries, out] = process.argv.slice(2);

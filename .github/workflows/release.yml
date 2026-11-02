@@ -32,10 +32,13 @@ jobs:
       matrix:
         include:
           - { key: darwin-arm64, runner: macos-14 }
+          # One codegen unit: Perry 0.5.1664 splits big modules and then needs a cross-unit
+          # subtraction relocation that x86-64 Mach-O can't encode.
+          - { key: darwin-x64, runner: macos-15-intel, units: "1" }
           - { key: linux-x64, runner: ubuntu-22.04 }
           - { key: linux-arm64, runner: ubuntu-22.04-arm }
-          # darwin-x64 (macos-15-intel) and win32-x64 (windows-2022, exe: ".exe") fail in Perry 0.5.1664's
-          # x86-64 stack-map assembly on Mach-O and COFF; add them back once Perry fixes that.
+          # win32-x64 (windows-2022, exe: ".exe") waits for Perry: the runner's clang 20 can't assemble
+          # LLVM 22's .seh_*epilogue directives, and app.ts hits an addrspace(256) IR construction error.
     defaults:
       run:
         shell: bash
@@ -53,7 +56,10 @@ jobs:
       - name: Install Perry
         run: npm install -g "@perryts/perry@$PERRY_VERSION" && perry --version
       - name: Compile
+        env:
+          PERRY_CODEGEN_UNITS: ${{ matrix.units }}
         run: |
+          [ -n "$PERRY_CODEGEN_UNITS" ] || unset PERRY_CODEGEN_UNITS
           mkdir -p out
           bin="out/tuichess-${{ matrix.key }}${{ matrix.exe }}"
           perry compile tui/src/main.ts -o "$bin" --strict-eval --strict-dynamic-import --strict-unimplemented
@@ -109,5 +115,9 @@ jobs:
       - name: Publish (platform packages first, then the launcher)
         run: |
           npm install -g npm@latest
-          for dir in npm-out/tuichess-*; do (cd "$dir" && npm publish --provenance --access public); done
-          (cd npm-out/tuichess && npm publish --provenance --access public)
+          # Versions already on npm are skipped, so a release can be re-run after a partial failure.
+          for dir in npm-out/tuichess-* npm-out/tuichess; do
+            name=$(node -p "require('./$dir/package.json').name"); version=$(node -p "require('./$dir/package.json').version")
+            if npm view "$name@$version" version >/dev/null 2>&1; then echo "$name@$version is already published"; continue; fi
+            (cd "$dir" && npm publish --provenance --access public)
+          done
