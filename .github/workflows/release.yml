@@ -114,10 +114,16 @@ jobs:
           node scripts/npm-pack.ts "$version" binaries npm-out
       - name: Publish (platform packages first, then the launcher)
         run: |
+          set -o pipefail
           npm install -g npm@latest
           # Versions already on npm are skipped, so a release can be re-run after a partial failure.
           for dir in npm-out/tuichess-* npm-out/tuichess; do
             name=$(node -p "require('./$dir/package.json').name"); version=$(node -p "require('./$dir/package.json').version")
             if npm view "$name@$version" version >/dev/null 2>&1; then echo "$name@$version is already published"; continue; fi
-            (cd "$dir" && npm publish --provenance --access public)
+            # npm processes new versions for a few minutes ("staged") before `npm view` shows them;
+            # publishing one again then answers 409, which means it is already there.
+            if ! (cd "$dir" && npm publish --provenance --access public 2>&1 | tee /tmp/publish.log); then
+              grep -qE "E409|previously (staged|published)|cannot publish over" /tmp/publish.log || exit 1
+              echo "$name@$version is already published (staged)"
+            fi
           done
