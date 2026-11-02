@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Runs on the host, from deploy.sh. Touches only tuichess files: /opt/tuichess, /var/lib/tuichess,
-# /var/www/tuichess.dev, /var/www/tuichess-acme, /etc/nginx/sites-*/tuichess-*, tuichess.service.
+# Runs on the host, from deploy.sh. Touches only tuichess files: /opt/tuichess, /var/lib/tuichess, /var/backups/tuichess,
+# /var/www/tuichess.dev, /var/www/tuichess-acme, /etc/nginx/sites-*/tuichess-*, tuichess.service, tuichess-backup.*.
 set -euo pipefail
 PERRY_VERSION="0.5.1664"
 PUBLIC_IP="84.32.98.163"
@@ -37,6 +37,11 @@ systemctl enable --quiet tuichess
 systemctl restart tuichess
 for _ in 1 2 3 4 5 6 7 8 9 10; do curl -fsS http://127.0.0.1:8787/health >/dev/null 2>&1 && break; sleep 0.5; done
 curl -fsS http://127.0.0.1:8787/health >/dev/null && echo "Server running (pid $(systemctl show -p MainPID --value tuichess), Perry $PERRY_VERSION native)"
+
+install -m 0755 deploy/tuichess-admin /opt/tuichess/bin/tuichess-admin
+install -m 0644 deploy/tuichess-backup.service deploy/tuichess-backup.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --quiet --now tuichess-backup.timer
 
 echo "Installing the site..."
 mkdir -p /var/www/tuichess.dev /var/www/tuichess-acme

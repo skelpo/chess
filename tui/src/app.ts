@@ -72,7 +72,7 @@ export class ChessApp {
   flipped: boolean;
   running = true;
   input = "";
-  message = "Welcome. Play e2e4, or use arrows and Space. Type help for commands.";
+  message = "Welcome. Play e2e4, or use arrows and Space. Type online to play people, help for commands.";
   showHelp = false;
   selected = "";
   promotion = "";
@@ -412,7 +412,7 @@ export class ChessApp {
     let outcome = this.game.turn().toUpperCase() + " TO MOVE" + (status.check ? " · CHECK" : "");
     if (status.state === "checkmate") outcome = "CHECKMATE · " + (status.winner ?? "").toUpperCase() + " WINS";
     else if (status.state === "draw") outcome = "DRAW · " + (status.drawReason ?? "").replace(/-/g, " ");
-    const panel: string[] = [this.paint(outcome, "1;38;5;151"), "", "Arrows     Move cursor", "Space      Select / move", "e2e4       Type a move", "help       All commands", "undo       Take back", "hint       Suggest a move", "quit       Exit", ""];
+    const panel: string[] = [this.paint(outcome, "1;38;5;151"), "", "Arrows     Move cursor", "Space      Select / move", "e2e4       Type a move", "help       All commands", "undo       Take back", "hint       Suggest a move", "online     Play people", "quit       Exit", ""];
     if (this.mode === "online") panel.splice(0, panel.length, ...this.onlinePanel());
     if (this.lastSearch !== null && this.mode === "local") {
       panel.push("Depth " + String(this.lastSearch.depth) + " · " + String(this.lastSearch.nodes) + " nodes");

@@ -158,8 +158,8 @@ test('without a native binary the built-in engine plays and says so', async ($, 
   await ui.pointer({ type: 'down', x: 2 + 4 * 7 + 3, y: 4 * 3 + 1, in: 'board' })
   await clock.advance(100)
   expect(await ui.find({ type: 'Text', text: /^1\. e2e4 \S+$/, in: 'board' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'Perry (no binary here)', in: 'board' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /No Perry engine for this platform/, in: 'board' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'built-in JS (npm i -g tuichess for Perry)', in: 'board' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /npm install -g tuichess\. The built-in engine played/, in: 'board' })).toBeDefined()
   await ui.unmount()
 })
 

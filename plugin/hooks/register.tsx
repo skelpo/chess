@@ -71,19 +71,25 @@ function openPane($: EngineInterface, focus: boolean) {
   return $.ui.open(focus ? { ...pane, focus: true } : pane)
 }
 
-/** Finds bin/chess-engine-<os>-<arch>, the Perry build of cli/src/main.ts, and checks that it runs. */
+/**
+ * Finds the Perry-native engine: bin/chess-engine-<os>-<arch> (a local build of cli/src/main.ts), else the
+ * `tuichess` command from npm (`npm install -g tuichess`, the same engine with the same `move` command).
+ */
 async function findNative($: EngineInterface): Promise<string | null> {
   if (nativePath !== undefined) return nativePath
+  nativePath = null
+  const works = async (command: string): Promise<boolean> => {
+    try { return (await $.process.run([command, '--help'], { timeoutMs: 5000 })).exitCode === 0 } catch { return false }
+  }
   try {
     const uname = await $.process.run(['uname', '-sm'], { timeoutMs: 5000 })
     const [system = '', machine = ''] = uname.stdout.trim().toLowerCase().split(/\s+/)
     const arch = machine === 'x86_64' || machine === 'amd64' ? 'x64' : machine === 'aarch64' ? 'arm64' : machine
-    const path = $.plugin.root + '/bin/chess-engine-' + system + '-' + arch
-    const probe = await $.process.run([path, '--help'], { timeoutMs: 5000 })
-    nativePath = probe.exitCode === 0 ? path : null
-  } catch {
-    nativePath = null
-  }
+    const bundled = $.plugin.root + '/bin/chess-engine-' + system + '-' + arch
+    if (await works(bundled)) nativePath = bundled
+  } catch { /* no uname: try npm's tuichess */ }
+  if (nativePath === null && await works('tuichess')) nativePath = 'tuichess'
+
   const native: Extras['native'] = nativePath !== null ? 'ready' : 'missing'
   await update($, extras, x => ({ ...x, native }))
   return nativePath
@@ -113,7 +119,7 @@ async function think($: EngineInterface, live: ChessSession, level: number): Pro
   let note = ''
   if ((await read($, extras)).engine === 'perry') {
     const path = await findNative($)
-    if (path === null) note = 'No Perry engine for this platform; the built-in engine played.'
+    if (path === null) note = 'For the Perry-native engine, run npm install -g tuichess. The built-in engine played.'
     else {
       const snapshot = live.snapshot()
       const stdin = JSON.stringify({ start: snapshot.start, moves: snapshot.moves, level })
@@ -269,6 +275,11 @@ export const register: Register = (on, options) => {
   configure(typeof options['server'] === 'string' ? options['server'] : DEFAULT_SERVER)
 
   on('session.start', async ($, e, next) => {
+    // TUICHESS_SERVER points online play at another server, as for the terminal game (e.g. a local test server).
+    try {
+      const env = await $.process.run(['printenv', 'TUICHESS_SERVER'], { timeoutMs: 3000 })
+      if (env.exitCode === 0 && /^https?:\/\//.test(env.stdout.trim())) configure(env.stdout.trim())
+    } catch { /* keep the default */ }
     if ((await onlineState($)).mode === 'online') void startPolling($)
     await $.command.register({
       name: 'chess',

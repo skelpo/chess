@@ -12,7 +12,7 @@
       "name": "chess",
       "source": "./plugin",
       "description": "Play chess in a board pane beside the chat (arrow keys or mouse) against a built-in, dependency-free engine, and ask Claude about the position.",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "category": "games"
     }
   ]

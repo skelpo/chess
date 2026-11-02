@@ -1,0 +1,6 @@
+[Unit]
+Description=tuichess: daily copy of the online players and games (kept 14 days)
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'mkdir -p /var/backups/tuichess && chmod 700 /var/backups/tuichess && cp /var/lib/tuichess/chess-data.json /var/backups/tuichess/chess-data-$(date +%%F).json && find /var/backups/tuichess -name "chess-data-*.json" -mtime +14 -delete'

@@ -17,7 +17,14 @@ export const INCREMENT_MS = 5_000;
 export const RATED_PLIES = 10;
 const LEADERBOARD_SIZE = 20;
 const NAME = /^[A-Za-z0-9_-]{3,20}$/;
-const RESERVED = new Set(["admin", "administrator", "engine", "perry", "server", "system", "anonymous", "moderator"]);
+const RESERVED = new Set(["admin", "administrator", "engine", "perry", "server", "system", "anonymous", "moderator", "tuichess", "support", "official"]);
+// Names on the public high-score table: refuse obvious slurs and obscenities, also spelled with digits or
+// separators (f_u_c_k, 5h1t). Substrings, so the list keeps to words that rarely occur inside ordinary names.
+const BLOCKED = ["fuck", "shit", "cunt", "nigg", "fagg", "rape", "nazi", "hitler", "heil", "whore", "slut", "kike", "retard", "cocksuck", "pussy", "porn", "penis", "vagina", "bitch", "dildo", "wank", "twat", "kkk"];
+function offensive(name: string): boolean {
+  const plain = name.toLowerCase().replace(/[_-]/g, "").replace(/0/g, "o").replace(/1/g, "i").replace(/3/g, "e").replace(/4/g, "a").replace(/5/g, "s").replace(/7/g, "t").replace(/8/g, "b");
+  return BLOCKED.some((word) => plain.includes(word));
+}
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export type Result = "white" | "black" | "draw";
@@ -138,6 +145,7 @@ export class Lobby {
     const trimmed = name.trim();
     if (!NAME.test(trimmed)) return no(400, "Usernames are 3 to 20 letters, digits, _ or -.");
     if (RESERVED.has(key(trimmed))) return no(409, "That username is reserved.");
+    if (offensive(trimmed)) return no(400, "Please pick another username.");
     if (this.users.has(key(trimmed))) return no(409, "That username is taken.");
     this.addUser({ name: trimmed, token, created: now, seen: now, wins: 0, losses: 0, draws: 0, game: null });
     this.bump();

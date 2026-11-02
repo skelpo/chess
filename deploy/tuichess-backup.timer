@@ -1,0 +1,9 @@
+[Unit]
+Description=tuichess: daily data backup
+
+[Timer]
+OnCalendar=*-*-* 04:17:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

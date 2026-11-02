@@ -20,6 +20,11 @@ function assert(condition: boolean, label: string): void {
   assert(lobby.register("ab", "t0", now).ok === false, "short name refused");
   assert(lobby.register("bad name", "t0", now).ok === false, "space refused");
   assert(lobby.register("Admin", "t0", now).ok === false, "reserved name refused");
+  assert(lobby.register("sh1t_head", "t0", now).ok === false && lobby.register("F_U_C_K", "t0", now).ok === false, "offensive names refused, also disguised");
+  {
+    const names = new Lobby();
+    assert(["ralph", "Grace_Hopper", "kasparov99", "bassist", "Dickens"].every((name, i) => names.register(name, "n" + String(i), now).ok), "ordinary names pass");
+  }
   assert(lobby.register("Alice", "ta", now).ok, "alice registers");
   const taken = lobby.register("alice", "tx", now);
   assert(!taken.ok && taken.status === 409, "names are unique regardless of case");

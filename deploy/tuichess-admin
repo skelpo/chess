@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# tuichess-admin: look after online players on the host.
+#   tuichess-admin list            every player with record and last seen
+#   tuichess-admin remove <name>   delete a player (e.g. an offensive name); their unfinished game ends without a result
+# Removing stops the server for a second, edits the data file (a copy is kept next to the backups), and starts it again.
+set -euo pipefail
+DATA=/var/lib/tuichess/chess-data.json
+BACKUPS=/var/backups/tuichess
+case "${1:-}" in
+  list)
+    node -e '
+      const d = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+      for (const u of d.users.sort((a, b) => b.seen - a.seen))
+        console.log(u.name.padEnd(22), (u.wins + "W " + u.losses + "L " + u.draws + "D").padEnd(14), "seen", new Date(u.seen).toISOString());
+      console.log(d.users.length + " players, " + d.games.length + " games kept");' "$DATA"
+    ;;
+  remove)
+    name="${2:?usage: tuichess-admin remove <name>}"
+    mkdir -p "$BACKUPS" && chmod 700 "$BACKUPS"
+    systemctl stop tuichess
+    trap 'systemctl start tuichess' EXIT
+    cp "$DATA" "$BACKUPS/chess-data-before-remove-$(date +%Y%m%dT%H%M%S).json"
+    node -e '
+      const fs = require("fs"); const [file, name] = process.argv.slice(1);
+      const d = JSON.parse(fs.readFileSync(file, "utf8")); const key = name.toLowerCase();
+      const user = d.users.find((u) => u.name.toLowerCase() === key);
+      if (!user) { console.error("No player named " + name); process.exit(1); }
+      const open = new Set(d.games.filter((g) => g.result === null && [g.white, g.black].some((n) => n.toLowerCase() === key)).map((g) => g.id));
+      d.users = d.users.filter((u) => u !== user);
+      for (const u of d.users) if (open.has(u.game)) u.game = null;
+      d.games = d.games.filter((g) => !open.has(g.id));
+      fs.writeFileSync(file, JSON.stringify(d));
+      console.log("Removed " + user.name + (open.size ? " and their unfinished game" : ""));' "$DATA" "$name"
+    chown tuichess:tuichess "$DATA" && chmod 600 "$DATA"
+    ;;
+  *) sed -n '2,5p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac

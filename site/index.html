@@ -4,7 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>tuichess · chess in your terminal</title>
-<meta name="description" content="Chess beside Claude Code: a board pane, a Perry-native engine, and online games against other people.">
+<meta name="description" content="Chess in your terminal and beside your AI coding agent: a board in Claude Code and opencode, chess in Codex, and a native terminal game. Play the engine or people online, with clocks and high scores.">
+<meta property="og:title" content="tuichess · chess in your terminal">
+<meta property="og:description" content="Play chess beside Claude Code, opencode or Codex, or in any terminal: a Perry-native engine and online games with clocks and high scores.">
+<meta property="og:url" content="https://tuichess.dev/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='8' height='8' fill='%23ad8e62'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23ad8e62'/%3E%3Crect x='8' width='8' height='8' fill='%238a6a43'/%3E%3Crect y='8' width='8' height='8' fill='%238a6a43'/%3E%3C/svg%3E">
 <style>
 :root {
@@ -102,7 +107,7 @@ footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--f
   <div class="hero">
     <div>
       <h1>Chess in your terminal,<br><em>right beside Claude.</em></h1>
-      <p class="lede">A Claude Code plugin: a board pane next to the chat, an engine compiled to native code with Perry, and online games against other people. Ask Claude about your position while you play.</p>
+      <p class="lede">A Claude Code plugin: a board pane next to the chat, an engine compiled to native code with Perry, and online games against other people, with clocks. Ask Claude about your position while you play.</p>
       <div class="cmd"><code id="install-cmd">/plugin install chess --marketplace skelpo/chess</code><button class="copy" data-copy="install-cmd">copy</button></div>
       <p class="small">Then type <code>/chess</code>. Needs Claude Code 2.1.316 or later.</p>
       <p class="small">Also for <a href="#install">opencode</a> (graphical board, online too), <a href="#install">Codex</a> and any terminal, native on macOS and Linux:</p>
@@ -142,6 +147,7 @@ footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--f
     <ol>
       <li>In Claude Code (2.1.316 or later), run <code>/plugin install chess --marketplace skelpo/chess</code>.<br><span class="muted">On older versions: <code>/plugin marketplace add skelpo/chess</code>, then <code>/plugin install chess@skelpo-chess</code>.</span></li>
       <li>Type <code>/chess</code>. The board opens in a pane.</li>
+      <li>Optional, for the Perry-native engine: <code>npm install -g tuichess</code>. The plugin uses it when it's on your PATH.</li>
       <li>For the board beside the chat instead of below it, switch Claude Code to its fullscreen layout: <code>/tui fullscreen</code>. There you can also click the board.</li>
     </ol>
     <p class="muted">Update later with <code>/plugin marketplace update skelpo-chess</code> and <code>/plugin update chess@skelpo-chess</code>.</p>
@@ -220,7 +226,7 @@ codex plugin add chess@skelpo-chess</code></pre>
     </ul>
 
     <h3>The engine</h3>
-    <p>The engine is plain TypeScript with no dependencies. The plugin runs it as a native executable compiled by <a href="https://perryts.com">Perry</a>, which starts in about 10 ms, so every engine move and hint is a fresh native process outside Claude Code. The online server is the same: one TypeScript file, compiled by Perry, running here.</p>
+    <p>The engine is plain TypeScript with no dependencies. The terminal game (<code>npm install -g tuichess</code>) is a native executable compiled by <a href="https://perryts.com">Perry</a>. With it installed, the Claude Code plugin runs every engine move and hint as a fresh native process outside Claude Code (it starts in about 10 ms); without it, the plugin uses the same engine as built-in JavaScript, and the board says which one played. The online server is the same: one TypeScript file, compiled by Perry, running here.</p>
 
     <h3>Other agents (MCP)</h3>
     <p>The same tools are available to opencode, Cursor and any other MCP client as a local stdio server, either from source or from the native binary:</p>
