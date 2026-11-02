@@ -142,6 +142,8 @@ footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--f
       <li>For the board beside the chat instead of below it, switch Claude Code to its fullscreen layout: <code>/tui fullscreen</code>. There you can also click the board.</li>
     </ol>
     <p class="muted">Update later with <code>/plugin marketplace update skelpo-chess</code> and <code>/plugin update chess@skelpo-chess</code>.</p>
+    <h3>In Codex and opencode</h3>
+    <p>Codex: <code>codex plugin marketplace add skelpo/chess</code>, then <code>codex plugin add chess@skelpo-chess</code>. opencode: <code>opencode mcp add chess --global -- npx -y tuichess mcp</code>. Then say "let's play chess": the agent plays through the engine's tools and shows the board in the chat.</p>
     <h3>In any terminal</h3>
     <p><code>npm install -g tuichess</code> (or <code>npx tuichess</code>), then <code>tuichess</code>. Arrows and Space move, or type <code>e2e4</code>; <code>help</code> lists every command. Type <code>online</code> (or start with <code>tuichess --online</code>), pick a username, then <code>play</code> or <code>challenge &lt;name&gt;</code>: the same server, lobby and high scores as the plugin.</p>
   </section>

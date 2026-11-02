@@ -16,11 +16,27 @@ tuichess --online           # play people, with high scores at https://tuichess.
 tuichess mcp                # the chess tools for AI agents (MCP over stdio)
 ```
 
-`tuichess` is one native binary per platform, compiled from `tui/src/main.ts` with Perry: macOS arm64/x64, Linux x64/arm64 and Windows x64. The `tuichess` package is a small launcher; npm installs only the matching `tuichess-<os>-<cpu>` package (optional dependencies picked by `os`/`cpu`, the layout Perry's own npm package uses).
+`tuichess` is one native binary per platform, compiled from `tui/src/main.ts` with Perry: macOS Apple silicon and Linux x64/arm64. Intel macOS and Windows x64 are waiting on Perry: 0.5.1664 fails to assemble its x86-64 stack maps for Mach-O ("unsupported relocation with subtraction expression") and COFF ("unknown directive"), while Linux x64 builds and passes. The `tuichess` package is a small launcher; npm installs only the matching `tuichess-<os>-<cpu>` package (optional dependencies picked by `os`/`cpu`, the layout Perry's own npm package uses).
 
 **Online in the terminal:** type `online` (or start with `--online`), then a username (3 to 20 letters, digits, `_` or `-`). `play` meets the next player who is waiting; `challenge <name>`, `accept <name>` and `decline <name>` handle challenges; `resign`, `draw` (claim), `lobby` and `offline` do what they say. The account is kept in `~/.config/tuichess/accounts.json` (`$TUICHESS_HOME` overrides; `%APPDATA%\tuichess` on Windows). `--server <url>` or `$TUICHESS_SERVER` picks another server.
 
 **Releases** run in GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)): each platform builds on its own runner with the pinned Perry, then runs the smoke, output-parity, terminal and online tests against its binary. Pushing a tag `vX.Y.Z` publishes all packages to npm with provenance (npm trusted publishing); running the workflow by hand without "publish" only builds. [`scripts/npm-pack.ts`](scripts/npm-pack.ts) lays out the packages from the binaries.
+
+## Codex and opencode
+
+The chess tools (`tuichess mcp`) work in any agent that speaks MCP. The game lives in the chat: the agent shows the board after each move and plays through the tools, never inventing moves.
+
+- **Codex** (plugin with the MCP server and a `chess` skill, [`codex/`](codex)):
+  ```sh
+  codex plugin marketplace add skelpo/chess
+  codex plugin add chess@skelpo-chess
+  ```
+  Then start a new session and say "let's play chess". The plugin marks the chess tools as approved, since they only touch the game held inside the chess MCP server.
+- **opencode:**
+  ```sh
+  opencode mcp add chess --global -- npx -y tuichess mcp
+  ```
+- **Anything else:** run `npx -y tuichess mcp` as a stdio MCP server.
 
 ## Play from source
 

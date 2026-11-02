@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "chess": {
+      "command": "npx",
+      "args": ["-y", "tuichess@latest", "mcp"],
+      "startup_timeout_sec": 60,
+      "tool_timeout_sec": 120,
+      "default_tools_approval_mode": "approve"
+    }
+  }
+}

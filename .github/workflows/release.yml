@@ -32,10 +32,10 @@ jobs:
       matrix:
         include:
           - { key: darwin-arm64, runner: macos-14 }
-          - { key: darwin-x64, runner: macos-15-intel }
           - { key: linux-x64, runner: ubuntu-22.04 }
           - { key: linux-arm64, runner: ubuntu-22.04-arm }
-          - { key: win32-x64, runner: windows-2022, exe: ".exe" }
+          # darwin-x64 (macos-15-intel) and win32-x64 (windows-2022, exe: ".exe") fail in Perry 0.5.1664's
+          # x86-64 stack-map assembly on Mach-O and COFF; add them back once Perry fixes that.
     defaults:
       run:
         shell: bash

@@ -1,0 +1,27 @@
+{
+  "name": "chess",
+  "version": "0.1.0",
+  "description": "Play chess against a native engine (compiled with Perry) right in Codex, and get hints and analysis.",
+  "author": { "name": "Ralph Küpper", "url": "https://tuichess.dev" },
+  "homepage": "https://tuichess.dev",
+  "repository": "https://github.com/skelpo/chess",
+  "license": "MIT",
+  "keywords": ["chess", "game", "engine", "perry", "tuichess"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Chess",
+    "shortDescription": "Play chess against a native engine",
+    "longDescription": "Play chess in the Codex chat: ten engine levels, hints, analysis, takebacks and draw claims, through the tuichess engine compiled to native code with Perry. For the full-screen terminal game and online play against people, run npx tuichess.",
+    "developerName": "Skelpo",
+    "category": "Entertainment",
+    "capabilities": ["Interactive"],
+    "websiteURL": "https://tuichess.dev",
+    "defaultPrompt": [
+      "Let's play chess, I'm white",
+      "Play me at level 3 and explain your moves",
+      "Give me a hint for this position"
+    ],
+    "brandColor": "#8a6a43"
+  }
+}

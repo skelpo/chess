@@ -7,10 +7,8 @@ const { spawn } = require("child_process");
 
 const PACKAGES = {
   "darwin-arm64": "tuichess-darwin-arm64",
-  "darwin-x64": "tuichess-darwin-x64",
   "linux-arm64": "tuichess-linux-arm64",
   "linux-x64": "tuichess-linux-x64",
-  "win32-x64": "tuichess-win32-x64",
 };
 
 const key = process.platform + "-" + process.arch;
@@ -18,7 +16,8 @@ const name = PACKAGES[key];
 const file = process.platform === "win32" ? "tuichess.exe" : "tuichess";
 
 if (name === undefined) {
-  console.error("tuichess: no native build for " + key + " yet. Builds exist for " + Object.keys(PACKAGES).join(", ") + ".");
+  console.error("tuichess: no native build for " + key + " yet. Builds exist for " + Object.keys(PACKAGES).join(", ") + "." +
+    (process.platform === "win32" ? " On Windows, run it in WSL." : ""));
   console.error("Run it from source instead: git clone https://github.com/skelpo/chess && cd chess && node tui/src/main.ts");
   process.exit(1);
 }
