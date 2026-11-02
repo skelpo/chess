@@ -3,8 +3,10 @@
  * graphical board (the TUI plugin in tui.tsx). Both read and write the shared game file in game.ts.
  * No imports beyond the engine and node:, so it loads without installing anything.
  */
+import { Chess } from "./lib/chess.ts";
 import { TOOLS } from "./lib/session.ts";
-import { parseSaved, readText, restore, save } from "./game.ts";
+import { liveOnline, parseSaved, readText, restore, save, statePath } from "./game.ts";
+import type { OnlineRecord } from "./game.ts";
 
 const ACTIONS = ["show", "move", "legal_moves", "hint", "engine_move", "undo", "new_game", "settings", "claim_draw"] as const;
 type Action = (typeof ACTIONS)[number];
@@ -41,20 +43,69 @@ const DESCRIPTION =
   "Use it whenever the user talks about 'the board', their game, or asks for a comment or hint on their position: " +
   "action show returns the current position, whose turn it is, the move list and the FEN. " +
   "Changes you make (moves, undo, new game) show up on the user's board right away. " +
-  "Only move for the user when they ask you to. This is a different game from the chess_* MCP tools.";
+  "Only move for the user when they ask you to. This is a different game from the chess_* MCP tools. " +
+  "When the board shows a live online game against a person, show describes that game and every other action is refused: never help with moves there.";
 
 type Input = { action?: unknown } & Record<string, unknown>;
 
 export function runBoardTool(input: Input): { text: string; isError: boolean } {
   const action = input.action as Action;
   if (!ACTIONS.includes(action)) return { text: "Unknown action. Use one of: " + ACTIONS.join(", ") + ".", isError: true };
-  const session = restore(parseSaved(readText()), { boardShownElsewhere: true });
+  const saved = parseSaved(readText());
+  const online = liveOnline(saved);
+  if (online !== null && (online.result === null || action === "show")) {
+    if (action === "show") return { text: describeOnline(online), isError: false };
+    return {
+      text: "The user is playing a live online game against a person (" + opponent(online) + "), so you cannot " + action.replace("_", " ") +
+        " now: no engine moves, hints, undo or analysis help while it is on. You may read it with action show and talk about it, " +
+        "but do not suggest moves. The engine game is on hold until the user goes offline (key o on the board).",
+      isError: true,
+    };
+  }
+  const session = restore(saved, { boardShownElsewhere: true });
   const args: Record<string, unknown> = {};
   for (const key of ["move", "square", "level", "player", "fen"]) if (input[key] !== undefined && input[key] !== null) args[key] = input[key];
   const result = session.call("chess_" + action, args);
   const changes = action !== "show" && action !== "legal_moves" && action !== "hint";
-  if (changes && !result.isError) save(session, "agent", summary(result.text));
+  if (changes && !result.isError) save(session, "agent", summary(result.text), statePath(), saved?.online ?? null);
   return result;
+}
+
+function opponent(online: OnlineRecord): string { return online.you === "white" ? online.black : online.white; }
+
+/** The online game as the user sees it on the board, from their side. */
+function describeOnline(online: OnlineRecord): string {
+  const game = new Chess(online.start);
+  for (const move of online.moves) if (game.play(move) === null) break;
+  const rows: string[] = [];
+  const flipped = online.you === "black";
+  for (let row = 0; row < 8; row++) {
+    const rank = flipped ? row + 1 : 8 - row;
+    let line = String(rank) + " |";
+    for (let column = 0; column < 8; column++) {
+      const piece = game.pieceAt("abcdefgh".charAt(flipped ? 7 - column : column) + String(rank));
+      const letter = piece === null ? "." : piece.type === "knight" ? "n" : piece.type.charAt(0);
+      line += " " + (piece !== null && piece.color === "white" ? letter.toUpperCase() : letter);
+    }
+    rows.push(line + " |");
+  }
+  const status = game.status();
+  const toMove = status.turn === online.you ? "the user (" + online.you + ")" : opponent(online);
+  return [
+    "Live online game on " + online.server.replace(/^https?:\/\//, "") + ": " + online.white + " (White) vs " + online.black + " (Black). The user is " + online.you + ".",
+    online.result !== null ? "Finished: " + online.verdict : "In progress: " + toMove + " to move" + (status.check ? ", check" : "") + ".",
+    "",
+    ...rows,
+    "    " + (flipped ? "h g f e d c b a" : "a b c d e f g h"),
+    "",
+    "Moves: " + (online.moves.length === 0 ? "(none)" : online.moves.join(" ")),
+    "FEN: " + game.fen(),
+    "",
+    online.result === null
+      ? "This is a game against a real person. You may describe the position, but do not suggest moves, plans or evaluations: that would be cheating. Moves, hints and undo are refused."
+      : "The game is over; you may discuss it freely.",
+    "The user sees this board; don't paste it back.",
+  ].join("\n");
 }
 
 /** The notes above the board ("You played e2e4." ...), told from the board's side: the agent did it. */

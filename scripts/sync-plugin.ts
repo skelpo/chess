@@ -16,6 +16,9 @@ export function pluginCopies(): readonly { readonly path: string; readonly text:
     { path: root + "plugin/lib/session.ts", text: NOTICE + "mcp/src/tools.ts. Do not edit.\n" + tools },
     { path: root + "opencode/plugin/lib/chess.ts", text: NOTICE + "engine/src/chess.ts. Do not edit.\n" + engine },
     { path: root + "opencode/plugin/lib/session.ts", text: NOTICE + "mcp/src/tools.ts. Do not edit.\n" + tools },
+    // Online play for the opencode board: the terminal game's client and its accounts file.
+    { path: root + "opencode/plugin/lib/online.ts", text: NOTICE + "tui/src/online.ts. Do not edit.\n" + readFileSync(root + "tui/src/online.ts", "utf8").replaceAll("../../engine/src/chess.ts", "./chess.ts") },
+    { path: root + "opencode/plugin/lib/accounts.ts", text: NOTICE + "tui/src/accounts.ts. Do not edit.\n" + readFileSync(root + "tui/src/accounts.ts", "utf8") },
     // The real server rules behind the plugin's online tests.
     { path: root + "plugin/tests/lobby.ts", text: NOTICE + "server/src/lobby.ts. Do not edit.\n" + readFileSync(root + "server/src/lobby.ts", "utf8").replaceAll("../../engine/src/chess.ts", "../lib/chess.ts") },
   ];

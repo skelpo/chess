@@ -45,6 +45,7 @@ The chess tools (`tuichess mcp`) work in any agent that speaks MCP. The game liv
   opencode reload
   ```
   Then start opencode and type `/chess`. From a clone, `ln -s "$PWD/opencode/plugin" ~/.config/opencode/plugins/tuichess` works too. The board's game is saved in `~/.local/state/tuichess/opencode-board.json`, separate from the `/board-plain` game in the chat.
+  To play people online, press `o` on the board (or type `/chess-online`). You get the same lobby, play-anyone queue, challenges and high scores as the terminal game, and the same username, kept in `~/.config/tuichess/accounts.json`. In the lobby, `p` plays anyone, `y`/`x` accept or decline a challenge, `m` opens the menu (challenge, resign, claim a draw), `r` resigns and `o` goes back to the engine game. In an online game the agent can read the board but won't give hints or move for you.
 - **Anything else:** run `npx -y tuichess mcp` as a stdio MCP server.
 
 ## Play from source

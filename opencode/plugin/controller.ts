@@ -9,6 +9,7 @@ import { createSignal } from "solid-js";
 import { formatScore } from "./lib/session.ts";
 import type { ChessSession, Player, View } from "./lib/session.ts";
 import { parseSaved, readText, restore, save, statePath } from "./game.ts";
+import type { OnlineRecord } from "./game.ts";
 import { searchPosition, type SearchReply, type SearchRequest } from "./engine-worker.ts";
 
 export type Extras = {
@@ -30,6 +31,8 @@ export type Game = {
   readonly level: (delta: number) => void;
   readonly side: (player: Player) => void;
   readonly say: (message: string) => void;
+  /** Records the online game the board shows (or null) in the shared file, for the agent. */
+  readonly publishOnline?: (online: OnlineRecord | null) => void;
   readonly dispose: () => void;
 };
 
@@ -43,8 +46,14 @@ export function createGame(file: string = statePath()): Game {
   const [extras, setExtras] = createSignal<Extras>({ thinking: false, message: parseSaved(written)?.note ?? "", hint: null, stats: "" });
   const patch = (next: Partial<Extras>) => setExtras((current) => ({ ...current, ...next }));
 
+  let online: OnlineRecord | null = null;
+  let lastNote = parseSaved(written)?.note ?? "";
+  const write = () => {
+    try { written = save(session, "board", lastNote, file, online); } catch (error) { patch({ message: "Could not save the game: " + String(error) }); }
+  };
   const commit = (note: string) => {
-    try { written = save(session, "board", note, file); } catch (error) { patch({ message: "Could not save the game: " + String(error) }); }
+    lastNote = note;
+    write();
     setRevision((value) => value + 1);
   };
 
@@ -110,6 +119,7 @@ export function createGame(file: string = statePath()): Game {
     const saved = parseSaved(text);
     if (saved === null) return;
     written = text;
+    lastNote = saved.note;
     session = restore(saved, OPTIONS);
     patch({ hint: null, message: saved.note === "" ? "" : (saved.by === "agent" ? "Agent: " : "") + saved.note });
     setRevision((value) => value + 1);
@@ -176,7 +186,13 @@ export function createGame(file: string = statePath()): Game {
     },
     side(player) { if (!busy()) run("chess_settings", { player }); },
     say(message) { patch({ message }); },
+    publishOnline(next) {
+      if (JSON.stringify(next) === JSON.stringify(online)) return;
+      online = next;
+      write();
+    },
     dispose() {
+      if (online !== null) { online = null; write(); }
       watcher?.close();
       if (timer !== null) clearTimeout(timer);
       void worker?.terminate();

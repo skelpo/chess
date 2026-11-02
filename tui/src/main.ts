@@ -1,12 +1,12 @@
 import { ChessApp, KeyDecoder, defaultOptions } from "./app.ts";
 import { DEFAULT_SERVER, OnlineClient } from "./online.ts";
 import { VERSION } from "./version.ts";
-import type { Account, AccountStore, Network } from "./online.ts";
+import type { Network } from "./online.ts";
+import { fileStore } from "./accounts.ts";
 import { parseLevel } from "../../engine/src/chess.ts";
 import type { Color } from "../../engine/src/chess.ts";
 import { serve } from "../../mcp/src/serve.ts";
 import { answer } from "../../cli/src/move.ts";
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const USAGE = `Usage: tuichess [options]
        tuichess mcp     serve the chess tools to an AI agent (Model Context Protocol, stdio)
@@ -31,42 +31,6 @@ Level names describe search presets, not measured Elo ratings.
 // works consistently in Node, Bun and Perry without runtime detection.
 function setTerminalRawMode(enabled: boolean): void {
   process.stdin.setRawMode(enabled);
-}
-
-/** Where the online username is kept: one account per server, readable only by this user. */
-function configDirectory(): string {
-  const env = process.env;
-  if (env["TUICHESS_HOME"] !== undefined && env["TUICHESS_HOME"] !== "") return env["TUICHESS_HOME"];
-  if (process.platform === "win32") return (env["APPDATA"] ?? env["USERPROFILE"] ?? ".") + "\\tuichess";
-  const xdg = env["XDG_CONFIG_HOME"];
-  return (xdg !== undefined && xdg !== "" ? xdg : (env["HOME"] ?? ".") + "/.config") + "/tuichess";
-}
-
-function fileStore(): AccountStore {
-  const directory = configDirectory();
-  const path = directory + (process.platform === "win32" ? "\\" : "/") + "accounts.json";
-  const readAll = (): Record<string, Account> => {
-    try {
-      if (!existsSync(path)) return {};
-      const value = JSON.parse(readFileSync(path, "utf8")) as unknown;
-      return typeof value === "object" && value !== null ? value as Record<string, Account> : {};
-    } catch { return {}; }
-  };
-  return {
-    load(server: string): Account | null {
-      const account = readAll()[server];
-      return account !== undefined && typeof account.name === "string" && typeof account.token === "string" ? account : null;
-    },
-    save(server: string, account: Account | null): void {
-      const all = readAll();
-      if (account === null) delete all[server]; else all[server] = account;
-      try {
-        mkdirSync(directory, { recursive: true });
-        writeFileSync(path, JSON.stringify(all, null, 2) + "\n");
-        try { chmodSync(path, 0o600); } catch { /* not on every platform */ }
-      } catch { /* the account lasts for this run */ }
-    },
-  };
 }
 
 const network: Network = {

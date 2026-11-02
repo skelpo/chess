@@ -9,9 +9,26 @@ import { dirname, join } from "node:path";
 import { ChessSession } from "./lib/session.ts";
 import type { SessionOptions, Snapshot } from "./lib/session.ts";
 
+/** The online game the board shows, so the agent can read it. Moves and hints are refused while it is live. */
+export type OnlineRecord = {
+  /** The opencode process showing it; a record from a process that is gone is stale. */
+  readonly pid: number;
+  readonly server: string;
+  readonly white: string;
+  readonly black: string;
+  readonly you: "white" | "black";
+  readonly start: string;
+  readonly moves: readonly string[];
+  readonly result: "white" | "black" | "draw" | null;
+  /** The board's verdict line once the game is over, e.g. "You won by checkmate." */
+  readonly verdict: string;
+};
+
 export type Saved = {
   readonly version: 1;
   readonly snapshot: Snapshot;
+  /** Set while the board shows an online game. */
+  readonly online?: OnlineRecord | null;
   /** Who changed the game last. */
   readonly by: "board" | "agent";
   /** A short line about the last change, shown on the board. */
@@ -37,8 +54,10 @@ export function parseSaved(text: string | null): Saved | null {
     const value = JSON.parse(text) as Partial<Saved> | null;
     const snapshot = value?.snapshot;
     if (value?.version !== 1 || snapshot === undefined || typeof snapshot.start !== "string" || !Array.isArray(snapshot.moves)) return null;
+    const online = value.online;
     return {
       version: 1, snapshot,
+      online: online !== null && typeof online === "object" && Array.isArray(online.moves) && typeof online.start === "string" ? online : null,
       by: value.by === "agent" ? "agent" : "board",
       note: typeof value.note === "string" ? value.note : "",
       at: typeof value.at === "number" ? value.at : 0,
@@ -57,12 +76,22 @@ export function restore(saved: Saved | null, options: SessionOptions): ChessSess
 }
 
 /** Writes atomically and returns the text written, so the writer can recognize its own change. */
-export function save(session: ChessSession, by: Saved["by"], note: string, path: string = statePath()): string {
-  const saved: Saved = { version: 1, snapshot: session.snapshot(), by, note, at: Date.now() };
+export function save(session: ChessSession, by: Saved["by"], note: string, path: string = statePath(), online: OnlineRecord | null = null): string {
+  const saved: Saved = { version: 1, snapshot: session.snapshot(), online, by, note, at: Date.now() };
   const text = JSON.stringify(saved) + "\n";
   mkdirSync(dirname(path), { recursive: true });
   const temporary = path + "." + String(process.pid) + ".tmp";
   writeFileSync(temporary, text);
   renameSync(temporary, path);
   return text;
+}
+
+/** The online game from the file, unless the opencode process that wrote it has gone. */
+export function liveOnline(saved: Saved | null): OnlineRecord | null {
+  const online = saved?.online ?? null;
+  if (online === null) return null;
+  try { process.kill(online.pid, 0); } catch (error) {
+    if ((error as { code?: string }).code !== "EPERM") return null;
+  }
+  return online;
 }

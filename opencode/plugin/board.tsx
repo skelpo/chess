@@ -1,6 +1,7 @@
 // The graphical board for opencode, drawn with opentui + Solid. A port of plugin/hooks/board.tsx
 // (the Claude Code plugin's board): the same sprites, colors and highlights.
 import { createMemo, createSignal, For, Show } from "solid-js";
+import type { JSX } from "solid-js";
 import { useTerminalDimensions } from "@opentui/solid";
 import type { Game } from "./controller.ts";
 
@@ -100,6 +101,8 @@ export function ChessBoard(props: {
   readonly letters: () => boolean;
   readonly bindKeys: (keys: BoardKeys) => void;
   readonly command: (character: string) => void;
+  /** Replaces the engine game's side panel (online play); the typed move and promotion prompt stay. */
+  readonly panel?: (moves: () => string) => JSX.Element;
 }) {
   const dimensions = useTerminalDimensions();
   const view = createMemo(() => props.game.view());
@@ -137,7 +140,7 @@ export function ChessBoard(props: {
     setCursor(square);
     setTyped("");
     if (!canAct()) {
-      if (view().over) props.game.say("The game is over: n for a new game, u to undo.");
+      if (view().over) props.game.say(props.panel !== undefined ? "The game is over." : "The game is over: n for a new game, u to undo.");
       else if (extras().thinking) props.game.say("The engine is thinking…");
       return;
     }
@@ -294,6 +297,7 @@ export function ChessBoard(props: {
         marginTop={layout().beside ? 0 : 1}
         flexShrink={1}
       >
+        <Show when={props.panel} fallback={<>
         <text fg={theme().text.base}><b>{"Chess · level " + String(view().level) + " (" + view().levelName + ")"}</b></text>
         <text fg={view().over ? theme().text.feedback.warning.base : extras().thinking ? theme().text.muted : theme().text.base}>
           {view().playerTurn || view().over ? <b>{status()}</b> : status()}
@@ -317,6 +321,14 @@ export function ChessBoard(props: {
           <For each={help()}>{(line) => <text fg={theme().text.muted}>{line}</text>}</For>
           <text fg={theme().text.muted}>The agent sees this board too.</text>
         </box>
+        </>}>
+          {(panel) => <>
+            <Show when={typed() !== "" || promotion() !== null}>
+              <text fg={theme().text.base}>{promotion() !== null || typed().length === 4 ? "Promote to: q queen  r rook  b bishop  n knight" : "Move: " + typed() + "_"}</text>
+            </Show>
+            {panel()(() => recent(view().moves, 180))}
+          </>}
+        </Show>
       </box>
     </box>
   );

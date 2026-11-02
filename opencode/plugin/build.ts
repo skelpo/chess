@@ -19,11 +19,11 @@ const typescript = require.resolve("@babel/preset-typescript");
 // dist/ sits one level down: point plain-TS imports back up, and compiled siblings at their .js files.
 const rewrite = (code: string) =>
   code
-    .replaceAll(/from "\.\/(board|tui)\.tsx"/g, 'from "./$1.js"')
+    .replaceAll(/from "\.\/([\w-]+)\.tsx"/g, 'from "./$1.js"')
     .replaceAll(/from "\.\/((?:lib\/)?[\w-]+\.ts)"/g, 'from "../$1"');
 
 mkdirSync(here + "dist", { recursive: true });
-for (const name of ["tui", "board"]) {
+for (const name of ["tui", "board", "online-panel"]) {
   const filename = here + name + ".tsx";
   const result = await babel.transformAsync(readFileSync(filename, "utf8"), {
     filename,
