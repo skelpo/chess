@@ -105,7 +105,7 @@ footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--f
       <p class="lede">A Claude Code plugin: a board pane next to the chat, an engine compiled to native code with Perry, and online games against other people. Ask Claude about your position while you play.</p>
       <div class="cmd"><code id="install-cmd">/plugin install chess --marketplace skelpo/chess</code><button class="copy" data-copy="install-cmd">copy</button></div>
       <p class="small">Then type <code>/chess</code>. Needs Claude Code 2.1.316 or later.</p>
-      <p class="small">Just the terminal game, native on macOS (Apple silicon and Intel) and Linux:</p>
+      <p class="small">Also for <a href="#install">opencode</a> (graphical board, online too), <a href="#install">Codex</a> and any terminal, native on macOS and Linux:</p>
       <div class="cmd"><code id="npm-cmd">npm install -g tuichess</code><button class="copy" data-copy="npm-cmd">copy</button></div>
     </div>
     <div class="pane" aria-label="The chess pane in Claude Code">
@@ -136,17 +136,44 @@ footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--f
 
   <section id="install">
     <h2>Install</h2>
+    <p class="muted">The same engine and online server everywhere: Claude Code and opencode get a graphical board, Codex plays in the chat, and the terminal game runs anywhere.</p>
+
+    <h3>Claude Code</h3>
     <ol>
       <li>In Claude Code (2.1.316 or later), run <code>/plugin install chess --marketplace skelpo/chess</code>.<br><span class="muted">On older versions: <code>/plugin marketplace add skelpo/chess</code>, then <code>/plugin install chess@skelpo-chess</code>.</span></li>
       <li>Type <code>/chess</code>. The board opens in a pane.</li>
       <li>For the board beside the chat instead of below it, switch Claude Code to its fullscreen layout: <code>/tui fullscreen</code>. There you can also click the board.</li>
     </ol>
     <p class="muted">Update later with <code>/plugin marketplace update skelpo-chess</code> and <code>/plugin update chess@skelpo-chess</code>.</p>
-    <h3>In Codex and opencode</h3>
-    <p>Codex: <code>codex plugin marketplace add skelpo/chess</code>, then <code>codex plugin add chess@skelpo-chess</code>. opencode: <code>opencode mcp add chess --global -- npx -y tuichess mcp</code>, add the <a href="https://github.com/skelpo/chess/blob/main/opencode/commands/board-plain.md"><code>/board-plain</code> command</a> (a text board in the chat) to <code>~/.config/opencode/commands/</code>, then <code>opencode reload</code> and type <code>/board-plain</code>. In either, say "let's play chess": the agent plays through the engine's tools and shows the board in the chat.</p>
-    <p>opencode 2.0.20 or later can also show a graphical board. Unpack the <a href="https://github.com/skelpo/chess/tree/main/opencode/plugin">plugin</a> into <code>~/.config/opencode/plugins/tuichess</code> with <code>curl -fsSL https://codeload.github.com/skelpo/chess/tar.gz/main | tar -xz -C ~/.config/opencode/plugins/tuichess --strip-components=3 chess-main/opencode/plugin</code> (create the folder first), run <code>opencode reload</code>, then type <code>/chess</code>. Play with the arrows and Enter, or type <code>e2e4</code>. <code>u</code> undoes, <code>i</code> gives a hint, <code>t</code> flips the board, <code>+</code>/<code>-</code> change the level, <code>m</code> opens the menu and Esc goes back. The session sidebar shows the position while you chat, and the agent sees the same game through its <code>chess_board</code> tool. Press <code>o</code> on the board (or type <code>/chess-online</code>) to play people online: the same lobby, challenges, high scores and username as the terminal game. In an online game the agent can read the board, but it gives no hints and makes no moves.</p>
-    <h3>In any terminal</h3>
-    <p><code>npm install -g tuichess</code> (or <code>npx tuichess</code>), then <code>tuichess</code>. Arrows and Space move, or type <code>e2e4</code>; <code>help</code> lists every command. Type <code>online</code> (or start with <code>tuichess --online</code>), pick a username, then <code>play</code> or <code>challenge &lt;name&gt;</code>: the same server, lobby and high scores as the plugin.</p>
+
+    <h3>opencode</h3>
+    <p>The graphical board (opencode 2.0.20 or later):</p>
+    <pre><code id="oc-board">mkdir -p ~/.config/opencode/plugins/tuichess
+curl -fsSL https://codeload.github.com/skelpo/chess/tar.gz/main | tar -xz -C ~/.config/opencode/plugins/tuichess --strip-components=3 chess-main/opencode/plugin
+opencode reload</code></pre>
+    <p><button class="copy" data-copy="oc-board">copy</button></p>
+    <ul>
+      <li>Type <code>/chess</code> in opencode. Play with the arrows and Enter, or type <code>e2e4</code>.</li>
+      <li><code>u</code> undoes, <code>i</code> gives a hint, <code>t</code> flips the board, <code>+</code>/<code>-</code> change the level, <code>m</code> opens the menu, Esc goes back to the chat.</li>
+      <li>The session sidebar shows the position while you chat, and the agent sees the same game through its <code>chess_board</code> tool. Ask it how your position looks.</li>
+      <li><b>Online:</b> press <code>o</code> on the board (or type <code>/chess-online</code>) and pick a username. In the lobby, <code>p</code> plays anyone and <code>y</code>/<code>x</code> answer challenges. It's the same username as the terminal game. In online games the agent gives no hints and makes no moves.</li>
+    </ul>
+    <p class="muted">Optional, a text board in the chat as well (<code>/board-plain</code>, played by the agent through the engine's tools):</p>
+    <pre><code id="oc-plain">opencode mcp add chess --global -- npx -y tuichess mcp
+mkdir -p ~/.config/opencode/commands
+curl -fsSL https://raw.githubusercontent.com/skelpo/chess/main/opencode/commands/board-plain.md -o ~/.config/opencode/commands/board-plain.md
+opencode reload</code></pre>
+    <p><button class="copy" data-copy="oc-plain">copy</button></p>
+
+    <h3>Codex</h3>
+    <pre><code id="codex-install">codex plugin marketplace add skelpo/chess
+codex plugin add chess@skelpo-chess</code></pre>
+    <p><button class="copy" data-copy="codex-install">copy</button></p>
+    <p>Start a new Codex session and say <i>"let's play chess, I'm white, level 3"</i>, then give your moves (<i>"e4"</i>, <i>"knight to f3"</i>). Codex shows the board in the chat after every move, and you can ask for a hint, a takeback or another level. Codex has no panes for plugins, so it's a text board. For the graphical board and online play next to Codex, run <code>npx tuichess</code> in another terminal.</p>
+
+    <h3>Any terminal</h3>
+    <div class="cmd"><code id="npm-install">npm install -g tuichess</code><button class="copy" data-copy="npm-install">copy</button></div>
+    <p>Then <code>tuichess</code> (or without installing: <code>npx tuichess</code>). Arrows and Space move, or type <code>e2e4</code>; <code>help</code> lists every command. Type <code>online</code> (or start with <code>tuichess --online</code>), pick a username, then <code>play</code> or <code>challenge &lt;name&gt;</code>. Native on macOS (Apple silicon and Intel) and Linux; on Windows, use WSL for now.</p>
   </section>
 
   <section id="docs">
