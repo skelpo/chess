@@ -1,0 +1,99 @@
+<!doctype html>
+<!-- The social preview image (site/og.png, 1200x630). Regenerate with deploy/og.sh. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+Symbols+2&display=block" rel="stylesheet">
+<style>
+:root { --bg: #0f1012; --panel: #17181b; --line: #2a2c31; --text: #e6e3dc; --dim: #9a968d; --faint: #6d6a64;
+  --accent: #6fbf73; --light: #ad8e62; --dark: #8a6a43; --lastL: #c2ad55; --lastD: #a08a38; --red: #e06c75; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1200px; height: 630px; overflow: hidden; }
+body {
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; color: var(--text); background: var(--bg);
+  background-image:
+    radial-gradient(900px 520px at 88% 18%, rgba(173, 142, 98, 0.20), transparent 60%),
+    radial-gradient(700px 480px at 6% 100%, rgba(111, 191, 115, 0.13), transparent 60%),
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: auto, auto, 32px 32px, 32px 32px;
+  position: relative;
+}
+.left { position: absolute; left: 72px; top: 64px; width: 560px; }
+.badge { display: inline-flex; align-items: center; gap: 10px; font-size: 19px; color: var(--dim);
+  border: 1px solid var(--line); background: rgba(23,24,27,0.8); padding: 7px 14px; border-radius: 999px; }
+.badge i { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.word { font-size: 108px; font-weight: 800; letter-spacing: -5px; line-height: 1; margin-top: 30px; }
+.word span { color: var(--accent); }
+.cursor { display: inline-block; width: 46px; height: 92px; background: var(--accent); vertical-align: -6px; margin-left: 10px; opacity: 0.9; }
+.head { font-size: 34px; font-weight: 600; line-height: 1.28; margin-top: 26px; letter-spacing: -0.5px; }
+.head em { font-style: normal; color: #e8c58a; }
+.chips { display: flex; gap: 8px; margin-top: 28px; }
+.chip { font-size: 17px; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+.foot { position: absolute; left: 72px; bottom: 54px; display: flex; align-items: center; gap: 22px; }
+.cmd { font-size: 24px; font-weight: 600; padding: 12px 20px; border-radius: 10px; background: var(--panel); border: 1px solid #3a3d44; }
+.cmd b { color: var(--faint); font-weight: 400; margin-right: 10px; }
+.sub { font-size: 17px; color: var(--dim); line-height: 1.45; }
+
+.win { position: absolute; right: 64px; top: 44px; width: 418px; border-radius: 14px; background: rgba(23,24,27,0.96);
+  border: 1px solid #33363c; box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.4); overflow: hidden; }
+.bar { height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-bottom: 1px solid var(--line); background: #1b1c20; }
+.bar i { width: 12px; height: 12px; border-radius: 50%; }
+.bar .t { margin-left: 10px; font-size: 14px; color: var(--faint); }
+.inner { padding: 14px 24px 16px; }
+.clock { display: flex; justify-content: space-between; align-items: center; font-size: 19px; }
+.clock .n { color: var(--dim); }
+.clock .time { font-weight: 800; font-size: 24px; color: var(--faint); }
+.clock.run .n { color: var(--text); }
+.clock.run .time { color: var(--accent); }
+.board { display: grid; grid-template-columns: repeat(8, 46px); grid-template-rows: repeat(8, 46px); margin: 12px 0; border-radius: 4px; overflow: hidden; }
+.sq { display: flex; align-items: center; justify-content: center; font-size: 36px; line-height: 1; font-family: "Noto Sans Symbols 2", "JetBrains Mono", sans-serif; }
+.l { background: var(--light); } .d { background: var(--dark); }
+.l.last { background: var(--lastL); } .d.last { background: var(--lastD); }
+.w { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.7), 0 0 1px #000; }
+.b { color: #141414; }
+.status { margin-top: 10px; font-size: 16px; color: var(--dim); display: flex; justify-content: space-between; }
+.status b { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="badge"><i></i>tuichess.dev</div>
+    <div class="word">tui<span>chess</span><span class="cursor"></span></div>
+    <div class="head">Chess in your terminal,<br>right beside your <em>AI&nbsp;agent</em>.</div>
+    <div class="chips"><span class="chip">Claude Code</span><span class="chip">opencode</span><span class="chip">Codex</span><span class="chip">any terminal</span></div>
+  </div>
+  <div class="foot">
+    <div class="cmd"><b>❯</b>npx tuichess</div>
+    <div class="sub">Engine or people online<br>10+5 clocks · high scores</div>
+  </div>
+
+  <div class="win">
+    <div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span class="t">tuichess — online</span></div>
+    <div class="inner">
+      <div class="clock"><span class="n">kasparov99 · Black</span><span class="time">9:12</span></div>
+      <div class="board" id="board"></div>
+      <div class="clock run"><span class="n">you · White</span><span class="time">▶ 8:47</span></div>
+      <div class="status"><span>Your move · Italian Game</span><b>● live</b></div>
+    </div>
+  </div>
+<script>
+  // Italian Game after 5...d6: a calm, recognizable position.
+  var fen = "r1bqk2r/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQK2R";
+  var last = { d7: 1, d6: 1 };
+  var glyph = { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" };
+  var html = "";
+  fen.split("/").forEach(function (row, r) {
+    var cells = [];
+    row.split("").forEach(function (c) { if (/\d/.test(c)) for (var i = 0; i < +c; i++) cells.push(""); else cells.push(c); });
+    cells.forEach(function (c, f) {
+      var sq = "abcdefgh"[f] + (8 - r);
+      var cls = ((r + f) % 2 === 0 ? "l" : "d") + (last[sq] ? " last" : "");
+      html += '<div class="sq ' + cls + '">' + (c ? '<span class="' + (c === c.toUpperCase() ? "w" : "b") + '">' + glyph[c.toLowerCase()] + "</span>" : "") + "</div>";
+    });
+  });
+  document.getElementById("board").innerHTML = html;
+</script>
+</body>
+</html>
