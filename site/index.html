@@ -147,7 +147,7 @@ footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--f
     <ol>
       <li>In Claude Code (2.1.316 or later), run <code>/plugin install chess --marketplace skelpo/chess</code>.<br><span class="muted">On older versions: <code>/plugin marketplace add skelpo/chess</code>, then <code>/plugin install chess@skelpo-chess</code>.</span></li>
       <li>Type <code>/chess</code>. The board opens in a pane.</li>
-      <li>Optional, for the Perry-native engine: <code>npm install -g tuichess</code>. The plugin uses it when it's on your PATH.</li>
+      <li>The first time, the plugin downloads its Perry-native engine (about 8 MB, from npm, checked against npm's checksum) into <code>~/.cache/tuichess</code>; until then the built-in engine plays.</li>
       <li>For the board beside the chat instead of below it, switch Claude Code to its fullscreen layout: <code>/tui fullscreen</code>. There you can also click the board.</li>
     </ol>
     <p class="muted">Update later with <code>/plugin marketplace update skelpo-chess</code> and <code>/plugin update chess@skelpo-chess</code>.</p>
@@ -226,7 +226,7 @@ codex plugin add chess@skelpo-chess</code></pre>
     </ul>
 
     <h3>The engine</h3>
-    <p>The engine is plain TypeScript with no dependencies. The terminal game (<code>npm install -g tuichess</code>) is a native executable compiled by <a href="https://perryts.com">Perry</a>. With it installed, the Claude Code plugin runs every engine move and hint as a fresh native process outside Claude Code (it starts in about 10 ms); without it, the plugin uses the same engine as built-in JavaScript, and the board says which one played. The online server is the same: one TypeScript file, compiled by Perry, running here.</p>
+    <p>The engine is plain TypeScript with no dependencies. The terminal game is a native executable compiled by <a href="https://perryts.com">Perry</a>, and the Claude Code plugin uses the same binary: it downloads it from npm on first use and runs every engine move and hint as a fresh native process outside Claude Code (it starts in about 10 ms). The board says which engine played; <code>e</code> switches to the built-in JavaScript one. The online server is the same: one TypeScript file, compiled by Perry, running here.</p>
 
     <h3>Other agents (MCP)</h3>
     <p>The same tools are available to opencode, Cursor and any other MCP client as a local stdio server, either from source or from the native binary:</p>

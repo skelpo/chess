@@ -399,7 +399,7 @@ export class ChessApp {
     this.syncOnline();
     const lines: string[] = [];
     const status = this.game.status();
-    const title = this.paint("  CHESS", "1;38;5;151") + this.paint("   /   plain TypeScript", "38;5;245");
+    const title = this.paint("  TUICHESS", "1;38;5;151") + this.paint("   /   tuichess.dev", "38;5;245");
     lines.push(title, "");
     const settings = levelSettings(this.level);
     if (this.mode === "online") {

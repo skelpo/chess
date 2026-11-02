@@ -114,6 +114,73 @@ function result(stdout: string, exitCode = 0) {
   return { value: { exitCode, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
 }
 
+test('without a local build, the Perry engine is downloaded from npm, verified, and used', async ($, on) => {
+  const clock = mock.clock(on)
+  const hex = '00ff10'.repeat(21) + '7f'  // a stand-in sha512; its base64 is the integrity the registry reports
+  const integrity = 'sha512-AP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8QAP8Qfw=='
+  const cache = '/home/t/.cache/tuichess/engine/0.1.3'
+  let unpacked = false
+  const calls: string[] = []
+  on('http.fetch', (_, e) => {
+    calls.push('fetch ' + e.url)
+    const body = { version: '0.1.3', dist: { tarball: 'https://registry.npmjs.org/tuichess-darwin-arm64/-/tuichess-darwin-arm64-0.1.3.tgz', integrity } }
+    return { value: { status: 200, ok: true, headers: {}, text: JSON.stringify(body) } }
+  })
+  on('process.run', (_, e) => {
+    const [cmd = '', ...args] = e.argv
+    calls.push(e.argv.join(' '))
+    if (cmd === 'uname') return result('Darwin arm64\n')
+    if (cmd === 'printenv') return args[0] === 'HOME' ? result('/home/t\n') : result('', 1)
+    if (cmd === 'ls') return result('', 1)
+    if (cmd === 'sha512sum') return result(hex + '  ' + cache + '/package.tgz\n')
+    if (cmd === 'tar') { unpacked = true; return result('') }
+    if (cmd === 'mkdir' || cmd === 'curl' || cmd === 'rm') return result('')
+    if (cmd === cache + '/package/bin/tuichess') {
+      if (args[0] === '--help') return unpacked ? result('Usage: tuichess\n') : { deny: 'no such file' }
+      return result('{"move":"d7d5","claimDraw":false,"score":3,"depth":5,"nodes":40000,"line":["d7d5"],"completed":true,"ms":11}\n')
+    }
+    return { deny: 'no such file' }
+  })
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  const ui = await $.ui.mount(PANE)
+  await ui.resize({ columns: 100, rows: 40, in: 'board' })
+  // The first move: no engine binary yet, so the built-in engine replies and the download starts.
+  await ui.input({ key: 'move', text: 'e2e4' })
+  await clock.advance(100)
+  expect(await ui.find({ type: 'Text', text: /not here yet/, in: 'board' })).toBeDefined()
+  await clock.advance(1000)
+  expect(calls).toContain('fetch https://registry.npmjs.org/tuichess-darwin-arm64/latest')
+  expect(calls).toContain('curl -fsSL --max-time 120 -o ' + cache + '/package.tgz https://registry.npmjs.org/tuichess-darwin-arm64/-/tuichess-darwin-arm64-0.1.3.tgz')
+  expect(calls).toContain('tar -xzf ' + cache + '/package.tgz -C ' + cache)
+  // From then on the downloaded Perry engine plays.
+  await ui.input({ key: 'move', text: 'd2d4' })
+  await clock.advance(100)
+  expect(calls).toContain(cache + '/package/bin/tuichess move')
+  expect(await ui.find({ type: 'Text', text: /^Perry native · depth 5/, in: 'board' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a download that fails its checksum is discarded', async ($, on) => {
+  const clock = mock.clock(on)
+  const calls: string[] = []
+  on('http.fetch', () => ({ value: { status: 200, ok: true, headers: {}, text: JSON.stringify({ version: '0.1.3', dist: { tarball: 'https://registry.npmjs.org/x.tgz', integrity: 'sha512-AAAA' } }) } }))
+  on('process.run', (_, e) => {
+    calls.push(e.argv.join(' '))
+    if (e.argv[0] === 'uname') return result('Linux x86_64\n')
+    if (e.argv[0] === 'printenv') return e.argv[1] === 'HOME' ? result('/home/t\n') : result('', 1)
+    if (e.argv[0] === 'sha512sum') return result('ffff  file\n')
+    if (['mkdir', 'curl', 'rm', 'ls'].includes(e.argv[0] ?? '')) return result('')
+    return { deny: 'no such file' }
+  })
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  const ui = await $.ui.mount(PANE)
+  await ui.input({ key: 'move', text: 'e2e4' })
+  await clock.advance(1500)
+  expect(calls).toContain('rm -rf /home/t/.cache/tuichess/engine/0.1.3')
+  expect(calls.some(call => call.startsWith('tar '))).toBe(false)
+  await ui.unmount()
+})
+
 test('the Perry engine answers engine moves, and its stats show', async ($, on) => {
   const clock = mock.clock(on)
   const calls: { argv: readonly string[]; stdin: string | undefined }[] = []
@@ -158,8 +225,8 @@ test('without a native binary the built-in engine plays and says so', async ($, 
   await ui.pointer({ type: 'down', x: 2 + 4 * 7 + 3, y: 4 * 3 + 1, in: 'board' })
   await clock.advance(100)
   expect(await ui.find({ type: 'Text', text: /^1\. e2e4 \S+$/, in: 'board' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'built-in JS (npm i -g tuichess for Perry)', in: 'board' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /npm install -g tuichess\. The built-in engine played/, in: 'board' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'built-in JS (Perry not downloaded yet)', in: 'board' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /not here yet .*the built-in engine played/, in: 'board' })).toBeDefined()
   await ui.unmount()
 })
 

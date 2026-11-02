@@ -253,7 +253,7 @@ const Board: ClientModule<Props, Local> = (props, surface: ClientSurface<Local>)
       {!props.online && <Text>
         <Text dimColor>Engine </Text>
         <Text bold color={props.engine === 'perry' && props.native !== 'missing' ? 'success' : undefined}>
-          {props.engine === 'builtin' ? 'built-in JS' : props.native === 'missing' ? 'built-in JS (npm i -g tuichess for Perry)' : 'Perry native'}
+          {props.engine === 'builtin' ? 'built-in JS' : props.native === 'missing' ? 'built-in JS (Perry not downloaded yet)' : 'Perry native'}
         </Text>
       </Text>}
       {props.stats !== '' && <Text dimColor wrap="truncate-end">{props.stats}</Text>}
