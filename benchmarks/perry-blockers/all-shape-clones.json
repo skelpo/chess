@@ -1,0 +1,112 @@
+[
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__turn$pshape",
+    "exactBody": true,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__load$pshape",
+    "exactBody": true,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__fen$pshape",
+    "exactBody": true,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__history$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": false
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__undo$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__inCheck$pshape",
+    "exactBody": true,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__at$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": false
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__king$pshape",
+    "exactBody": true,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__generatePseudo$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__unmake$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__repetitions$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": false
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__visit$pshape",
+    "exactBody": true,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__handicap$pshape",
+    "exactBody": true,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_engine_src_chess_ts__Chess__orderMoves$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_tui_src_app_ts__ChessApp__computerTurn$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_tui_src_app_ts__ChessApp__advanceComputer$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_tui_src_app_ts__ChessApp__command$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": false
+  },
+  {
+    "name": "perry_method_tui_src_app_ts__ChessApp__paint$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_tui_src_app_ts__ChessApp__play$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": true
+  },
+  {
+    "name": "perry_method_tui_src_app_ts__ChessApp__select$pshape",
+    "exactBody": false,
+    "siteNormalizedBody": false
+  },
+  {
+    "name": "perry_method_tui_src_app_ts__KeyDecoder__flushEscape$pshape",
+    "exactBody": true,
+    "siteNormalizedBody": true
+  }
+]

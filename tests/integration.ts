@@ -1,7 +1,13 @@
 import { spawnSync } from "node:child_process";
 
 interface Runtime { readonly name: string; readonly executable: string; readonly arguments: readonly string[] }
-const runtimes: readonly Runtime[] = [
+const nativeCandidate = process.env["CHESS_NATIVE"];
+const timeout = Number(process.env["CHESS_TEST_TIMEOUT_MS"] ?? "120000");
+if (!Number.isSafeInteger(timeout) || timeout <= 0) throw new Error("Invalid CHESS_TEST_TIMEOUT_MS");
+const runtimes: readonly Runtime[] = nativeCandidate !== undefined ? [
+  { name: "Node", executable: process.execPath, arguments: ["tui/src/main.ts"] },
+  { name: "Perry candidate", executable: nativeCandidate, arguments: [] },
+] : [
   { name: "Node", executable: process.execPath, arguments: ["tui/src/main.ts"] },
   { name: "Bun", executable: "bun", arguments: ["tui/src/main.ts"] },
   { name: "Perry", executable: "./dist/chess", arguments: [] },
@@ -24,7 +30,7 @@ for (const scenario of scenarios) {
   let reference = "";
   for (const runtime of runtimes) {
     const result = spawnSync(runtime.executable, [...runtime.arguments, ...scenario.arguments], {
-      input: scenario.input, encoding: "utf8", timeout: 120000, maxBuffer: 4 * 1024 * 1024,
+      input: scenario.input, encoding: "utf8", timeout, maxBuffer: 4 * 1024 * 1024,
     });
     if (result.error !== undefined) throw result.error;
     const output = result.stdout + result.stderr;
@@ -34,11 +40,11 @@ for (const scenario of scenarios) {
     if (runtime.name === "Node") reference = output;
     else if (output !== reference) throw new Error(runtime.name + " differs from Node in " + scenario.name + "\nNODE:\n" + reference + "\nACTUAL:\n" + output);
   }
-  console.log("ok · identical output on all four targets: " + scenario.name);
+  console.log("ok · identical output on all " + String(runtimes.length) + " targets: " + scenario.name);
 }
 
-const node = spawnSync(process.execPath, ["tests/run.ts"], { encoding: "utf8", timeout: 120000 });
-const native = spawnSync("./dist/chess-tests", [], { encoding: "utf8", timeout: 120000 });
+const node = spawnSync(process.execPath, ["tests/run.ts"], { encoding: "utf8", timeout });
+const native = spawnSync(process.env["CHESS_NATIVE_TESTS"] ?? "./dist/chess-tests", [], { encoding: "utf8", timeout });
 if (node.error !== undefined) throw node.error;
 if (native.error !== undefined) throw native.error;
 if (node.status !== 0 || native.status !== 0 || node.stdout !== native.stdout) {

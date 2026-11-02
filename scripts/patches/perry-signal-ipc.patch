@@ -1,0 +1,312 @@
+diff --git a/crates/perry/src/commands/compile/collect_modules/feature_detect.rs b/crates/perry/src/commands/compile/collect_modules/feature_detect.rs
+index 6a948a2e38..9ea5aa9384 100644
+--- a/crates/perry/src/commands/compile/collect_modules/feature_detect.rs
++++ b/crates/perry/src/commands/compile/collect_modules/feature_detect.rs
+@@ -15,6 +15,9 @@ use crate::commands::compile::CompilationContext;
+ #[path = "feature_detect/computed_members.rs"]
+ mod computed_members;
+ 
++#[path = "feature_detect/process_ipc.rs"]
++mod process_ipc;
++
+ fn debug_hir_uses_regex(hir_debug: &str) -> bool {
+     hir_debug.contains("RegExp") // RegExp / RegExpDynamic / RegExpEscape / RegExpExec{Index,Groups}
+         || hir_debug.contains("StringMatch") // dedicated .match / .matchAll variants
+@@ -164,6 +167,16 @@ fn module_hir_debug(hir_module: &perry_hir::Module) -> String {
+ fn module_any_expr(
+     module: &perry_hir::Module,
+     found: &mut dyn FnMut(&perry_hir::Expr) -> bool,
++) -> bool {
++    module_any_expr_with_stmts(module, found, stmts_any_expr)
++}
++
++type StmtsPredicate = fn(&[perry_hir::Stmt], &mut dyn FnMut(&perry_hir::Expr) -> bool) -> bool;
++
++fn module_any_expr_with_stmts(
++    module: &perry_hir::Module,
++    found: &mut dyn FnMut(&perry_hir::Expr) -> bool,
++    stmts: StmtsPredicate,
+ ) -> bool {
+     use perry_hir::Function;
+ 
+@@ -174,15 +187,19 @@ fn module_any_expr(
+         ds.iter().any(|d| d.args.iter().any(&mut *found))
+     }
+ 
+-    fn function(f: &Function, found: &mut dyn FnMut(&perry_hir::Expr) -> bool) -> bool {
++    fn function(
++        f: &Function,
++        found: &mut dyn FnMut(&perry_hir::Expr) -> bool,
++        stmts: StmtsPredicate,
++    ) -> bool {
+         f.params.iter().any(|param| {
+             param.default.as_ref().is_some_and(&mut *found) || decorators(&param.decorators, found)
+-        }) || stmts_any_expr(&f.body, found)
++        }) || stmts(&f.body, found)
+             || decorators(&f.decorators, found)
+     }
+ 
+-    stmts_any_expr(&module.init, found)
+-        || module.functions.iter().any(|f| function(f, found))
++    stmts(&module.init, found)
++        || module.functions.iter().any(|f| function(f, found, stmts))
+         || module.classes.iter().any(|class| {
+             class.extends_expr.as_deref().is_some_and(&mut *found)
+                 || class
+@@ -192,7 +209,7 @@ fn module_any_expr(
+                     .chain(&class.static_methods)
+                     .chain(class.getters.iter().map(|(_, f)| f))
+                     .chain(class.setters.iter().map(|(_, f)| f))
+-                    .any(|f| function(f, found))
++                    .any(|f| function(f, found, stmts))
+                 || class
+                     .fields
+                     .iter()
+@@ -202,10 +219,9 @@ fn module_any_expr(
+                             || field.key_expr.as_ref().is_some_and(&mut *found)
+                             || decorators(&field.decorators, found)
+                     })
+-                || class
+-                    .computed_members
+-                    .iter()
+-                    .any(|member| found(&member.key_expr) || function(&member.function, found))
++                || class.computed_members.iter().any(|member| {
++                    found(&member.key_expr) || function(&member.function, found, stmts)
++                })
+                 || decorators(&class.decorators, found)
+         })
+ }
+@@ -1251,27 +1267,9 @@ pub(super) fn detect_optional_feature_usage(
+         // GlobalGet(0) is the lowered builtin namespace sentinel; local emitter
+         // receivers do not match. An escaping process namespace can name any
+         // channel member later, as can a native process namespace reference.
+-        if [
+-            "on",
+-            "once",
+-            "addListener",
+-            "prependListener",
+-            "prependOnceListener",
+-        ]
+-        .iter()
+-        .any(|name| hir_debug.contains(&format!("object: GlobalGet(0), property: \"{name}\"")))
++        if process_ipc::module_listeners_may_receive_ipc(hir_module)
+             || hir_debug.contains("property: \"process\"")
+             || hir_debug.contains("NativeModuleRef(\"process\")")
+-            || (hir_debug.contains("module: \"process\"")
+-                && [
+-                    "on",
+-                    "once",
+-                    "addListener",
+-                    "prependListener",
+-                    "prependOnceListener",
+-                ]
+-                .iter()
+-                .any(|name| hir_debug.contains(&format!("method: \"{name}\""))))
+         {
+             ctx.uses_proc_ipc = true;
+         }
+@@ -1516,6 +1514,50 @@ mod tests {
+         ctx
+     }
+ 
++    #[test]
++    fn process_signal_and_exit_listeners_do_not_select_ipc() {
++        for source in [
++            r#"process.on("SIGINT", () => {}); process.on("SIGTERM", () => {}); process.on("exit", () => {});"#,
++            r#"process.once("beforeExit", () => {});"#,
++            r#"function install() { process.addListener("SIGINT", () => {}); } install();"#,
++            r#"class C { install() { process.prependListener("SIGTERM", () => {}); } }"#,
++            r#"const install = () => { process.prependOnceListener("SIGINT", () => {}); };"#,
++            r#"if (process.argv.length) { process.on("SIGINT", () => {}); }"#,
++            r#"let handler: () => void; process.on("SIGINT", handler = () => {}); process.removeListener("SIGINT", handler);"#,
++        ] {
++            let ctx = detect_for_source(source);
++            assert!(ctx.uses_os, "must retain signal/process hooks: {source}");
++            assert!(!ctx.uses_proc_ipc, "unexpected IPC: {source}");
++        }
++    }
++
++    #[test]
++    fn process_ipc_dynamic_and_escaping_listeners_keep_ipc() {
++        for source in [
++            r#"process.on("message", () => {});"#,
++            r#"process.once("disconnect", () => {});"#,
++            r#"process.on(process.argv[2], () => {});"#,
++            r#"const on = process.on; on("message", () => {});"#,
++            r#"const p = process; p.on("message", () => {});"#,
++            r#"globalThis.process.on("message", () => {});"#,
++            r#"import p from "node:process"; p.on("message", () => {});"#,
++            r#"process.on("SIGINT", () => { process.on("message", () => {}); });"#,
++            r#"class C { install() { process.on("message", () => {}); } }"#,
++            r#"function install(x: any = process.on("message", () => {})) {}"#,
++            r#"process.on("SIGINT", () => {}).on("message", () => {});"#,
++            r#"const p = process.on("SIGTERM", () => {}); p.on("message", () => {});"#,
++            r#"function p() { return process.on("exit", () => {}); } p().on("message", () => {});"#,
++            r#"process.on("SIGINT", function() { this.on("message", () => {}); });"#,
++            r#"function handler() { this.on("message", () => {}); } process.on("SIGINT", handler);"#,
++            r#"import { handler } from "./handler"; process.on("SIGINT", handler);"#,
++        ] {
++            assert!(
++                detect_for_source(source).uses_proc_ipc,
++                "missing IPC: {source}"
++            );
++        }
++    }
++
+     #[test]
+     fn emitter_members_do_not_select_process_hooks() {
+         for source in [
+diff --git a/crates/perry/src/commands/compile/collect_modules/feature_detect/process_ipc.rs b/crates/perry/src/commands/compile/collect_modules/feature_detect/process_ipc.rs
+new file mode 100644
+--- /dev/null
++++ b/crates/perry/src/commands/compile/collect_modules/feature_detect/process_ipc.rs
+@@ -0,0 +1,149 @@
++//! Keep IPC for process listeners unless a direct call names a known non-IPC
++//! event. Namespace escapes, dynamic events, and extracted methods remain
++//! conservative. OS signal support is selected independently.
++
++use perry_hir::{Expr, Module, Stmt};
++
++fn listener(name: &str) -> bool {
++    matches!(
++        name,
++        "on" | "once" | "addListener" | "prependListener" | "prependOnceListener"
++    )
++}
++
++fn direct_listener(expr: &Expr) -> bool {
++    matches!(expr, Expr::PropertyGet { object, property, .. }
++        if matches!(object.as_ref(), Expr::GlobalGet(0)) && listener(property))
++}
++
++fn lexical_callback(expr: &Expr) -> bool {
++    match expr {
++        Expr::Closure { is_arrow: true, .. } => true,
++        // The assignment preserves the callback identity for removeListener.
++        Expr::LocalSet(_, value) => lexical_callback(value),
++        _ => false,
++    }
++}
++
++fn known_non_ipc_args(args: &[Expr]) -> bool {
++    args.get(1).is_some_and(lexical_callback)
++        && matches!(args.first(), Some(Expr::String(event))
++            if matches!(event.as_str(), "SIGINT" | "SIGTERM" | "exit" | "beforeExit"))
++}
++
++fn expr_may_receive_ipc(expr: &Expr) -> bool {
++    if direct_listener(expr)
++        || matches!(expr, Expr::NativeMethodCall { module, method, .. }
++            if module.trim_start_matches("node:") == "process" && listener(method))
++    {
++        return true;
++    }
++    if let Expr::Closure { body, .. } = expr {
++        if stmts_may_receive_ipc(body, &mut expr_may_receive_ipc) {
++            return true;
++        }
++    }
++    let mut found = false;
++    perry_hir::walker::walk_expr_children(expr, &mut |child| {
++        found = found || expr_may_receive_ipc(child);
++    });
++    found
++}
++
++pub(super) fn module_listeners_may_receive_ipc(module: &Module) -> bool {
++    super::module_any_expr_with_stmts(module, &mut expr_may_receive_ipc, stmts_may_receive_ipc)
++}
++
++fn stmts_may_receive_ipc(stmts: &[Stmt], found: &mut dyn FnMut(&Expr) -> bool) -> bool {
++    stmts.iter().any(|stmt| stmt_may_receive_ipc(stmt, found))
++}
++
++// Statement context matters here; keep the match exhaustive like the shared
++// HIR walker, so future statement kinds cannot silently bypass IPC detection.
++fn stmt_may_receive_ipc(stmt: &Stmt, predicate: &mut dyn FnMut(&Expr) -> bool) -> bool {
++    match stmt {
++        Stmt::Let { init, .. } | Stmt::Return(init) => init.as_ref().is_some_and(&mut *predicate),
++        Stmt::Expr(Expr::Call { callee, args, .. })
++            if direct_listener(callee) && known_non_ipc_args(args) =>
++        {
++            // Only a discarded result is safe: process.on returns process,
++            // so a chained call or escaped return value can still receive IPC.
++            // Callbacks/arguments are always visited for nested IPC listeners.
++            // Ordinary functions receive `process` as their `this`; unknown
++            // callbacks could use that receiver to access IPC too.
++            args.iter().any(&mut *predicate)
++        }
++        Stmt::Expr(Expr::NativeMethodCall {
++            module,
++            method,
++            args,
++            object: None,
++            ..
++        }) if module.trim_start_matches("node:") == "process"
++            && listener(method)
++            && known_non_ipc_args(args) =>
++        {
++            args.iter().any(&mut *predicate)
++        }
++        Stmt::Expr(expr) | Stmt::Throw(expr) => predicate(expr),
++        Stmt::If {
++            condition,
++            then_branch,
++            else_branch,
++        } => {
++            predicate(condition)
++                || then_branch
++                    .iter()
++                    .any(|s| stmt_may_receive_ipc(s, predicate))
++                || else_branch
++                    .as_ref()
++                    .is_some_and(|body| body.iter().any(|s| stmt_may_receive_ipc(s, predicate)))
++        }
++        Stmt::While { condition, body } | Stmt::DoWhile { condition, body } => {
++            predicate(condition) || body.iter().any(|s| stmt_may_receive_ipc(s, predicate))
++        }
++        Stmt::For {
++            init,
++            condition,
++            update,
++            body,
++        } => {
++            init.as_ref()
++                .is_some_and(|s| stmt_may_receive_ipc(s, predicate))
++                || condition.as_ref().is_some_and(&mut *predicate)
++                || update.as_ref().is_some_and(&mut *predicate)
++                || body.iter().any(|s| stmt_may_receive_ipc(s, predicate))
++        }
++        Stmt::Labeled { body, .. } => stmt_may_receive_ipc(body, predicate),
++        Stmt::Try {
++            body,
++            catch,
++            finally,
++        } => {
++            body.iter().any(|s| stmt_may_receive_ipc(s, predicate))
++                || catch
++                    .as_ref()
++                    .is_some_and(|c| c.body.iter().any(|s| stmt_may_receive_ipc(s, predicate)))
++                || finally
++                    .as_ref()
++                    .is_some_and(|body| body.iter().any(|s| stmt_may_receive_ipc(s, predicate)))
++        }
++        Stmt::Switch {
++            discriminant,
++            cases,
++        } => {
++            predicate(discriminant)
++                || cases.iter().any(|c| {
++                    c.test.as_ref().is_some_and(&mut *predicate)
++                        || c.body.iter().any(|s| stmt_may_receive_ipc(s, predicate))
++                })
++        }
++        Stmt::Break
++        | Stmt::Continue
++        | Stmt::LabeledBreak(_)
++        | Stmt::LabeledContinue(_)
++        | Stmt::PreallocateBoxes(_)
++        | Stmt::PreallocateTdzBoxes(_)
++        | Stmt::ReleaseBoxes(_) => false,
++    }
++}

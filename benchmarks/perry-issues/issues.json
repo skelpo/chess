@@ -1,0 +1,58 @@
+{
+  "recordedAt": "2026-11-01T14:08:48.697639+00:00",
+  "issues": [
+    {
+      "number": 13659,
+      "title": "size: unrelated .search() and signal-only process.on retain regex/IPC code (0.67\u20131.37 MB removable at speed flags)",
+      "state": "OPEN",
+      "url": "https://github.com/PerryTS/perry/issues/13659"
+    },
+    {
+      "number": 13660,
+      "title": "perf: rejected stable-packed fast clone still executes admission guard; j++ scan costs ~192 extra instructions/probe",
+      "state": "OPEN",
+      "url": "https://github.com/PerryTS/perry/issues/13660"
+    },
+    {
+      "number": 13661,
+      "title": "perf: indexed numeric scans still cost 784 instructions/probe vs Node 174; bound and element-value reductions isolate the gap",
+      "state": "OPEN",
+      "url": "https://github.com/PerryTS/perry/issues/13661"
+    },
+    {
+      "number": 13662,
+      "title": "size/perf: custom Oz runtime makes public scan 1.65\u20131.78x slower; ~20% of samples in outlined fragments",
+      "state": "OPEN",
+      "url": "https://github.com/PerryTS/perry/issues/13662"
+    },
+    {
+      "number": 13663,
+      "title": "tracking: quantify and remove numeric-engine instruction overhead while preserving binary-size savings and performance",
+      "state": "OPEN",
+      "url": "https://github.com/PerryTS/perry/issues/13663"
+    }
+  ],
+  "existingIteratorIssueComment": "https://github.com/PerryTS/perry/issues/13645#issuecomment-6559026657",
+  "existingUnrollingIssue": "https://github.com/PerryTS/perry/issues/13649",
+  "compilerSource": "b384cd7be035899e80908c5013baf8e88f08c892",
+  "newPrCreated": false,
+  "measurements": "benchmarks/perry-issues/measurements.json",
+  "incrementMeasurements": "benchmarks/perry-issues/increment-results.json",
+  "featureMeasurements": "benchmarks/perry-issues/feature-retention.json",
+  "instructionMethod": "(median instructions at 10M - median instructions at 5M)/5M, three rounds, fixed warmup; separate size-runtime benchmark at 5M",
+  "measurementExclusions": [
+    "First 84-run batch was discarded because the initial few seconds overlapped native feature-symbol inspection; accepted batch was rerun in full after that work completed."
+  ],
+  "sourceHashes": {
+    "scripts/repro-perry-access.ts": "dbc0029dda89bace0c818108ba1b4b29ab88f129147c178d95662f31fb8c6321",
+    "scripts/repro-perry-increment.ts": "8d8d33e6032bd21bf7501751b6513fab97d2d5d73291e45bf2df004e84ff42d3",
+    "scripts/repro-perry-board.ts": "7acbcbf162a3a81b105266408cd71cc46a2a0184a78dd70cd8f61a9284c10ac7"
+  },
+  "binaryHashes": {
+    "access-stock": "91a2b47df511220759b6ff08e79b0b2f9d493d92d66460292d50492b842afe7a",
+    "increment-postfix": "80f05f71a9caeb4318d247b9df02d03e307a8e09d62cd7456046102c2ad0b091",
+    "increment-plus": "4bebbb82c005bfb51adf93130d3e7b925524ded8fe517cdb4cc9e6598b9ef1dc",
+    "board-app2-runtimez": "3017a031e2bcdb7b7b078c2c9af0466ae8e98af70e79a07f1ebdbeb5ccec4338",
+    "board-app2-runtime2": "08e916dfd0ccdd90807ae9d62900d2492eb53488cfc435043a8069a0ffabc81a"
+  }
+}

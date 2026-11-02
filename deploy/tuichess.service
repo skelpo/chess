@@ -1,0 +1,26 @@
+[Unit]
+Description=tuichess online chess server (Perry native)
+After=network.target
+
+[Service]
+User=tuichess
+Group=tuichess
+Environment=PORT=8787 HOST=127.0.0.1 CHESS_DATA=/var/lib/tuichess/chess-data.json
+WorkingDirectory=/var/lib/tuichess
+ExecStart=/opt/tuichess/bin/chess-server
+Restart=always
+RestartSec=2
+StateDirectory=tuichess
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

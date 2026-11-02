@@ -1,0 +1,347 @@
+{
+  "checkedAt": "2026-11-01T08:34:51.250Z",
+  "platform": "macOS 26.5 ARM64, Apple M1 Max",
+  "scriptc": {
+    "release": {
+      "version": "v0.4.7",
+      "publishedAt": "2026-10-31T05:03:48Z",
+      "url": "https://github.com/vercel-labs/scriptc/releases/tag/v0.4.7",
+      "assets": [
+        {
+          "name": "scriptc-0.4.7-darwin-arm64.tar.gz",
+          "sha256": "sha256:f3f9d0074ebecc67931a71b72b43be4819597b602261a01c6f9bb16816b5a37b",
+          "url": "https://github.com/vercel-labs/scriptc/releases/download/v0.4.7/scriptc-0.4.7-darwin-arm64.tar.gz"
+        }
+      ]
+    },
+    "originalApp": {
+      "compiled": false,
+      "diagnostic": {
+        "schema": "scriptc-diagnostics",
+        "schemaVersion": 1,
+        "compilerVersion": "0.4.7",
+        "command": "coverage",
+        "entry": "/Users/amlug/projects/chess/tui/src/main.ts",
+        "success": false,
+        "phase": "compile",
+        "stats": {
+          "statementsTotal": 1236,
+          "statementsStatic": 1235,
+          "statementsDynamic": 7,
+          "statementsFailed": 1,
+          "functionsSkipped": 0,
+          "percentStatic": 99
+        },
+        "groups": [
+          {
+            "id": "SC2020-4e883c50",
+            "code": "SC2020",
+            "category": "unsupported",
+            "severity": "error",
+            "scope": "reached",
+            "message": "'WritableStream.on' is typed by @types/node but has no scriptc lowering yet",
+            "hint": "write(data) with one string and getWindowSize() are the supported stream-value methods",
+            "count": 1,
+            "primary": {
+              "file": "/Users/amlug/projects/chess/tui/src/main.ts",
+              "line": 144,
+              "column": 3
+            },
+            "sites": [
+              {
+                "file": "/Users/amlug/projects/chess/tui/src/main.ts",
+                "line": 144,
+                "column": 3
+              }
+            ]
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "SC2020",
+            "category": "unsupported",
+            "severity": "error",
+            "scope": "reached",
+            "file": "/Users/amlug/projects/chess/tui/src/main.ts",
+            "line": 144,
+            "column": 3,
+            "endLine": 144,
+            "endColumn": 38,
+            "start": 5504,
+            "end": 5539,
+            "message": "'WritableStream.on' is typed by @types/node but has no scriptc lowering yet",
+            "hint": "write(data) with one string and getWindowSize() are the supported stream-value methods",
+            "group": "SC2020-4e883c50"
+          }
+        ]
+      }
+    },
+    "adaptedApp": {
+      "compiled": true,
+      "change": "Omit only process.stdout.on(\"error\", onError) in a generated copy; stdout error/EPIPE handling is consequently reduced.",
+      "artifact": {
+        "path": "dist/compiler-trials/chess-scriptc-adapted",
+        "bytes": 810312,
+        "sha256": "c4760edd6acbb3bca3ace1a2daf4fac4260fa7190ae6754490bd906013deb40e"
+      },
+      "cliParity": [
+        {
+          "name": "help",
+          "args": [
+            "--help"
+          ],
+          "input": "",
+          "status": 0,
+          "matches": true,
+          "nodeStatus": 0,
+          "nativeStatus": 0,
+          "nativeSignal": null
+        },
+        {
+          "name": "bad-level",
+          "args": [
+            "--level",
+            "11"
+          ],
+          "input": "",
+          "status": 1,
+          "matches": true,
+          "nodeStatus": 1,
+          "nativeStatus": 1,
+          "nativeSignal": null
+        },
+        {
+          "name": "bad-fen",
+          "args": [
+            "--fen",
+            "invalid"
+          ],
+          "input": "",
+          "status": 1,
+          "matches": true,
+          "nodeStatus": 1,
+          "nativeStatus": 1,
+          "nativeSignal": null
+        },
+        {
+          "name": "local",
+          "args": [
+            "--plain",
+            "--side",
+            "both"
+          ],
+          "input": "e2e4\ne7e5\nfen\nundo\nfen\nquit\n",
+          "status": 0,
+          "matches": true,
+          "nodeStatus": 0,
+          "nativeStatus": 0,
+          "nativeSignal": null
+        },
+        {
+          "name": "eof",
+          "args": [
+            "--plain",
+            "--side",
+            "both"
+          ],
+          "input": "e2e4",
+          "status": 0,
+          "matches": true,
+          "nodeStatus": 0,
+          "nativeStatus": 0,
+          "nativeSignal": null
+        },
+        {
+          "name": "promotion",
+          "args": [
+            "--plain",
+            "--side",
+            "both",
+            "--fen",
+            "4k3/P7/8/8/8/8/8/4K3 w - - 0 1"
+          ],
+          "input": "a7a8n\nfen\nquit\n",
+          "status": 0,
+          "matches": true,
+          "nodeStatus": 0,
+          "nativeStatus": 0,
+          "nativeSignal": null
+        },
+        {
+          "name": "kids-reply",
+          "args": [
+            "--plain",
+            "--level",
+            "1"
+          ],
+          "input": "e2e4\nundo\nquit\n",
+          "status": 0,
+          "matches": true,
+          "nodeStatus": 0,
+          "nativeStatus": 0,
+          "nativeSignal": null
+        },
+        {
+          "name": "club-opening",
+          "args": [
+            "--plain",
+            "--side",
+            "black",
+            "--level",
+            "5"
+          ],
+          "input": "quit\n",
+          "status": 0,
+          "matches": true,
+          "nodeStatus": 0,
+          "nativeStatus": 0,
+          "nativeSignal": null
+        },
+        {
+          "name": "master-opening",
+          "args": [
+            "--plain",
+            "--side",
+            "black",
+            "--level",
+            "10"
+          ],
+          "input": "quit\n",
+          "status": 0,
+          "matches": true,
+          "nodeStatus": 0,
+          "nativeStatus": 0,
+          "nativeSignal": null
+        }
+      ],
+      "pty": {
+        "first_board": true,
+        "move": true,
+        "undo": true,
+        "quit": true,
+        "exit_code": 0,
+        "alternate_screen_enter": true,
+        "alternate_screen_exit": true,
+        "terminal_restored": false
+      },
+      "terminalFlags": {
+        "before_flags": [
+          11010,
+          3,
+          19200,
+          1483,
+          9600,
+          9600
+        ],
+        "after_flags": [
+          11010,
+          3,
+          19200,
+          536872395,
+          9600,
+          9600
+        ],
+        "changed_control_characters": []
+      },
+      "terminalComparison": {
+        "Node": {
+          "exit": 0,
+          "restored_excluding_pendin": true,
+          "pendin_after": false
+        },
+        "ScriptC": {
+          "exit": 0,
+          "restored_excluding_pendin": true,
+          "pendin_after": true
+        }
+      }
+    },
+    "tests": {
+      "compiledFromOriginalTypeScript": true,
+      "exitCode": 0,
+      "assertions": 875,
+      "output": "ok · six reference perft positions\nok · legality, FEN, undo, promotion, en passant, castling and draw rules\nok · mate search, all ten levels, budgets, determinism and state restoration\nok · TUI commands, selection, promotion and streaming keyboard decoder\nfingerprint · b1c3:41:10000|a2a4:14:20|d2d3:-41:450|h2h3:-29:450|b1c3:10:1000|b1c3:10:1000|b1c3:10:1000|b1c3:41:1000|b1c3:41:1000|b1c3:41:1000|b1c3:41:1000|8/k2K4/4P2p/8/n2N2p1/8/1r1B4/5q1R w - - 20 81\nPASS · 875 assertions\n"
+    }
+  },
+  "porffor": {
+    "release": {
+      "version": "alpha-19",
+      "publishedAt": "2026-10-21T03:59:42Z",
+      "url": "https://github.com/CanadaHonk/porffor/releases/tag/alpha-19",
+      "assets": [
+        {
+          "name": "porffor-darwin-arm64.tar.gz",
+          "sha256": "sha256:2009205e80f1318f3ed610bdf591ac6054c0314a72ea546115adf2e8b168b5e1",
+          "url": "https://github.com/CanadaHonk/porffor/releases/download/alpha-19/porffor-darwin-arm64.tar.gz"
+        }
+      ]
+    },
+    "versionOutput": "alpha 19 (0c135ce 2026-10-21)",
+    "originalApp": {
+      "compiled": true,
+      "artifact": {
+        "path": "dist/compiler-trials/chess-porffor",
+        "bytes": 696720,
+        "sha256": "1fbccbe14ce2ba3c2e3e5863919c849fa02d4e4ba847f1c76cbb4541ab8304a0"
+      },
+      "runs": [
+        {
+          "case": "help",
+          "exitCode": 1,
+          "output": "Uncaught ReferenceError: process is not defined\n"
+        },
+        {
+          "case": "local",
+          "exitCode": 1,
+          "output": "Uncaught ReferenceError: process is not defined\n"
+        },
+        {
+          "case": "AI level 1",
+          "exitCode": 1,
+          "output": "Uncaught ReferenceError: process is not defined\n"
+        }
+      ],
+      "nodeProcessImport": {
+        "compiled": false,
+        "output": "Uncaught Error: porffor: node builtin modules are not supported (node:process)\n"
+      }
+    },
+    "originalTypeScriptTests": {
+      "compiled": true,
+      "exitCode": 1,
+      "output": "Uncaught TypeError: value is not a constructor\n"
+    },
+    "constructorIsolation": {
+      "typeScriptSource": "console.log(\"Array\"); const a = new Array<number>(128).fill(0); console.log(a.length);\nconsole.log(\"Map\"); const m = new Map<string, number>(); m.set(\"x\", 2); console.log(m.get(\"x\"));\nclass Example { values: number[] = new Array<number>(8).fill(0); table: Map<string, number> = new Map<string, number>(); }\nconsole.log(\"class\"); const example = new Example(); console.log(example.values.length);\n",
+      "typeScriptRun": "Array\nUncaught TypeError: value is not a constructor\n",
+      "javaScriptSource": "// dist/compiler-trials/constructors.ts\nconsole.log(\"Array\");\nvar a = new Array(128).fill(0);\nconsole.log(a.length);\nconsole.log(\"Map\");\nvar m = new Map;\nm.set(\"x\", 2);\nconsole.log(m.get(\"x\"));\n\nclass Example {\n  values = new Array(8).fill(0);\n  table = new Map;\n}\nconsole.log(\"class\");\nvar example = new Example;\nconsole.log(example.values.length);\n",
+      "javaScriptRun": "Array\n\u001b[33m128\u001b[0m\nMap\n\u001b[33m2\u001b[0m\nclass\n\u001b[33m8\u001b[0m\n",
+      "minimalTypeScriptCases": {
+        "generic": {
+          "source": "console.log(new Array<number>(2).fill(0).length);\n",
+          "compileExitCode": 0,
+          "runExitCode": 1,
+          "output": "Uncaught TypeError: value is not a constructor\n"
+        },
+        "plain": {
+          "source": "console.log(new Array(2).fill(0).length);\n",
+          "compileExitCode": 0,
+          "runExitCode": 0,
+          "output": "\u001b[33m2\u001b[0m\n"
+        }
+      }
+    },
+    "bundledJavaScriptTests": {
+      "compiled": true,
+      "artifact": {
+        "path": "dist/compiler-trials/tests-porffor-js",
+        "bytes": 763216,
+        "sha256": "16db9c4db818b608d94b546c4fda6e18993f8d505ac4021e711ab87c75b00462"
+      },
+      "exitCode": 0,
+      "assertions": 875,
+      "output": "ok · six reference perft positions\nok · legality, FEN, undo, promotion, en passant, castling and draw rules\nok · mate search, all ten levels, budgets, determinism and state restoration\nok · TUI commands, selection, promotion and streaming keyboard decoder\nfingerprint · b1c3:41:10000|a2a4:14:20|d2d3:-41:450|h2h3:-29:450|b1c3:10:1000|b1c3:10:1000|b1c3:10:1000|b1c3:41:1000|b1c3:41:1000|b1c3:41:1000|b1c3:41:1000|8/k2K4/4P2p/8/n2N2p1/8/1r1B4/5q1R w - - 20 81\nPASS · 875 assertions\n",
+      "matchesScriptcAndNode": true
+    }
+  }
+}

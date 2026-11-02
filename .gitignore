@@ -4,3 +4,6 @@ dist/
 .perry/
 *.o
 *.dSYM/
+
+# Built locally; releases ship native binaries through npm.
+plugin/bin/

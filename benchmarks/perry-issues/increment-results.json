@@ -1,0 +1,242 @@
+[
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 320.180041,
+    "runtime": "postfix",
+    "round": 0,
+    "instructions": 5151317237,
+    "cycles": 1043293790
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 638.815334,
+    "runtime": "postfix",
+    "round": 0,
+    "instructions": 10147959649,
+    "cycles": 2036296059
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 268.916375,
+    "runtime": "plus",
+    "round": 0,
+    "instructions": 4174300347,
+    "cycles": 874059562
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 532.2365,
+    "runtime": "plus",
+    "round": 0,
+    "instructions": 8213038404,
+    "cycles": 1694376729
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 45.799208,
+    "runtime": "Node postfix",
+    "round": 0,
+    "instructions": 1511862740,
+    "cycles": 375555882
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 90.26862499999999,
+    "runtime": "Node postfix",
+    "round": 0,
+    "instructions": 2380486419,
+    "cycles": 519812162
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 45.04304199999999,
+    "runtime": "Node plus",
+    "round": 0,
+    "instructions": 1506553081,
+    "cycles": 368062898
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 90.84633299999999,
+    "runtime": "Node plus",
+    "round": 0,
+    "instructions": 2380268013,
+    "cycles": 519079836
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 529.853291,
+    "runtime": "plus",
+    "round": 1,
+    "instructions": 8212978167,
+    "cycles": 1692482819
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 264.53150000000005,
+    "runtime": "plus",
+    "round": 1,
+    "instructions": 4162918139,
+    "cycles": 860789839
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 91.03404199999999,
+    "runtime": "Node postfix",
+    "round": 1,
+    "instructions": 2380791605,
+    "cycles": 522537361
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 45.390208,
+    "runtime": "Node postfix",
+    "round": 1,
+    "instructions": 1515085809,
+    "cycles": 380383934
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 90.93504099999998,
+    "runtime": "Node plus",
+    "round": 1,
+    "instructions": 2376947781,
+    "cycles": 514359043
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 45.09437500000001,
+    "runtime": "Node plus",
+    "round": 1,
+    "instructions": 1509194427,
+    "cycles": 373805957
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 639.7698330000001,
+    "runtime": "postfix",
+    "round": 1,
+    "instructions": 10148050157,
+    "cycles": 2040446041
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 320.29179200000004,
+    "runtime": "postfix",
+    "round": 1,
+    "instructions": 5140754024,
+    "cycles": 1035177604
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 45.214125,
+    "runtime": "Node postfix",
+    "round": 2,
+    "instructions": 1505357451,
+    "cycles": 372463121
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 90.074792,
+    "runtime": "Node postfix",
+    "round": 2,
+    "instructions": 2375608752,
+    "cycles": 511057191
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 45.519541,
+    "runtime": "Node plus",
+    "round": 2,
+    "instructions": 1506852055,
+    "cycles": 371582631
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 89.97875000000002,
+    "runtime": "Node plus",
+    "round": 2,
+    "instructions": 2384093836,
+    "cycles": 520745160
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 319.042708,
+    "runtime": "postfix",
+    "round": 2,
+    "instructions": 5140397521,
+    "cycles": 1036460194
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 638.1677080000001,
+    "runtime": "postfix",
+    "round": 2,
+    "instructions": 10147739989,
+    "cycles": 2037170561
+  },
+  {
+    "n": 5000000,
+    "warmup": 42188,
+    "checksum": 2109378,
+    "milliseconds": 266.163625,
+    "runtime": "plus",
+    "round": 2,
+    "instructions": 4163089251,
+    "cycles": 861216202
+  },
+  {
+    "n": 10000000,
+    "warmup": 42188,
+    "checksum": 4218750,
+    "milliseconds": 531.866458,
+    "runtime": "plus",
+    "round": 2,
+    "instructions": 8212483564,
+    "cycles": 1697989464
+  }
+]

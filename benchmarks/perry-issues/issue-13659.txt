@@ -1,0 +1,74 @@
+## Problem and measured impact
+
+Two conservative feature-detection rules retain the regex runtime for programs that do not use regexes. This is a binary-size / missed-pruning issue, not a correctness failure. It is separate from the slow Oz size-build configuration: these measurements keep app `-Os`, the stock speed-optimized runtime and specialized ABI enabled.
+
+Perry 0.5.1663, source context `b384cd7be035899e80908c5013baf8e88f08c892`, macOS 26.5 ARM64 / Apple M1 Max. Stripped, ad-hoc signed executable bytes:
+
+| Program | Stock compiler | Regex installer retained? |
+| --- | ---: | --- |
+| `console.log("ok")` | 51,824 | no |
+| Add discarded `process.on("SIGINT", () => {})` | 7,611,776 | yes |
+| `class Probe { search(): number { return 1; } }; console.log(new Probe().search())` | 6,275,376 | yes |
+| Same class/method renamed to `findValue` | 5,601,520 | no |
+
+The method name alone adds **673,856 bytes**. A local proof-of-concept that narrows signal-listener IPC selection reduces the signal example from **7,611,776 to 6,245,984 bytes** (1,365,792 bytes saved), using the same installed stock runtime and app flags. No PR is included in this report. These totals include ad-hoc signature/name metadata; tens of bytes of naming differences cannot explain the measured retention.
+
+Do **not** interpret the whole 7.56 MB jump from console-only to signal registration as avoidable: the signal implementation legitimately needs more runtime. The patch comparison isolates a smaller removable subset.
+
+## Standalone reproduction
+
+Save these four files:
+
+```typescript
+// signal-control.ts
+console.log("ok");
+```
+```typescript
+// signal.ts
+process.on("SIGINT", () => {});
+console.log("ok");
+```
+```typescript
+// name-search.ts
+class Probe { search(): number { return 1; } }
+console.log(new Probe().search());
+```
+```typescript
+// name-find.ts
+class Probe { findValue(): number { return 1; } }
+console.log(new Probe().findValue());
+```
+
+```sh
+for name in signal-control signal name-search name-find; do
+  PERRY_KEEP_SYMBOLS=1 PERRY_LL_OPT_LEVEL=s PERRY_SPECIALIZED_ABI=1     perry compile "$name.ts" -o "$name-symbols" --function-source header     --strict-eval --strict-dynamic-import --strict-unimplemented
+  nm "$name-symbols" | rg 'js_runtime_install_regex_engine'
+  cp "$name-symbols" "$name-stripped"
+  strip "$name-stripped"
+  codesign --force --sign - "$name-stripped"
+  stat -f '%z %N' "$name-stripped"
+  "./$name-stripped"
+done
+```
+
+The `nm` no-match exit for the two controls is expected. All four executions succeed with `ok` or `1` as shown; the signal micro verifies registration/exit, not signal delivery. Existing full-app validation of the local patch separately covered actual SIGINT/SIGTERM delivery and terminal restoration.
+
+## Mechanisms / source locations
+
+At [feature_detect.rs](https://github.com/PerryTS/perry/blob/b384cd7be035899e80908c5013baf8e88f08c892/crates/perry/src/commands/compile/collect_modules/feature_detect.rs):
+
+- `debug_hir_uses_regex` scans HIR debug text for `property: "search"` (and other names), without proving the receiver is a string/regex API. An unrelated class method triggers the feature.
+- `detect_optional_feature_usage` conservatively enables process IPC for listener methods including `on` and `once`, without distinguishing the static event. IPC deserialization can produce regex objects and consequently retains the regex engine.
+
+The local signal-only experiment narrows **discarded direct calls** for known signal/exit events with lexical arrow callbacks. It retains IPC for unknown events, escaping return values, chained calls, namespace escapes, and non-arrow/unknown callbacks. In particular, an ordinary listener's `this` can expose `process`; removing IPC based solely on the event literal would be unsound. Eighteen feature-detection tests passed, including these negative cases. This is evidence for a tractable optimization, not a claim that the experimental patch is ready to merge.
+
+## Acceptance / regression coverage
+
+- Unrelated class methods named `search`/`match` must not by themselves retain regex support; genuine string/regex operations and dynamic/unknown receivers must still select it.
+- Statically isolated signal-only arrow registration should not require IPC/regex; unknown/message events, callback `this`, escaping process/listener return values and genuine IPC must retain support.
+- Exercise SIGINT/SIGTERM delivery, listener removal using the same callback identity, normal exit, and IPC serialization/deserialization correctness.
+- Report stripped file and `__text` sizes with identical speed-oriented build flags; preserve startup and steady-state performance. Do not substitute blanket Oz to meet the size goal.
+
+Related: #13649/#13650 cover a different size cause, excessive HIR unrolling. The fixed `search` name and signal retention reductions here are independent of that pass.
+
+Parent investigation and complete accounting: #13663.

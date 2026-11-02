@@ -1,0 +1,13 @@
+# Research configuration: hold minimal features and fat LTO fixed while
+# changing Rust optimization from size-first to speed-first. Not a preset.
+[profile.chess-balanced]
+inherits = "release"
+opt-level = 2
+lto = "fat"
+strip = false
+
+[profile.chess-balanced.package.perry-runtime]
+opt-level = 2
+
+[profile.chess-balanced.package.perry-stdlib]
+opt-level = 2

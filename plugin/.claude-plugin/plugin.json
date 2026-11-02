@@ -1,0 +1,26 @@
+{
+  "name": "chess",
+  "version": "0.6.0",
+  "description": "Play chess in a board pane beside the chat (arrow keys or mouse) against a built-in, dependency-free engine, and ask Claude about the position.",
+  "author": {
+    "name": "Ralph Küpper",
+    "email": "ralph@skelpo.com"
+  },
+  "homepage": "https://tuichess.dev",
+  "repository": "https://github.com/skelpo/chess",
+  "license": "MIT",
+  "keywords": [
+    "chess",
+    "game",
+    "engine"
+  ],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "server": {
+      "type": "string",
+      "title": "Online server",
+      "description": "URL of the chess server for online play (server/src/main.ts).",
+      "default": "https://api.tuichess.dev"
+    }
+  }
+}

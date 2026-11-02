@@ -1,0 +1,139 @@
+## Measured problem
+
+A discarded `j++` update in a short numeric-array scan is **320.18 ms / 1,001.44 instructions per probe**. Changing only that update to `j += 1` gives **266.16 ms / 809.98 instructions per probe**: 16.9% less wall time and about **191.46 fewer instructions per probe**. Node stays at ~45 ms / ~174 instructions per probe.
+
+There is a concrete compiler artifact: the `++` binary calls `js_packed_arraylike_loop_guard_live` on every probe, but does not consume its return value or descriptor in the emitted loop. The `+= 1` binary has no such call. Source inspection finds the admission helper emitted **before** the final fast-clone safety decision; rejecting that clone emits an unconditional branch to the slow loop without removing the admission call.
+
+This is a missed-optimization/performance bug with a reproducible, apparently unused admission operation. The full instruction difference includes any other lowering/layout differences; it is not an instrumented claim that exactly 191.46 instructions execute inside that helper alone.
+
+## Standalone reproduction
+
+Save as `repro.ts`:
+
+```typescript
+// Synthetic short scan; no application source or dependencies.
+const STEPS: number[] = [-17, -16, -15, -1, 1, 15, 16, 17];
+class Probe {
+  cells: number[] = new Array<number>(128).fill(0);
+  constructor() {
+    for (let i = 0; i < 128; i++) this.cells[i] = (i & 0x88) === 0 ? ((i * 3) % 7) - 3 : 0;
+  }
+  probe(origin: number): boolean {
+    const cells = this.cells;
+    for (let j = 0; j < STEPS.length; j++) {
+      const square = origin + (STEPS[j] ?? 0);
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && (cells[square] ?? 0) === 2) return true;
+    }
+    return false;
+  }
+}
+function scan(board: Probe, n: number): number {
+  let sum = 0;
+  for (let i = 0; i < n; i++) if (board.probe(i & 127)) sum++;
+  return sum;
+}
+const n = Number(process.argv[2] ?? "5000000");
+const board = new Probe();
+const warmup = scan(board, 100000);
+const t = performance.now();
+const checksum = scan(board, n);
+console.log(JSON.stringify({ n, warmup, checksum, milliseconds: performance.now() - t }));
+```
+
+Create the control with exactly one replacement, then build both with the same installed compiler/runtime:
+
+```sh
+python3 - <<'PY_REPRO'
+from pathlib import Path
+s = Path('repro.ts').read_text()
+assert s.count('j++)') == 1
+Path('plus.ts').write_text(s.replace('j++)', 'j += 1)'))
+PY_REPRO
+for name in repro plus; do
+  PERRY_KEEP_SYMBOLS=1 PERRY_LL_OPT_LEVEL=s PERRY_SPECIALIZED_ABI=1     perry compile "$name.ts" -o "$name" --strict-eval --strict-dynamic-import --strict-unimplemented
+  for n in 5000000 10000000; do
+    /usr/bin/time -l "./$name" "$n"
+    /usr/bin/time -l node "$name.ts" "$n"
+  done
+done
+```
+
+Repeat in rotating order for three rounds with no concurrent builds/profiling. Expected warmup checksum: **42188**. Expected timed checksums: **2109378** (5M), **4218750** (10M). All 24 measurements matched. Inner timing excludes startup and 100,000 warmup probes. Instructions per probe are the **slope** `(median instructions at 10M - median at 5M) / 5M`, subtracting fixed startup/warmup overhead.
+
+| Runtime/update | 5M probes, median ms | Incremental instructions/probe |
+| --- | ---: | ---: |
+| postfix | 320.18 | 1001.44 |
+| plus | 266.16 | 809.98 |
+| Node postfix | 45.39 | 173.72 |
+| Node plus | 45.09 | 174.68 |
+
+## Code path and assembly
+
+Pinned source context: [stable_packed_loop.rs](https://github.com/PerryTS/perry/blob/b384cd7be035899e80908c5013baf8e88f08c892/crates/perry-codegen/src/stmt/stable_packed_loop.rs#L1547).
+
+1. `lower` matches a candidate and emits `js_packed_arraylike_loop_guard_live` around line 1619.
+2. It emits the fast clone and examines `contains_gc_unsafe_call()` around lines 1803–1809.
+3. When `fast_clone_is_safe` is false, it branches directly to `slow_pre_label` around line 1815. The already-emitted guard remains.
+
+The `scan$spec_b_i32` caller inlines the probe. Its optimized ARM64 `++` path contains:
+
+```asm
+; load STEPS, prepare bound -1 and numeric-mode 1, descriptor on stack
+fmov d1, #-1.0
+add  x1, sp, #0x30
+mov  w0, #1
+bl   _js_packed_arraylike_loop_guard_live
+mov  w28, #0
+ldp  x21, x19, [sp, #0x20]
+; reload original STEPS and enter ordinary length/element checks
+; returned x0 and the descriptor do not feed an admitted fast clone
+```
+
+The corresponding `+= 1` path goes directly into the ordinary loop. The scan bodies have 376 versus 367 static ARM64 instructions; the additional runtime work is much larger than that nine-instruction static difference. This is **not** #13649's literal-bound HIR unrolling bug: the bound here is `STEPS.length`.
+
+## Fix direction and acceptance
+
+- Avoid executing packed-loop admission when code generation has already proved the fast clone unusable. Delay admission emission, or safely roll back the speculative IR; do not remove required fallback/GC behavior from reachable fast paths.
+- Add an IR regression fixture for this rejected clone: no leftover admission call or unused descriptor solely for an unreachable fast arm.
+- Preserve fast-clone admission where it is actually consumed, and run the packed-loop mutation/accessor, capture/revalidation, forwarding and moving-GC tests.
+- Benchmark both equivalent update spellings. Target eliminating this ~19% instruction penalty rather than normalizing all source to `+= 1`.
+- Validate full-engine evaluate/legal/perft/search separately; the microbenchmark difference is not a claim of a 17% full-app speedup.
+
+Related: #13645 (iterator overhead), #5497 (specialization). This reports a separate indexed-loop cost that remains after replacing `for...of`.
+
+## Environment and raw samples
+
+Perry 0.5.1663; installed release compiler/runtime with clean configured source worktree at `b384cd7be035899e80908c5013baf8e88f08c892`; native macOS 26.5 ARM64, Apple M1 Max, 64 GiB; Node 26.5.1. Stock runtime, app Os, specialized ABI on. No debug-call instrumentation, custom GC settings or fast math. No version regression range established.
+
+<details><summary>Raw samples: runtime, round, N, inner ms, whole-process instructions</summary>
+
+```csv
+runtime,round,N,ms,instructions
+postfix,0,5000000,320.180041,5151317237
+postfix,0,10000000,638.815334,10147959649
+plus,0,5000000,268.916375,4174300347
+plus,0,10000000,532.236500,8213038404
+Node postfix,0,5000000,45.799208,1511862740
+Node postfix,0,10000000,90.268625,2380486419
+Node plus,0,5000000,45.043042,1506553081
+Node plus,0,10000000,90.846333,2380268013
+plus,1,10000000,529.853291,8212978167
+plus,1,5000000,264.531500,4162918139
+Node postfix,1,10000000,91.034042,2380791605
+Node postfix,1,5000000,45.390208,1515085809
+Node plus,1,10000000,90.935041,2376947781
+Node plus,1,5000000,45.094375,1509194427
+postfix,1,10000000,639.769833,10148050157
+postfix,1,5000000,320.291792,5140754024
+Node postfix,2,5000000,45.214125,1505357451
+Node postfix,2,10000000,90.074792,2375608752
+Node plus,2,5000000,45.519541,1506852055
+Node plus,2,10000000,89.978750,2384093836
+postfix,2,5000000,319.042708,5140397521
+postfix,2,10000000,638.167708,10147739989
+plus,2,5000000,266.163625,4163089251
+plus,2,10000000,531.866458,8212483564
+```
+</details>
+
+Parent investigation and complete accounting: #13663.

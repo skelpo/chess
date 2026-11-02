@@ -1,0 +1,12 @@
+# Research middle ground: size optimization without LLVM minsize behavior.
+[profile.chess-balanced]
+inherits = "release"
+opt-level = "s"
+lto = "fat"
+strip = false
+
+[profile.chess-balanced.package.perry-runtime]
+opt-level = "s"
+
+[profile.chess-balanced.package.perry-stdlib]
+opt-level = "s"

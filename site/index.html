@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tuichess · chess in your terminal</title>
+<meta name="description" content="Chess beside Claude Code: a board pane, a Perry-native engine, and online games against other people.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='8' height='8' fill='%23ad8e62'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23ad8e62'/%3E%3Crect x='8' width='8' height='8' fill='%238a6a43'/%3E%3Crect y='8' width='8' height='8' fill='%238a6a43'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #0f1012; --panel: #17181b; --line: #2a2c31; --text: #e6e3dc; --dim: #9a968d; --faint: #6d6a64;
+  --accent: #6fbf73; --link: #8ab4f8; --light: #ad8e62; --dark: #8a6a43; --mark: #3f7fd0;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 var(--mono); }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+header { border-bottom: 1px solid var(--line); }
+header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 56px; }
+.logo { color: var(--text); font-weight: 700; letter-spacing: .02em; }
+.logo span { color: var(--accent); }
+nav { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; }
+nav a { color: var(--dim); }
+nav a:hover { color: var(--text); text-decoration: none; }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 36px; align-items: center; padding: 56px 0 40px; }
+h1 { font-size: 34px; line-height: 1.2; margin: 0 0 16px; font-weight: 700; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { color: var(--dim); margin: 0 0 24px; max-width: 46ch; }
+.cmd { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; max-width: 520px; }
+.cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; }
+.cmd code::before { content: "❯ "; color: var(--faint); }
+button.copy { font: inherit; font-size: 12px; color: var(--dim); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+button.copy:hover { color: var(--text); border-color: var(--faint); }
+.small { font-size: 13px; color: var(--faint); margin-top: 10px; }
+
+.pane { background: #000; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: flex; gap: 18px; }
+.board { display: grid; grid-template-columns: 14px repeat(8, 30px); grid-auto-rows: 30px; font-size: 20px; }
+.board .rank, .board .file { color: var(--faint); font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.sq { display: flex; align-items: center; justify-content: center; line-height: 1; }
+.sq.l { background: var(--light); } .sq.d { background: var(--dark); } .sq.m { background: var(--mark); }
+.sq .w { color: #fff; text-shadow: 0 0 2px #000, 0 0 1px #000; } .sq .b { color: #111; }
+.side { font-size: 12px; line-height: 1.7; width: 140px; }
+.side b { color: var(--text); } .side .g { color: var(--accent); } .side .f { color: var(--faint); }
+
+section { padding: 40px 0; border-top: 1px solid var(--line); }
+h2 { font-size: 20px; margin: 0 0 18px; }
+h2::before { content: "## "; color: var(--faint); }
+h3 { font-size: 15px; margin: 28px 0 8px; color: var(--text); }
+p { margin: 0 0 12px; }
+.muted { color: var(--dim); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--faint); font-weight: 400; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+code { font-family: var(--mono); color: #e8c58a; }
+td code, p code, li code { white-space: nowrap; }
+pre { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; overflow-x: auto; margin: 0 0 14px; }
+pre code { color: var(--text); }
+ol, ul { padding-left: 22px; margin: 0 0 12px; }
+li { margin: 4px 0; }
+.scores td:first-child { color: var(--faint); width: 3ch; }
+.scores tr.top td:nth-child(2) { color: var(--accent); }
+#scores-note { color: var(--faint); font-size: 13px; margin-top: 10px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--faint); font-size: 13px; }
+
+@media (max-width: 820px) {
+  .hero { grid-template-columns: minmax(0, 1fr); padding-top: 36px; }
+  .pane { justify-self: start; max-width: 100%; }
+  .cols { grid-template-columns: 1fr; }
+  h1 { font-size: 27px; }
+}
+@media (max-width: 520px) {
+  .pane { flex-direction: column; }
+  .board { width: 100%; grid-template-columns: 12px repeat(8, minmax(0, 1fr)); grid-auto-rows: auto; }
+  .side { width: auto; }
+  .board .sq { aspect-ratio: 1; }
+  nav { gap: 12px; }
+  nav .hide-s { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="logo" href="/">tui<span>chess</span></a>
+    <nav>
+      <a href="#scores">High scores</a>
+      <a href="#install">Install</a>
+      <a href="#docs">Docs</a>
+      <a class="hide-s" href="#api">API</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div>
+      <h1>Chess in your terminal,<br><em>right beside Claude.</em></h1>
+      <p class="lede">A Claude Code plugin: a board pane next to the chat, an engine compiled to native code with Perry, and online games against other people. Ask Claude about your position while you play.</p>
+      <div class="cmd"><code id="install-cmd">/plugin install chess --marketplace skelpo/chess</code><button class="copy" data-copy="install-cmd">copy</button></div>
+      <p class="small">Then type <code>/chess</code>. Needs Claude Code 2.1.316 or later.</p>
+    </div>
+    <div class="pane" aria-label="The chess pane in Claude Code">
+      <div class="board" id="board"></div>
+      <div class="side">
+        <b>Black to move.</b><br>
+        <span class="f">Engine</span> <span class="g">Perry native</span><br>
+        <span class="f">depth 4 · 12,785 nodes · 31 ms</span><br><br>
+        <span class="f">1.</span> e4 e5<br>
+        <span class="f">2.</span> Nf3 Nc6<br>
+        <span class="f">3.</span> Bb5<br><br>
+        <span class="f">[ New ] [ Undo ] [ Hint ]</span>
+      </div>
+    </div>
+  </div>
+
+  <section id="scores">
+    <h2>High scores</h2>
+    <p class="muted">Wins in online games. Only games of at least 10 half-moves count.</p>
+    <div class="scroll">
+      <table class="scores">
+        <thead><tr><th>#</th><th>Player</th><th class="num">Won</th><th class="num">Lost</th><th class="num">Drawn</th></tr></thead>
+        <tbody id="scores-body"><tr><td></td><td class="muted" colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <p id="scores-note"></p>
+  </section>
+
+  <section id="install">
+    <h2>Install</h2>
+    <ol>
+      <li>In Claude Code (2.1.316 or later), run <code>/plugin install chess --marketplace skelpo/chess</code>.<br><span class="muted">On older versions: <code>/plugin marketplace add skelpo/chess</code>, then <code>/plugin install chess@skelpo-chess</code>.</span></li>
+      <li>Type <code>/chess</code>. The board opens in a pane.</li>
+      <li>For the board beside the chat instead of below it, switch Claude Code to its fullscreen layout: <code>/tui fullscreen</code>. There you can also click the board.</li>
+    </ol>
+    <p class="muted">Update later with <code>/plugin marketplace update skelpo-chess</code> and <code>/plugin update chess@skelpo-chess</code>.</p>
+  </section>
+
+  <section id="docs">
+    <h2>Docs</h2>
+
+    <h3>Playing</h3>
+    <p>Type moves as coordinates (<code>e2e4</code>, <code>e7e8q</code>) in the pane's move field, or use its menu: New game, Undo, Hint, Flip, Easier, Harder, Engine, Play online. <b>ctrl+x tab</b> gives the pane the keyboard, Tab walks the menu, Esc returns to the prompt. You can also play from the prompt: <code>/chess e2e4</code>, <code>/chess undo</code>, <code>/chess hint</code>.</p>
+    <div class="cols">
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Board key</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Arrows, Enter</td><td>Move the cursor, pick, play</td></tr>
+            <tr><td><code>q r b n</code></td><td>Promotion piece</td></tr>
+            <tr><td><code>u</code> <code>n</code> <code>h</code></td><td>Undo, new game, hint</td></tr>
+            <tr><td><code>f</code> <code>g</code></td><td>Flip, glyphs or letters</td></tr>
+            <tr><td><code>+</code> <code>-</code></td><td>Engine level</td></tr>
+          </tbody>
+        </table>
+        <p class="small">Board keys work after clicking the board, in the fullscreen layout.</p>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Command</th><th>Starts</th></tr></thead>
+          <tbody>
+            <tr><td><code>/chess</code></td><td>Opens the board</td></tr>
+            <tr><td><code>/chess black 7</code></td><td>As Black, level 7 of 10</td></tr>
+            <tr><td><code>/chess both</code></td><td>Two players, no engine</td></tr>
+            <tr><td><code>/chess fen &lt;FEN&gt;</code></td><td>From a position</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3>Claude plays along</h3>
+    <p>Claude sees the same game through its tools, so you can ask "what should I play here?", "why was that a mistake?", or have it move for you. Its tools: <code>chess_new_game</code>, <code>chess_move</code>, <code>chess_show</code>, <code>chess_legal_moves</code>, <code>chess_hint</code>, <code>chess_engine_move</code>, <code>chess_undo</code>, <code>chess_claim_draw</code>, <code>chess_settings</code>. During an online game Claude stays out of it.</p>
+
+    <h3>Online</h3>
+    <ul>
+      <li><b>Play online</b> in the menu (or <code>online</code> in the move field). Pick a username: 3 to 20 letters, digits, <code>_</code> or <code>-</code>, first come, first served. No password or email: the plugin keeps a random token for the name on your computer.</li>
+      <li><b>Play anyone</b> pairs you with the next waiting player; whoever waited longer plays White. Or <b>Challenge</b> someone from the online list; they can Accept or Decline.</li>
+      <li>No clocks and no chat. Someone gone from a game for 10 minutes loses it. No takebacks or hints online.</li>
+      <li>The high scores rank wins, then fewer losses, then more draws. Games shorter than 10 half-moves don't count.</li>
+    </ul>
+
+    <h3>The engine</h3>
+    <p>The engine is plain TypeScript with no dependencies. The plugin runs it as a native executable compiled by <a href="https://perryts.com">Perry</a>, which starts in about 10 ms, so every engine move and hint is a fresh native process outside Claude Code. The online server is the same: one TypeScript file, compiled by Perry, running here.</p>
+
+    <h3>Other agents (MCP)</h3>
+    <p>The same tools are available to opencode, Cursor and any other MCP client as a local stdio server, either from source or from the native binary:</p>
+<pre><code>node mcp/src/server.ts            # Node 22.18+
+chess-engine-&lt;os&gt;-&lt;arch&gt; mcp      # Perry native, no Node</code></pre>
+  </section>
+
+  <section id="api">
+    <h2>API</h2>
+    <p>The online server is <code>https://api.tuichess.dev</code>: HTTP and JSON with long polling. Authenticated calls send <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Endpoint</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST /v1/register</code></td><td>Body <code>{"name"}</code>. Claims a username, returns <code>{"name", "token"}</code>.</td></tr>
+          <tr><td><code>GET /v1/state?since=&lt;n&gt;</code></td><td>Everything one player sees: online players, challenges, the game, the high scores. Held up to 25 s until something changes.</td></tr>
+          <tr><td><code>POST /v1/action</code></td><td><code>queue</code>, <code>unqueue</code>, <code>challenge</code> / <code>accept</code> / <code>decline</code> with <code>name</code>, <code>cancel</code>, <code>move</code> with <code>uci</code>, <code>resign</code>, <code>draw</code>, <code>leave</code>.</td></tr>
+          <tr><td><code>GET /v1/leaderboard</code></td><td>The high scores. No token needed.</td></tr>
+          <tr><td><code>GET /health</code></td><td><code>ok</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre><code>curl -s https://api.tuichess.dev/v1/leaderboard</code></pre>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">tuichess · by <a href="https://skelpo.com">skelpo</a> · engine and server compiled with <a href="https://perryts.com">Perry</a></div>
+</footer>
+
+<script>
+(function () {
+  // The pane preview: 1. e4 e5 2. Nf3 Nc6 3. Bb5, last move marked.
+  var fen = "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R";
+  var glyph = { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" };
+  var marked = { "f1": 1, "b5": 1 };
+  var board = document.getElementById("board");
+  var rows = fen.split("/");
+  var html = "";
+  for (var r = 0; r < 8; r++) {
+    html += '<div class="rank">' + (8 - r) + "</div>";
+    var cells = [];
+    rows[r].split("").forEach(function (c) {
+      if (/\d/.test(c)) { for (var i = 0; i < +c; i++) cells.push(""); } else cells.push(c);
+    });
+    cells.forEach(function (c, f) {
+      var sq = "abcdefgh"[f] + (8 - r);
+      var cls = marked[sq] ? "m" : (r + f) % 2 === 0 ? "l" : "d";
+      var piece = c ? '<span class="' + (c === c.toUpperCase() ? "w" : "b") + '">' + glyph[c.toLowerCase()] + "</span>" : "";
+      html += '<div class="sq ' + cls + '">' + piece + "</div>";
+    });
+  }
+  html += "<div></div>" + "abcdefgh".split("").map(function (f) { return '<div class="file">' + f + "</div>"; }).join("");
+  board.innerHTML = html;
+
+  document.querySelectorAll("button.copy").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var text = document.getElementById(button.getAttribute("data-copy")).textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        button.textContent = "copied";
+        setTimeout(function () { button.textContent = "copy"; }, 1500);
+      }).catch(function () {});
+    });
+  });
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  var body = document.getElementById("scores-body");
+  var note = document.getElementById("scores-note");
+  function load() {
+    fetch("/api/leaderboard", { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json();
+    }).then(function (data) {
+      var list = data.leaderboard || [];
+      if (list.length === 0) {
+        body.innerHTML = '<tr><td></td><td class="muted" colspan="4">No rated games yet. Be the first: Play online in the pane.</td></tr>';
+      } else {
+        body.innerHTML = list.map(function (s, i) {
+          return '<tr class="' + (i === 0 ? "top" : "") + '"><td>' + (i + 1) + "</td><td>" + esc(s.name) + '</td><td class="num">' + s.wins + '</td><td class="num">' + s.losses + '</td><td class="num">' + s.draws + "</td></tr>";
+        }).join("");
+      }
+      note.textContent = "Live from the server · updated " + new Date().toLocaleTimeString();
+    }).catch(function () {
+      if (body.textContent.indexOf("Loading") >= 0) body.innerHTML = '<tr><td></td><td class="muted" colspan="4">The server can\'t be reached right now.</td></tr>';
+      note.textContent = "Retrying shortly.";
+    });
+  }
+  load();
+  setInterval(load, 30000);
+})();
+</script>
+</body>
+</html>

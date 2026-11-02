@@ -1,0 +1,13 @@
+# Cargo configuration for a dedicated, app-specific Perry runtime build.
+# Keep panic/unwind settings from Perry's release profile and .cargo/config.
+[profile.chess-small]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+strip = false
+
+[profile.chess-small.package.perry-runtime]
+opt-level = "z"
+
+[profile.chess-small.package.perry-stdlib]
+opt-level = "z"

@@ -1,0 +1,32 @@
+[
+  {
+    "variant": "baseline",
+    "bytes": 7475792,
+    "sha256": "550d27d7532e8f03453b55cfa2ef76598e0339694bb3ff5e402ac3074d529fd7"
+  },
+  {
+    "variant": "indexed-attacks",
+    "bytes": 7902608,
+    "sha256": "4b5109acd86fe0345e0fc0ac24f34ad9e4e76eeec0c159e3edea1df93f1d928b"
+  },
+  {
+    "variant": "inline-bounds",
+    "bytes": 7492208,
+    "sha256": "03ac3a352ac84f211e7156de2129cd2138d90fcdb1bd0864138570d7ad62dc17"
+  },
+  {
+    "variant": "pawn-edges",
+    "bytes": 7475792,
+    "sha256": "326881dde52b11112578222094a4bbf3424d2e9ff73bbcb1dd7726c7ffd345d8"
+  },
+  {
+    "variant": "typed-scratch",
+    "bytes": 7558048,
+    "sha256": "85b15aa36ecf68741e5be6133418dd5fa69d039f3110a3758d553dd51407100e"
+  },
+  {
+    "variant": "combined",
+    "bytes": 7902608,
+    "sha256": "73952b521e49d9bb2376c4206d603b6391683174aaad27ccd03124968b49f5f3"
+  }
+]

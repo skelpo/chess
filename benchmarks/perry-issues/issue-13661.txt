@@ -1,0 +1,306 @@
+## Scope: the indexed-loop gap remaining after iterator and dead-admission costs
+
+The public short-scan repro for #13645 still has a large gap with indexed access. #13660 now isolates a separate unused packed-loop admission triggered by `j++`. This report holds the increment at **`j += 1`** so that artifact does not explain the remaining measurements.
+
+For five million identical probes:
+
+- Live-length indexed scan: Perry **266.64 ms**, Node **45.99 ms**; **784.03 vs 173.95 incremental instructions/probe**.
+- Fixed bound, same array element reads and same increment: Perry **246.42 ms**, **667.31 instructions/probe**. This saves **116.72 instructions/probe** (~15% of the Perry live-bound instruction budget), while Node's instruction cost remains ~174.
+- Same fixed loop and ordinary board array, but compute the eight constant directions instead of loading them: Perry **131.27 ms**, **410.00 instructions/probe**. This saves a further **257.31 instructions/probe** (~39% of the fixed-bound instruction budget).
+- Even the direction-arithmetic form remains **410 vs 150.77 instructions/probe**, and **131.27 vs 53.38 ms**, against Node.
+
+These are **controlled source reductions**, not additive allocations of the full application runtime to individual helpers. Arithmetic direction generation changes the work done; it exposes an optimization opportunity but is not an instruction-for-instruction implementation of an array read. The fixed bound is valid for this immutable fixture, not for arbitrary mutable arrays.
+
+## Full standalone reproduction and controls
+
+Save as `repro.ts`. No private application source or packages are required.
+
+<details><summary>Complete TypeScript reproducer (10 access forms)</summary>
+
+```typescript
+// Synthetic numeric-array access reduction; contains no application source.
+// Each variant visits the same cells in the same order and returns early on 2.
+const STEPS: number[] = [-17, -16, -15, -1, 1, 15, 16, 17];
+const TYPED_STEPS = new Int32Array([-17, -16, -15, -1, 1, 15, 16, 17]);
+class AccessBoard {
+  cells: number[] = new Array<number>(128).fill(0);
+  typed: Int32Array = new Int32Array(128);
+  constructor() {
+    for (let i = 0; i < 128; i++) {
+      const value = (i & 0x88) === 0 ? ((i * 3) % 7) - 3 : 0;
+      this.cells[i] = value;
+      this.typed[i] = value;
+    }
+  }
+  at(square: number): number { return this.cells[square] ?? 0; }
+  method(origin: number): boolean {
+    for (let j = 0; j < STEPS.length; j++) {
+      const square = origin + (STEPS[j] ?? 0);
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && this.at(square) === 2) return true;
+    }
+    return false;
+  }
+  field(origin: number): boolean {
+    for (let j = 0; j < STEPS.length; j++) {
+      const square = origin + (STEPS[j] ?? 0);
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && (this.cells[square] ?? 0) === 2) return true;
+    }
+    return false;
+  }
+  local(origin: number): boolean {
+    const cells = this.cells;
+    for (let j = 0; j < STEPS.length; j++) {
+      const square = origin + (STEPS[j] ?? 0);
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && (cells[square] ?? 0) === 2) return true;
+    }
+    return false;
+  }
+  liveBound(origin: number): boolean {
+    const cells = this.cells;
+    for (let j = 0; j < STEPS.length; j += 1) {
+      const square = origin + (STEPS[j] ?? 0);
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && (cells[square] ?? 0) === 2) return true;
+    }
+    return false;
+  }
+  typedLocal(origin: number): boolean {
+    const cells = this.typed;
+    for (let j = 0; j < STEPS.length; j++) {
+      const square = origin + (STEPS[j] ?? 0);
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && (cells[square] ?? 0) === 2) return true;
+    }
+    return false;
+  }
+  directions(origin: number): boolean {
+    const cells = this.cells;
+    for (let j = 0; j < 8; j += 1) {
+      const delta = j < 3 ? j - 17 : j < 5 ? 2 * j - 7 : j + 10;
+      const square = origin + delta;
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && (cells[square] ?? 0) === 2) return true;
+    }
+    return false;
+  }
+  fixedBound(origin: number): boolean {
+    const cells = this.cells;
+    for (let j = 0; j < 8; j += 1) {
+      const square = origin + (STEPS[j] ?? 0);
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && (cells[square] ?? 0) === 2) return true;
+    }
+    return false;
+  }
+  fixedTyped(origin: number): boolean {
+    const cells = this.cells;
+    for (let j = 0; j < 8; j += 1) {
+      const square = origin + (TYPED_STEPS[j] ?? 0);
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && (cells[square] ?? 0) === 2) return true;
+    }
+    return false;
+  }
+  arithmetic(origin: number): boolean {
+    // Same-answer control only: computes this fixture's immutable cell value.
+    // It cannot replace reading the mutable board in the real chess engine.
+    for (let j = 0; j < 8; j += 1) {
+      const delta = j < 3 ? j - 17 : j < 5 ? 2 * j - 7 : j + 10;
+      const square = origin + delta;
+      if (square >= 0 && square < 128 && (square & 0x88) === 0 && ((square * 3) % 7) - 3 === 2) return true;
+    }
+    return false;
+  }
+}
+function flat(cells: number[], origin: number): boolean {
+  for (let j = 0; j < STEPS.length; j++) {
+    const square = origin + (STEPS[j] ?? 0);
+    if (square >= 0 && square < 128 && (square & 0x88) === 0 && (cells[square] ?? 0) === 2) return true;
+  }
+  return false;
+}
+function scan(board: AccessBoard, amount: number, variant: string): number {
+  let sum = 0;
+  // Select the variant outside the timed hot loop: no per-probe mode branch.
+  if (variant === "method") {
+    for (let i = 0; i < amount; i++) if (board.method(i & 127)) sum++;
+  } else if (variant === "field") {
+    for (let i = 0; i < amount; i++) if (board.field(i & 127)) sum++;
+  } else if (variant === "local") {
+    for (let i = 0; i < amount; i++) if (board.local(i & 127)) sum++;
+  } else if (variant === "live-bound") {
+    for (let i = 0; i < amount; i++) if (board.liveBound(i & 127)) sum++;
+  } else if (variant === "typed-local") {
+    for (let i = 0; i < amount; i++) if (board.typedLocal(i & 127)) sum++;
+  } else if (variant === "flat") {
+    const cells = board.cells;
+    for (let i = 0; i < amount; i++) if (flat(cells, i & 127)) sum++;
+  } else if (variant === "directions") {
+    for (let i = 0; i < amount; i++) if (board.directions(i & 127)) sum++;
+  } else if (variant === "arithmetic") {
+    for (let i = 0; i < amount; i++) if (board.arithmetic(i & 127)) sum++;
+  } else if (variant === "fixed-bound") {
+    for (let i = 0; i < amount; i++) if (board.fixedBound(i & 127)) sum++;
+  } else if (variant === "fixed-typed") {
+    for (let i = 0; i < amount; i++) if (board.fixedTyped(i & 127)) sum++;
+  } else throw new Error("Unknown access variant");
+  return sum;
+}
+const variant = process.argv[2] ?? "method";
+const amount = Number(process.argv[3] ?? "5000000");
+if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Expected a positive iteration count");
+const board = new AccessBoard();
+const warmup = scan(board, 100000, variant);
+const started = performance.now();
+const checksum = scan(board, amount, variant);
+const milliseconds = performance.now() - started;
+console.log(JSON.stringify({ variant, amount, warmup, checksum, milliseconds }));
+```
+</details>
+
+```sh
+PERRY_KEEP_SYMBOLS=1 PERRY_LL_OPT_LEVEL=s PERRY_SPECIALIZED_ABI=1   perry compile repro.ts -o repro --strict-eval --strict-dynamic-import --strict-unimplemented
+for variant in method local live-bound fixed-bound directions arithmetic; do
+  for n in 5000000 10000000; do
+    /usr/bin/time -l ./repro "$variant" "$n"
+    /usr/bin/time -l node repro.ts "$variant" "$n"
+  done
+done
+```
+
+Three serial rounds, rotating variants/runtime order and reversing the 5M/10M order in the middle round. All 72 samples matched `warmup: 42188`, `checksum: 2109378` at 5M and `4218750` at 10M. Inner timing excludes startup and 100,000 warmup probes. Instruction cost is `(median I(10M) - median I(5M)) / 5M`, so fixed startup and warmup are subtracted.
+
+| Variant | Perry ms at 5M | Perry instructions/probe | Node ms at 5M | Node instructions/probe |
+| --- | ---: | ---: | ---: | ---: |
+| method | 309.83 | 1029.04 | 46.21 | 174.94 |
+| local | 318.19 | 980.08 | 45.86 | 173.98 |
+| live-bound | 266.64 | 784.03 | 45.99 | 173.95 |
+| fixed-bound | 246.42 | 667.31 | 43.96 | 174.36 |
+| directions | 131.27 | 410.00 | 53.38 | 150.77 |
+| arithmetic | 195.85 | 428.46 | 53.24 | 140.68 |
+
+`local` and `live-bound` differ only in update spelling: `j++` vs `j += 1`. **Do not attribute their ~196 instruction difference to the loop bound**; that is #13660. Comparing `live-bound` to `fixed-bound` isolates the bound change with update spelling held constant.
+
+A separate earlier three-round run measured the additional controls below. Merely removing the method, caching the field or replacing arrays with `Int32Array` did not close the gap. Different runs' wall times should not be subtracted as paired experiments.
+
+| Control | Perry median ms at 5M | Whole-process instructions, G |
+| --- | ---: | ---: |
+| method | 319.15 | 5.285 |
+| field | 327.39 | 4.947 |
+| local | 327.73 | 5.035 |
+| typed-local | 312.22 | 4.775 |
+| flat | 334.41 | 5.237 |
+| fixed-typed | 277.66 | 4.049 |
+
+## What the profile and code establish
+
+An eight-second optimized-release sample of the indexed method form (before the extra controls were added, same source shape) collected 5,998 self samples:
+
+| Symbol/group | Self samples | Share |
+| --- | ---: | ---: |
+| generated `scan` | 4,932 | 82.2% |
+| `array::header::ensure_array_numeric_raw_f64` | 465 | 7.8% |
+| `array::subclass::loop_guard::packed_arraylike_loop_guard` | 318 | 5.3% |
+| `js_packed_arraylike_loop_guard_live` | 33 | 0.6% |
+| deduplicated symbol | 250 | 4.2% |
+
+The helper chain is now separately actionable in #13660. The 82% in generated code includes both useful arithmetic and inline checks; a symbol profile does not separate them. It must **not** be called 82% wasted work.
+
+Inspect these pinned implementation points:
+
+- [array index normalization](https://github.com/PerryTS/perry/blob/b384cd7be035899e80908c5013baf8e88f08c892/crates/perry-codegen/src/expr/index_key.rs): `normalize` reuses widened native integer provenance when available; otherwise it performs exact generic normalization. Inspect why bounded square/index facts are not carried far enough in this fixture.
+- [numeric element proof regression tests](https://github.com/PerryTS/perry/blob/b384cd7be035899e80908c5013baf8e88f08c892/crates/perry-codegen/src/expr/array_push_guard_tests.rs): `a_declared_type_lie_is_routed_to_the_runtime_tier_not_the_guard` explains why a declared `number[]` read alone is not proof of canonical raw-f64 values. Fixes need construction/assignment or guarded representation evidence, not trust in erased TypeScript annotations.
+- [packed-loop lowering](https://github.com/PerryTS/perry/blob/b384cd7be035899e80908c5013baf8e88f08c892/crates/perry-codegen/src/stmt/stable_packed_loop.rs), including the abandoned fast clone in #13660.
+- [array header](https://github.com/PerryTS/perry/blob/b384cd7be035899e80908c5013baf8e88f08c892/crates/perry-runtime/src/array/header.rs#L1480): numeric layout is already an O(1) header bit after initial setup. Repeated full-array rescanning is **not** the explanation.
+
+Related #10777 demonstrates lost read-result representation on const bindings in a property-read fixture; #10769 tracks receiver provenance. Those are relevant mechanisms to investigate, not proof that their exact fixes eliminate this array fixture's cost. The presized board here does not establish #10514's growth-forwarding cause, and these typed-array controls do not create ArrayBuffer-aliasing views, so #10516 is not established as their cause either.
+
+## Fix targets / validation
+
+1. Explain and reduce the **117 instructions/probe** associated with the live-bound versus fixed-bound form where immutability can actually be proved; preserve live length semantics when callbacks/writes can change it.
+2. Carry proven numeric element and integer-index facts through the element read, addition, bounds comparisons and bitwise check. Use the **667 → 410 instructions/probe** fixture contrast to assess progress, not as a promised universal saving.
+3. Account for the remaining generated-code cost using emitted IR/assembly and loop-size instruction slopes. A broader instruction target is the Node ~174 instructions/probe for the equivalent indexed fixture; no claim that every remaining instruction is removable.
+4. Keep overrides, holes/inherited indexed getters, element descriptors, mutation, unexpected values under erased annotations, NaN/-0/overflow and moving-GC behavior correct. Test both accepted fast paths and fallback paths.
+5. Re-run `method`, `local`, `live-bound`, `fixed-bound`, `fixed-typed`, `directions`, and `arithmetic`. Match checksums; do not optimize only the hand-rewritten control. Run existing native correctness and GC suites and a full application before claiming an end-to-end win.
+
+This is an optimization issue, not an observed result mismatch. No performance regression range is established.
+
+## Environment / raw samples
+
+Perry 0.5.1663, stock release runtime and app Os, specialized ABI enabled; configured compiler source worktree clean at `b384cd7be035899e80908c5013baf8e88f08c892`; native macOS 26.5 ARM64, Apple M1 Max / 64 GiB. Node 26.5.1. No concurrent builds or profiles in accepted timing runs.
+
+<details><summary>Raw samples (whole-process counters; slope method above)</summary>
+
+```csv
+runtime,variant,round,N,ms,instructions
+Node,method,0,5000000,46.211417,1563900929
+Node,method,0,10000000,93.220667,2421107733
+Perry stock,method,0,5000000,309.827416,5283193833
+Perry stock,method,0,10000000,616.473125,10428423408
+Node,local,0,5000000,45.860916,1537589855
+Node,local,0,10000000,91.523875,2402529708
+Perry stock,local,0,5000000,318.193916,5033751072
+Perry stock,local,0,10000000,631.341875,9934171982
+Node,live-bound,0,5000000,45.119583,1535457599
+Node,live-bound,0,10000000,91.405625,2403530395
+Perry stock,live-bound,0,5000000,262.439833,4033684627
+Perry stock,live-bound,0,10000000,527.872500,7954306077
+Node,fixed-bound,0,5000000,43.576291,1551045773
+Node,fixed-bound,0,10000000,87.155584,2420744165
+Perry stock,fixed-bound,0,5000000,245.577542,3438764033
+Perry stock,fixed-bound,0,10000000,500.529208,6775572329
+Node,directions,0,5000000,53.425625,1419661852
+Node,directions,0,10000000,106.439333,2172960479
+Perry stock,directions,0,5000000,131.527875,2126032221
+Perry stock,directions,0,10000000,262.637375,4175888144
+Node,arithmetic,0,5000000,53.244250,1366086369
+Node,arithmetic,0,10000000,106.857166,2067266915
+Perry stock,arithmetic,0,5000000,195.850875,2221059073
+Perry stock,arithmetic,0,10000000,398.173458,4363456351
+Perry stock,local,1,10000000,639.371958,9935178309
+Perry stock,local,1,5000000,328.239459,5033987999
+Node,local,1,10000000,95.893000,2410392923
+Node,local,1,5000000,48.105833,1542260679
+Perry stock,live-bound,1,10000000,551.617000,7954994581
+Perry stock,live-bound,1,5000000,271.813750,4034453424
+Node,live-bound,1,10000000,92.870208,2410091713
+Node,live-bound,1,5000000,46.396875,1537353722
+Perry stock,fixed-bound,1,10000000,503.692375,6774718064
+Perry stock,fixed-bound,1,5000000,246.415500,3439086985
+Node,fixed-bound,1,10000000,88.080625,2424924129
+Node,fixed-bound,1,5000000,43.955458,1547586514
+Perry stock,directions,1,10000000,258.598583,4176284855
+Perry stock,directions,1,5000000,129.737250,2127143519
+Node,directions,1,10000000,104.666917,2174229982
+Node,directions,1,5000000,52.209750,1420392807
+Perry stock,arithmetic,1,10000000,394.775875,4363032128
+Perry stock,arithmetic,1,5000000,195.107958,2220677900
+Node,arithmetic,1,10000000,104.992583,2068747627
+Node,arithmetic,1,5000000,52.498250,1364063516
+Perry stock,method,1,10000000,612.127875,10427926784
+Perry stock,method,1,5000000,310.532958,5283739797
+Node,method,1,10000000,94.095083,2418622588
+Node,method,1,5000000,46.893333,1546393980
+Node,live-bound,2,5000000,45.988166,1538209774
+Node,live-bound,2,10000000,92.423917,2407108449
+Perry stock,live-bound,2,5000000,266.636875,4034161787
+Perry stock,live-bound,2,10000000,531.227167,7954190420
+Node,fixed-bound,2,5000000,46.018709,1548949479
+Node,fixed-bound,2,10000000,90.098333,2420660440
+Perry stock,fixed-bound,2,5000000,250.272709,3438975615
+Perry stock,fixed-bound,2,10000000,500.184750,6775501995
+Node,directions,2,5000000,53.379250,1422913880
+Node,directions,2,10000000,106.781750,2179534464
+Perry stock,directions,2,5000000,131.269291,2126305314
+Perry stock,directions,2,10000000,263.046000,4176495918
+Node,arithmetic,2,5000000,53.333875,1363233424
+Node,arithmetic,2,10000000,105.731791,2067473659
+Perry stock,arithmetic,2,5000000,197.853959,2220926645
+Perry stock,arithmetic,2,10000000,393.680250,4363243219
+Node,method,2,5000000,46.081291,1542244897
+Node,method,2,10000000,92.222958,2426526002
+Perry stock,method,2,5000000,304.942375,5283218466
+Perry stock,method,2,10000000,613.548416,10429502683
+Node,local,2,5000000,45.514709,1535364455
+Node,local,2,10000000,91.177916,2407491972
+Perry stock,local,2,5000000,315.597041,5033540933
+Perry stock,local,2,10000000,630.893000,9933842533
+```
+</details>
+
+Parent investigation and complete accounting: #13663.

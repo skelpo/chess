@@ -1,0 +1,23 @@
+{
+  "selfSamples": {
+    "perry_fn_repro_perry_board_ts__scan$spec_b_i32_b": 3523,
+    "<deduplicated_symbol>": 246,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime6object19iterator_prototypes28array_record_close_is_absent": 875,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime6object19iterator_prototypes26ensure_iterator_prototypes": 62,
+    "_tlv_get_addr": 151,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime6object6shapes28linked_object_prototype_word": 17,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime5array14prototype_addr33object_prototype_addr_if_resolved": 100,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime6object6shapes26null_linked_prototype_word": 18,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime5array13iterator_step18array_record_close": 70,
+    "js_array_record_stack_dispatch": 88,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime5array15iterator_method25iterator_method_from_slot": 214,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime5array15iterator_method21array_iterator_method": 196,
+    "_RNvNtNtCs49J2tmDdif6_13perry_runtime5array13iterator_step23array_iterator_property": 135,
+    "js_array_record_stack_enter": 200,
+    "_RNvNtCs49J2tmDdif6_13perry_runtime14typed_feedback33packed_f64_loop_admits_live_array": 107,
+    "main": 0,
+    "start": 0
+  },
+  "total": 6002,
+  "outlined": 0
+}

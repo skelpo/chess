@@ -1,0 +1,89 @@
+New profiling pass at pinned `2359699bee1ec7b98478a0db44f195a5a086b30d`, while #13659/#13662 are being revisited. The main blockers are now more concrete. Two new public reductions: **#13687** (negative numeric array reads) and **#13688** (equivalent cross-module method bodies).
+
+The host had other builds running. This pass uses stack samples, retired instructions, output parity and binary extents as evidence. **Its wall times/cycles are not qualified speedup measurements.** Original app source and installed Perry remain unchanged; all alterations below are diagnostic copies or compiler settings.
+
+## 1. Hot array/numeric loops still do excessive work
+
+15-second, 1ms main-thread sample during a 1.5M-node search:
+
+| Engine function | Self share | Inclusive share |
+| --- | ---: | ---: |
+| attacked | 14.22% | 27.40% |
+| evaluate | 11.49% | 21.24% |
+| make | 6.84% | 19.02% |
+| generatePseudo | 5.13% | 12.78% |
+| unmake | 1.77% | 6.68% |
+| onBoard specialized entry | 5.16% | 5.16% |
+
+Inclusive shares overlap and are not removable overhead. This is a sampled search window, not an exact allocation of the complete 250K workload. Main-thread self samples are 52.0% generated engine, 37.7% runtime, 2.9% TLS lookup, and the remainder support/other code. Within self samples, symbol-family classification finds about 12.0% other array work, 11.8% object/dispatch, 6.8% iterator protocol/admission, and 4.6% GC including barriers; inlined portions remain under their caller.
+
+A separately instrumented Node copy counts source-level helper invocations for the exact 250K-node workload, after warmup:
+
+- `at`: **218,498,345** board reads.
+- `onBoard`: **146,074,039** bounds checks.
+- `attacked`: **6,741,846** calls.
+- `make` / `unmake`: **6,493,411 each**.
+- `evaluate`: **206,096** calls.
+
+These are semantic invocations, not native call instructions; native inlining can remove call boundaries. Result/state fingerprints match. The scale explains why small per-access/tag/representation costs matter. A single initial-position evaluation makes 398 board reads.
+
+Two rotated rounds of unchanged-result diagnostics:
+
+- Replace the three attack `for…of` scans with counted loops: full-search instructions **105.751 → 93.122 G (~12% fewer)**, despite #13655 already being merged. This remains relevant to #13645.
+- Inline the bounds expression at its source call sites: **105.751 → 99.232 G (~6% fewer)**. This is instruction evidence on current main; the earlier original-build wall-time experiment did not establish an improvement. The isolated bounds micro being cheap does not qualify the full engine's boxed call sites.
+- Explicitly guard the evaluator's two pawn-file edge reads: evaluation **8.840 → 6.867 G (~22% fewer)**, search **105.751 → 101.613 G (~4% fewer)**. #13687 contains the complete public mutable-array reduction and semantic caveats.
+
+Do not add these percentages: transformations interact. Preserve construction-derived array/value/range facts, receiver proofs, prototype mutation/fallback semantics and moving-GC safety across these repeated operations.
+
+## 2. Pre-statepoint inlining can undo size gains—and sometimes increase instructions too
+
+The counted-loop version's standalone `attacked` body shrinks from **8,028 to 3,488 bytes**, yet total headless `__text` grows **6,311,040 → 6,692,928 bytes (+381,888)**. Generated code accounts for 372,596 bytes of this growth. Examples of caller growth: `claimDraw` +47,684 bytes, `play` +47,292, `extractPv` +33,472, `negamax` +25,668. Its emitted method now has `alwaysinline`.
+
+The specific gate is not just LLVM's normal inline cost model: [`guarded_specialization_admits_preinline`](https://github.com/PerryTS/perry/blob/2359699bee1ec7b98478a0db44f195a5a086b30d/crates/perry-codegen/src/codegen/helpers.rs#L337) admits up to 16 KiB of lowered IR, **or up to 64 KiB when the top-level source statement count is small**. [`method.rs`](https://github.com/PerryTS/perry/blob/2359699bee1ec7b98478a0db44f195a5a086b30d/crates/perry-codegen/src/codegen/method.rs#L1689) applies that admission to exact-receiver clones and closed primary method targets. A handful of loop statements can still contain a large body and have many transitive call sites. The emitted counted attack body is about 59.6 KB of LLVM text; lowering the raised ceiling removes its `alwaysinline` attribute.
+
+Controlled compiler-setting experiment: same combined diagnostic source (counted attacks + inline bounds + pawn-edge guards), same matching runtime and flags; change only `PERRY_GUARDED_PREINLINE_MAX_IR_BYTES` from default 65536 to 16384:
+
+| Headless build | Stripped/signed bytes | Search instructions | Evaluation instructions |
+| --- | ---: | ---: | ---: |
+| Untouched source, default ceiling | 7,475,792 | 105.844 G | 8.859 G |
+| Combined diagnostic source, default ceiling | 7,902,608 | 88.271 G | 6.878 G |
+| Same combined source, 16 KiB ceiling | **7,262,384** | **85.101 G** | **6.857 G** |
+
+Thus the lower ceiling removes **640,224 executable bytes** and another **3.6% of search instructions** from the same combined program. Against the untouched baseline, the combination is **213,408 bytes smaller and uses 19.6% fewer search instructions**. These are headless binary measurements, not the full TUI distribution size.
+
+Separate compiler-only control on untouched source: the 16 KiB ceiling also saves 213,408 bytes, but search instructions are roughly flat/slightly higher (**105.649 → 105.891 G, +0.23%**); evaluation is **8.842 → 8.832 G**. Therefore this knob is **not an approved universal preset or a proved wall-time improvement**. It identifies the cost model as a high-priority target: use lowered body cost, call-site/transitive growth and actual specialization benefit rather than source statement count alone. This affects more methods than `attacked`, so the full cap result is not attributed to that one method.
+
+The combined/capped diagnostics match original Node for evaluation/search and state restoration; perft/legal checks also pass for the capped combination. They have not passed full CLI/text/PTY acceptance or quiet-machine performance qualification. No source rewrite or new preset is being promoted.
+
+## 3. Object/record representation and dependency boundaries dominate the remaining size
+
+Current full app: **9,306,320 bytes**, of which **7,924,764 (85.2%) is `__text`**. Disjoint symbol groups include:
+
+- Object machinery: **1,788,220 bytes**. Largest subgroups: shapes 201,512; class registry 193,448; field access 176,580; native modules 158,844; global-this support 117,812; native method dispatch 103,968.
+- GC: **764,144 bytes**. This is retained implementation, not a claim that it can be removed or that GC pauses dominate search.
+- Runtime C ABI entries: **855,576 bytes**, kept separate from those Rust-module totals.
+- Generated engine **437,324** and UI **253,276 bytes**: together only about 7.4% of the executable.
+- Stream support 285,700; regex 227,120; JSON 167,444; Promise 135,836 bytes, with other ABI/support code counted elsewhere.
+
+The 6.49M make/unmake pairs construct 14-field undo records and repeatedly load/store board/state fields. `make`/`unmake` remain substantial profile regions. Preserve fixed record layouts and numeric field facts through returned-record lifetimes; inspect stores, generic property paths, root/barrier work and allocation escape behavior. Merely tuning collector pauses will not remove the inline generated work.
+
+`ld -why_live` confirms concrete retention chains:
+
+- `process.stdin` → stream async-iterator installation → iterator next/return → Promise helpers.
+- process IPC installer → JSON installer/parser (related to the active #13659 work).
+- typed-array feature hooks → filter/species/construction → generic object-property machinery.
+- Generic object/closure/array operations have many alternative retaining paths, including runtime record initialization. Removing one keep-alive anchor cannot be assumed to remove the whole connected implementation.
+
+These are dependency edges to separate under valid reachability proofs, not a license to remove observable APIs. Runtime cold-path optimization should target the actual retained graph and keep hot helpers fast. #13662's cold-installer change alone is much smaller than these retained groups; no claim is made that every retained byte is avoidable.
+
+## 4. Stop retaining equivalent full specialized bodies
+
+#13688 supplies a public **two-module** reproduction with two distinct 2,364-byte bodies for one method and two 2,792-byte bodies for another, despite identical LLVM bodies. The app has twelve equal-extent regular/$pshape pairs totaling **110,736 bytes on one side**. Some differ only in feedback-site IDs; other identity/GC metadata differences require proof. Share bodies or suppress redundant clones while preserving entry contracts, feedback attribution, GC/unwind and function identity. This is a measured duplication opportunity, not an implemented 110KB saving.
+
+## Outstanding attribution / handoff
+
+The new negative-key issue does **not** explain the recent evaluation regression: the expensive property path already existed in the original build (24.67% inclusive vs current 25.37% in comparable evaluation samples). A compiler/runtime bisect is still needed for that regression.
+
+Priority: reduce the repeated numeric/iterator/property work; fix the inlining growth policy so those improvements do not inflate callers; share proven-equivalent clones; prune runtime dependency groups under correct reachability proofs. All proposed fixes need unchanged results, repeated quiet-machine search/evaluation/startup/RSS tests, full app acceptance, and binary-size accounting. No blanket Oz or throughput sacrifice is accepted.
+
+Raw compressed samples, parsed self/inclusive counts, instruction observations, semantic counts and linker retention chains are retained locally under `benchmarks/perry-blockers/`; the summary, source/binary hashes, exact diagnostic source patches and limits are in `benchmarks/perry-blockers-macos-arm64-2026-11-01.json`.

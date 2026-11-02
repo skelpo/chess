@@ -1,0 +1,2013 @@
+{
+  "issue": "https://github.com/PerryTS/perry/issues/13645",
+  "application": {
+    "metadata": {
+      "measuredAt": "2026-11-01T08:07:43.005Z",
+      "commit": "f348a206852c982aedef0d252fd7d67659e0ee32",
+      "cpu": "Apple M1 Max",
+      "memoryBytes": 68719476736,
+      "os": "26.5",
+      "architecture": "arm64",
+      "node": "v26.5.1",
+      "bun": "1.3.14",
+      "perry": "perry 0.5.1663",
+      "startupRuns": 25,
+      "searchRuns": 5,
+      "quick": false,
+      "cases": [
+        {
+          "name": "opening-L1",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "level": 1
+        },
+        {
+          "name": "opening-L5",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "level": 5
+        },
+        {
+          "name": "opening-L7",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "level": 7
+        },
+        {
+          "name": "opening-L10",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "level": 10
+        },
+        {
+          "name": "middlegame-L5",
+          "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+          "level": 5
+        },
+        {
+          "name": "endgame-L5",
+          "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+          "level": 5
+        }
+      ],
+      "targets": [
+        {
+          "name": "Node TS",
+          "command": [
+            "/Users/amlug/.local/opt/node-v26.5.1-darwin-arm64/bin/node",
+            "tui/src/main.ts"
+          ]
+        },
+        {
+          "name": "Node JS",
+          "command": [
+            "/Users/amlug/.local/opt/node-v26.5.1-darwin-arm64/bin/node",
+            "dist/tui/src/main.js"
+          ]
+        },
+        {
+          "name": "Bun TS",
+          "command": [
+            "bun",
+            "tui/src/main.ts"
+          ]
+        },
+        {
+          "name": "Perry",
+          "command": [
+            "./dist/chess"
+          ]
+        }
+      ],
+      "methodology": "Serial CLI sessions over pipes; parent monotonic wall clock. Startup: spawn to complete first board, 3 discarded launches per target, rotated target order. Idle RSS: ps after first board (first 5 measured launches). Search: first hint in fresh session, then repeated hints in that session with cleared engine search table; first repeat discarded except L10. L10: first search plus 2 repeats. Peak RSS: macOS /usr/bin/time -l across each entire search session. These are warm-filesystem process starts, not cold boot starts. All search result frames must match across runtimes and repeats. Local move: play e2e4 from a reset board, including validation and render, 3 discarded then 25 measured. No console output inside timed regions."
+    },
+    "startup": {
+      "Node TS": {
+        "milliseconds": [
+          204.62662499999988,
+          318.1084579999999,
+          178.98266599999988,
+          187.3777500000001,
+          192.37750000000005,
+          289.5941250000001,
+          75.33162500000071,
+          75.14066699999967,
+          75.22091699999964,
+          78.13704200000029,
+          77.02387499999986,
+          74.79550000000017,
+          78.5629170000002,
+          79.02300000000014,
+          71.15641700000015,
+          79.45325000000048,
+          79.42770800000017,
+          81.79616699999951,
+          75.77637500000037,
+          75.13854199999969,
+          76.13666700000067,
+          79.97612500000014,
+          79.46983399999954,
+          80.16516700000011,
+          77.82012500000019
+        ],
+        "idleRssBytes": [
+          94879744,
+          96092160,
+          96485376,
+          96141312,
+          96043008
+        ]
+      },
+      "Node JS": {
+        "milliseconds": [
+          154.98241600000006,
+          144.9418330000001,
+          157.32958300000018,
+          147.515042,
+          151.36920800000007,
+          39.98212499999954,
+          40.66862499999934,
+          41.26795799999945,
+          45.33887499999946,
+          47.45837500000016,
+          40.63733300000058,
+          43.898583000000144,
+          42.4526249999999,
+          41.7847499999998,
+          42.76829100000032,
+          46.19445799999994,
+          42.59070800000063,
+          45.30541700000049,
+          41.141459000000395,
+          41.44520899999952,
+          42.73329199999989,
+          42.163916999999856,
+          43.16633400000046,
+          42.197165999999925,
+          43.907874999999876
+        ],
+        "idleRssBytes": [
+          56311808,
+          56672256,
+          56868864,
+          56492032,
+          56475648
+        ]
+      },
+      "Bun TS": {
+        "milliseconds": [
+          26.878875000000107,
+          24.9876670000001,
+          26.677541999999903,
+          25.75675000000001,
+          25.18987500000003,
+          24.221457999999984,
+          25.733416999999463,
+          25.94908299999952,
+          24.87895800000024,
+          24.237832999999227,
+          25.73412500000086,
+          25.61212499999965,
+          26.449500000000626,
+          23.715624999999818,
+          25.011332999999468,
+          25.143165999999837,
+          26.231959000000643,
+          25.06604100000004,
+          26.38562499999989,
+          25.57250000000022,
+          25.67162499999995,
+          24.802875000000313,
+          24.890124999999898,
+          25.51733299999978,
+          25.061916000000565
+        ],
+        "idleRssBytes": [
+          39305216,
+          39272448,
+          39370752,
+          39305216,
+          39256064
+        ]
+      },
+      "Perry": {
+        "milliseconds": [
+          8.345374999999876,
+          211.96000000000004,
+          213.10950000000003,
+          236.2572500000001,
+          123.89800000000014,
+          7.97808299999997,
+          8.213958000000275,
+          12.076583000000028,
+          8.19775000000027,
+          20.554707999999664,
+          10.613499999999476,
+          13.11712500000067,
+          8.20679199999995,
+          16.486667000000125,
+          11.12237499999992,
+          19.346708000000035,
+          9.074791000000005,
+          15.567125000000487,
+          11.418791000000056,
+          14.364999999999782,
+          8.52508300000045,
+          16.15429099999983,
+          10.60479099999975,
+          14.318957999999839,
+          8.510541999999987
+        ],
+        "idleRssBytes": [
+          18874368,
+          18857984,
+          18857984,
+          18857984,
+          18857984
+        ]
+      }
+    },
+    "searches": {
+      "Node TS": {
+        "opening-L1": {
+          "firstMs": 2.76825000000008,
+          "repeatMs": [
+            0.6482089999999516,
+            0.3980840000003809,
+            0.5594170000003942,
+            0.5392090000004828,
+            0.5402500000000146
+          ],
+          "peakRssBytes": 101974016,
+          "fingerprint": "Depth 1 · 20 nodes | PV a2a4 | Hint: a2a4"
+        },
+        "opening-L5": {
+          "firstMs": 85.02820900000006,
+          "repeatMs": [
+            45.45112499999959,
+            44.809291999999914,
+            45.054791999999,
+            44.59533300000112,
+            45.14241700000093
+          ],
+          "peakRssBytes": 149225472,
+          "fingerprint": "Depth 4 · 12785 nodes | PV b1c3 b8c6 g1f3 g8f6 | Hint: b1c3"
+        },
+        "opening-L7": {
+          "firstMs": 233.0047080000004,
+          "repeatMs": [
+            174.15208300000086,
+            173.95387499999924,
+            171.23316700000214,
+            170.45483299999978,
+            177.28641699999935
+          ],
+          "peakRssBytes": 149258240,
+          "fingerprint": "Depth 6 · 49090 nodes | PV b1c3 b8c6 g1f3 g8f6 | Hint: b1c3"
+        },
+        "opening-L10": {
+          "firstMs": 6965.124917000008,
+          "repeatMs": [
+            5772.658832999994,
+            5737.79574999999
+          ],
+          "peakRssBytes": 249692160,
+          "fingerprint": "Depth 8 · 1500000 nodes | PV b1c3 | Hint: b1c3"
+        },
+        "middlegame-L5": {
+          "firstMs": 137.45858399997815,
+          "repeatMs": [
+            113.55104200000642,
+            110.98225000000093,
+            111.6450420000183,
+            111.61441700000432,
+            113.94258299999638
+          ],
+          "peakRssBytes": 150126592,
+          "fingerprint": "Depth 0 · 20000 nodes | PV a1b1 | Hint: a1b1"
+        },
+        "endgame-L5": {
+          "firstMs": 37.637750000023516,
+          "repeatMs": [
+            23.44395899999654,
+            32.29879199998686,
+            25.61425000001327,
+            21.822541000001365,
+            21.714082999998936
+          ],
+          "peakRssBytes": 146456576,
+          "fingerprint": "Depth 4 · 8019 nodes | PV b4f4 h4g3 f4f7 c7c6 | Hint: b4f4"
+        }
+      },
+      "Node JS": {
+        "opening-L1": {
+          "firstMs": 3.791207999999642,
+          "repeatMs": [
+            0.5499999999992724,
+            0.3901669999995647,
+            0.35754199999973935,
+            0.35183299999971496,
+            0.3758330000000569
+          ],
+          "peakRssBytes": 66633728,
+          "fingerprint": "Depth 1 · 20 nodes | PV a2a4 | Hint: a2a4"
+        },
+        "opening-L5": {
+          "firstMs": 90.69533300000057,
+          "repeatMs": [
+            48.275917000000845,
+            49.1647920000014,
+            48.64733299999898,
+            47.5244160000002,
+            55.391082999998616
+          ],
+          "peakRssBytes": 125648896,
+          "fingerprint": "Depth 4 · 12785 nodes | PV b1c3 b8c6 g1f3 g8f6 | Hint: b1c3"
+        },
+        "opening-L7": {
+          "firstMs": 232.70908300000156,
+          "repeatMs": [
+            180.74324999999953,
+            170.31199999999808,
+            177.177166999998,
+            174.80658400000175,
+            170.77329200000167
+          ],
+          "peakRssBytes": 111362048,
+          "fingerprint": "Depth 6 · 49090 nodes | PV b1c3 b8c6 g1f3 g8f6 | Hint: b1c3"
+        },
+        "opening-L10": {
+          "firstMs": 6161.549499999994,
+          "repeatMs": [
+            5760.590499999991,
+            5698.755833000003
+          ],
+          "peakRssBytes": 187842560,
+          "fingerprint": "Depth 8 · 1500000 nodes | PV b1c3 | Hint: b1c3"
+        },
+        "middlegame-L5": {
+          "firstMs": 134.61637500001234,
+          "repeatMs": [
+            116.65750000000116,
+            115.80604100000346,
+            111.51841699998477,
+            113.01050000000396,
+            110.78745800000615
+          ],
+          "peakRssBytes": 89735168,
+          "fingerprint": "Depth 0 · 20000 nodes | PV a1b1 | Hint: a1b1"
+        },
+        "endgame-L5": {
+          "firstMs": 40.44904200002202,
+          "repeatMs": [
+            23.556958000001032,
+            23.892875000019558,
+            22.806083000003127,
+            22.59245799999917,
+            22.272915999987163
+          ],
+          "peakRssBytes": 78807040,
+          "fingerprint": "Depth 4 · 8019 nodes | PV b4f4 h4g3 f4f7 c7c6 | Hint: b4f4"
+        }
+      },
+      "Bun TS": {
+        "opening-L1": {
+          "firstMs": 4.582833000000392,
+          "repeatMs": [
+            0.6149999999997817,
+            0.6647910000001502,
+            0.6118749999995998,
+            0.5967499999997017,
+            1.2523339999997916
+          ],
+          "peakRssBytes": 55050240,
+          "fingerprint": "Depth 1 · 20 nodes | PV a2a4 | Hint: a2a4"
+        },
+        "opening-L5": {
+          "firstMs": 76.01704199999949,
+          "repeatMs": [
+            44.11866700000064,
+            45.53062499999942,
+            43.43233400000099,
+            43.23604200000045,
+            42.5525000000016
+          ],
+          "peakRssBytes": 134725632,
+          "fingerprint": "Depth 4 · 12785 nodes | PV b1c3 b8c6 g1f3 g8f6 | Hint: b1c3"
+        },
+        "opening-L7": {
+          "firstMs": 228.87425000000076,
+          "repeatMs": [
+            174.65333400000054,
+            171.3497499999994,
+            171.56704199999876,
+            177.63791700000002,
+            174.86995800000113
+          ],
+          "peakRssBytes": 157581312,
+          "fingerprint": "Depth 6 · 49090 nodes | PV b1c3 b8c6 g1f3 g8f6 | Hint: b1c3"
+        },
+        "opening-L10": {
+          "firstMs": 6034.30008299998,
+          "repeatMs": [
+            5902.633833,
+            5872.683083000011
+          ],
+          "peakRssBytes": 285491200,
+          "fingerprint": "Depth 8 · 1500000 nodes | PV b1c3 | Hint: b1c3"
+        },
+        "middlegame-L5": {
+          "firstMs": 141.98862499999814,
+          "repeatMs": [
+            114.87575000000652,
+            114.1715419999964,
+            113.94887500000186,
+            115.02175000001444,
+            114.95812500000466
+          ],
+          "peakRssBytes": 124190720,
+          "fingerprint": "Depth 0 · 20000 nodes | PV a1b1 | Hint: a1b1"
+        },
+        "endgame-L5": {
+          "firstMs": 44.04958399999305,
+          "repeatMs": [
+            25.599291999998968,
+            22.18637499999022,
+            22.555541000008816,
+            22.63670900001307,
+            22.26404099998763
+          ],
+          "peakRssBytes": 120504320,
+          "fingerprint": "Depth 4 · 8019 nodes | PV b4f4 h4g3 f4f7 c7c6 | Hint: b4f4"
+        }
+      },
+      "Perry": {
+        "opening-L1": {
+          "firstMs": 1.469040999999379,
+          "repeatMs": [
+            0.9013330000007045,
+            0.8097079999997732,
+            0.9596249999995052,
+            0.741916000000856,
+            0.7062080000005153
+          ],
+          "peakRssBytes": 20824064,
+          "fingerprint": "Depth 1 · 20 nodes | PV a2a4 | Hint: a2a4"
+        },
+        "opening-L5": {
+          "firstMs": 282.7192500000001,
+          "repeatMs": [
+            281.21308300000055,
+            280.29112499999974,
+            278.56120799999917,
+            274.3182909999996,
+            276.90400000000045
+          ],
+          "peakRssBytes": 27639808,
+          "fingerprint": "Depth 4 · 12785 nodes | PV b1c3 b8c6 g1f3 g8f6 | Hint: b1c3"
+        },
+        "opening-L7": {
+          "firstMs": 1170.9013749999995,
+          "repeatMs": [
+            1185.2428340000006,
+            1213.588416999999,
+            1203.082666000002,
+            1186.1385410000003,
+            1179.6085420000018
+          ],
+          "peakRssBytes": 35831808,
+          "fingerprint": "Depth 6 · 49090 nodes | PV b1c3 b8c6 g1f3 g8f6 | Hint: b1c3"
+        },
+        "opening-L10": {
+          "firstMs": 38873.137209,
+          "repeatMs": [
+            39197.44491599999,
+            39041.404209000015
+          ],
+          "peakRssBytes": 88408064,
+          "fingerprint": "Depth 8 · 1500000 nodes | PV b1c3 | Hint: b1c3"
+        },
+        "middlegame-L5": {
+          "firstMs": 807.7468750000116,
+          "repeatMs": [
+            807.9813330000034,
+            819.0917910000135,
+            821.9591670000227,
+            821.1793749999779,
+            818.4800000000105
+          ],
+          "peakRssBytes": 26165248,
+          "fingerprint": "Depth 0 · 20000 nodes | PV a1b1 | Hint: a1b1"
+        },
+        "endgame-L5": {
+          "firstMs": 139.77700000000186,
+          "repeatMs": [
+            138.36262500000885,
+            137.45229200000176,
+            137.54250000001048,
+            136.58104200000525,
+            138.03287500000442
+          ],
+          "peakRssBytes": 25640960,
+          "fingerprint": "Depth 4 · 8019 nodes | PV b4f4 h4g3 f4f7 c7c6 | Hint: b4f4"
+        }
+      }
+    },
+    "localMoves": {
+      "Node TS": [
+        0.20183300000007875,
+        0.35370899999998073,
+        0.18187499999930878,
+        0.22158399999989342,
+        0.2492499999998472,
+        0.14158299999962765,
+        0.10945799999990413,
+        0.09891700000025594,
+        0.10679199999958655,
+        0.12366699999984121,
+        0.14604200000030687,
+        0.09737499999937427,
+        0.11004200000024866,
+        0.09491700000035053,
+        0.08020800000031159,
+        0.06775000000016007,
+        0.09554099999968457,
+        0.15354200000001583,
+        0.08795800000007148,
+        0.0898749999996653,
+        0.09370800000033341,
+        0.08625000000029104,
+        0.09041600000000471,
+        0.07549999999991996,
+        0.15533400000003894
+      ],
+      "Node JS": [
+        0.23187500000040018,
+        0.18499999999949068,
+        0.12033299999984592,
+        0.20949999999993452,
+        0.13995799999975134,
+        0.12624999999934516,
+        0.1190839999999298,
+        0.08645900000010442,
+        0.09304200000042329,
+        0.08870900000056281,
+        0.1489579999997659,
+        0.11037500000020373,
+        0.08920800000032614,
+        0.09212500000012369,
+        0.08224999999947613,
+        0.08091699999931734,
+        0.083625000000211,
+        0.11616700000013225,
+        0.14691700000003038,
+        0.10275000000001455,
+        0.09937499999978172,
+        0.08891700000003766,
+        0.08504200000061246,
+        0.07824999999957072,
+        0.11879200000021228
+      ],
+      "Bun TS": [
+        0.20079200000054698,
+        0.20241600000008475,
+        0.2319999999999709,
+        0.2017919999998412,
+        0.12024999999994179,
+        0.12029200000051787,
+        1.8428750000002765,
+        0.14754199999970297,
+        0.15804100000059407,
+        0.12291700000059791,
+        0.10833299999922019,
+        0.15804099999968457,
+        0.0972090000004755,
+        0.1931669999994483,
+        0.16779200000019046,
+        0.1444999999994252,
+        0.08133300000008603,
+        0.09362500000042928,
+        0.07849999999962165,
+        0.07316699999955745,
+        0.09083299999929295,
+        0.5778749999999491,
+        0.1165419999997539,
+        0.07941599999958271,
+        0.07491599999957543
+      ],
+      "Perry": [
+        0.15541699999994307,
+        0.13058300000011513,
+        0.1180000000003929,
+        0.11741699999947741,
+        0.13341599999967002,
+        0.13133400000060647,
+        0.11720800000057352,
+        0.125,
+        0.11420900000030088,
+        0.12304099999983009,
+        0.0976250000003347,
+        0.09783299999980954,
+        0.15620799999942392,
+        0.0935829999998532,
+        0.11229100000036851,
+        0.11008299999957671,
+        0.21737500000017462,
+        0.09204200000021956,
+        0.10245799999938754,
+        0.08633300000019517,
+        0.087666999999783,
+        0.10762499999964348,
+        0.12325000000055297,
+        0.12329099999988102,
+        0.13037500000064028
+      ]
+    }
+  },
+  "startupRechecks": [
+    {
+      "metadata": {
+        "measuredAt": "2026-11-01T08:11:17.699Z",
+        "commit": "f348a206852c982aedef0d252fd7d67659e0ee32",
+        "cpu": "Apple M1 Max",
+        "memoryBytes": 68719476736,
+        "os": "26.5",
+        "architecture": "arm64",
+        "node": "v26.5.1",
+        "bun": "1.3.14",
+        "perry": "perry 0.5.1663",
+        "startupRuns": 25,
+        "searchRuns": 5,
+        "quick": false,
+        "cases": [
+          {
+            "name": "opening-L1",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 1
+          },
+          {
+            "name": "opening-L5",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 5
+          },
+          {
+            "name": "opening-L7",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 7
+          },
+          {
+            "name": "opening-L10",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 10
+          },
+          {
+            "name": "middlegame-L5",
+            "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+            "level": 5
+          },
+          {
+            "name": "endgame-L5",
+            "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+            "level": 5
+          }
+        ],
+        "targets": [
+          {
+            "name": "Node TS",
+            "command": [
+              "/Users/amlug/.local/opt/node-v26.5.1-darwin-arm64/bin/node",
+              "tui/src/main.ts"
+            ]
+          },
+          {
+            "name": "Node JS",
+            "command": [
+              "/Users/amlug/.local/opt/node-v26.5.1-darwin-arm64/bin/node",
+              "dist/tui/src/main.js"
+            ]
+          },
+          {
+            "name": "Bun TS",
+            "command": [
+              "bun",
+              "tui/src/main.ts"
+            ]
+          },
+          {
+            "name": "Perry",
+            "command": [
+              "./dist/chess"
+            ]
+          }
+        ],
+        "methodology": "Serial CLI sessions over pipes; parent monotonic wall clock. Startup: spawn to complete first board, 3 discarded launches per target, rotated target order. Idle RSS: ps after first board in 5 separate launches after startup timing. Search: first hint in fresh session, then repeated hints in that session with cleared engine search table; first repeat discarded except L10. L10: first search plus 2 repeats. Peak RSS: macOS /usr/bin/time -l across each entire search session. These are warm-filesystem process starts, not cold boot starts. All search result frames must match across runtimes and repeats. Local move: play e2e4 from a reset board, including validation and render, 3 discarded then 25 measured (5 in quick mode). No console output inside timed regions."
+      },
+      "startup": {
+        "Node TS": {
+          "milliseconds": [
+            77.65220799999997,
+            74.10137499999996,
+            74.11575000000016,
+            73.63604200000009,
+            78.34245800000008,
+            74.19958299999962,
+            75.58754099999987,
+            73.25199999999995,
+            76.99874999999975,
+            77.08579199999986,
+            74.43154200000026,
+            76.09375,
+            74.19470800000045,
+            75.24479100000008,
+            75.15291700000034,
+            78.79875000000084,
+            74.80083299999933,
+            77.68479200000002,
+            76.0962499999996,
+            80.51979100000062,
+            77.86408299999948,
+            80.00674999999956,
+            76.29349999999977,
+            79.77637500000037,
+            78.94045800000004
+          ],
+          "idleRssBytes": [
+            96731136,
+            97255424,
+            97304576,
+            96403456,
+            96124928
+          ]
+        },
+        "Node JS": {
+          "milliseconds": [
+            41.874541000000136,
+            42.31966699999998,
+            42.71966700000007,
+            44.00649999999996,
+            42.70512499999995,
+            41.8720830000002,
+            42.06470800000034,
+            41.21895799999993,
+            43.613582999999835,
+            43.9045000000001,
+            42.75987500000019,
+            42.64799999999968,
+            42.03029199999946,
+            42.371791999999914,
+            41.29345899999953,
+            43.99054100000012,
+            45.284458000000086,
+            43.28479100000004,
+            43.11791600000015,
+            44.39041600000019,
+            44.39287499999955,
+            45.46379199999956,
+            44.59287500000028,
+            43.61720800000057,
+            43.0726250000007
+          ],
+          "idleRssBytes": [
+            56098816,
+            56360960,
+            56360960,
+            56180736,
+            56115200
+          ]
+        },
+        "Bun TS": {
+          "milliseconds": [
+            108.28737499999988,
+            99.27916699999992,
+            84.13604200000009,
+            83.21554200000014,
+            98.67104199999994,
+            106.40166699999963,
+            80.35145899999998,
+            79.81775000000016,
+            99.69408299999986,
+            93.85241700000006,
+            84.84483300000011,
+            82.58404199999995,
+            101.77337500000067,
+            105.14291599999979,
+            83.57691700000032,
+            80.55937499999982,
+            96.44287499999973,
+            108.81874999999945,
+            80.7255409999998,
+            83.29462499999954,
+            101.15462500000012,
+            102.63541700000042,
+            83.99683399999958,
+            86.49974999999995,
+            100.32820900000024
+          ],
+          "idleRssBytes": [
+            39518208,
+            39436288,
+            39501824,
+            39452672,
+            39583744
+          ]
+        },
+        "Perry": {
+          "milliseconds": [
+            8.286041999999952,
+            8.260874999999942,
+            8.712375000000065,
+            8.413166999999703,
+            10.255666999999903,
+            8.272542000000158,
+            8.121999999999844,
+            8.858208999999988,
+            8.980375000000095,
+            8.549875000000156,
+            8.24529100000018,
+            8.509666999999808,
+            7.927458999999999,
+            8.795124999999643,
+            7.863083000000188,
+            8.367207999999664,
+            7.690165999999408,
+            8.197165999999925,
+            8.506124999999884,
+            9.601541999999426,
+            8.548165999999583,
+            9.107167000000118,
+            8.930833000000348,
+            8.788290999999845,
+            9.023166999999376
+          ],
+          "idleRssBytes": [
+            18874368,
+            18857984,
+            18874368,
+            18874368,
+            18857984
+          ]
+        }
+      },
+      "searches": {
+        "Node TS": {},
+        "Node JS": {},
+        "Bun TS": {},
+        "Perry": {}
+      },
+      "localMoves": {
+        "Node TS": [],
+        "Node JS": [],
+        "Bun TS": [],
+        "Perry": []
+      }
+    },
+    {
+      "metadata": {
+        "measuredAt": "2026-11-01T08:24:32.933Z",
+        "commit": "f348a206852c982aedef0d252fd7d67659e0ee32",
+        "cpu": "Apple M1 Max",
+        "memoryBytes": 68719476736,
+        "os": "26.5",
+        "architecture": "arm64",
+        "node": "v26.5.1",
+        "bun": "1.3.14",
+        "perry": "perry 0.5.1663",
+        "startupRuns": 25,
+        "searchRuns": 5,
+        "quick": false,
+        "cases": [
+          {
+            "name": "opening-L1",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 1
+          },
+          {
+            "name": "opening-L5",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 5
+          },
+          {
+            "name": "opening-L7",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 7
+          },
+          {
+            "name": "opening-L10",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 10
+          },
+          {
+            "name": "middlegame-L5",
+            "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+            "level": 5
+          },
+          {
+            "name": "endgame-L5",
+            "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+            "level": 5
+          }
+        ],
+        "targets": [
+          {
+            "name": "Node TS",
+            "command": [
+              "/Users/amlug/.local/opt/node-v26.5.1-darwin-arm64/bin/node",
+              "tui/src/main.ts"
+            ]
+          },
+          {
+            "name": "Node JS",
+            "command": [
+              "/Users/amlug/.local/opt/node-v26.5.1-darwin-arm64/bin/node",
+              "dist/tui/src/main.js"
+            ]
+          },
+          {
+            "name": "Bun TS",
+            "command": [
+              "bun",
+              "tui/src/main.ts"
+            ]
+          },
+          {
+            "name": "Perry",
+            "command": [
+              "./dist/chess"
+            ]
+          }
+        ],
+        "methodology": "Serial CLI sessions over pipes; parent monotonic wall clock. Startup: spawn to complete first board, 3 discarded launches per target, rotated target order. Idle RSS: ps after first board in 5 separate launches after startup timing. Search: first hint in fresh session, then repeated hints in that session with cleared engine search table; first repeat discarded except L10. L10: first search plus 2 repeats. Peak RSS: macOS /usr/bin/time -l across each entire search session. These are warm-filesystem process starts, not cold boot starts. All search result frames must match across runtimes and repeats. Local move: play e2e4 from a reset board, including validation and render, 3 discarded then 25 measured (5 in quick mode). No console output inside timed regions."
+      },
+      "startup": {
+        "Node TS": {
+          "milliseconds": [
+            104.80408299999999,
+            113.64766700000018,
+            117.84408299999996,
+            124.90795799999978,
+            96.80383299999994,
+            103.68491700000004,
+            97.62529200000017,
+            107.6358339999997,
+            101.55058299999973,
+            103.12049999999999,
+            186.80933300000015,
+            157.01083300000028,
+            94.47891700000037,
+            105.457042,
+            97.12420900000052,
+            125.36783399999968,
+            312.1305000000002,
+            174.24074999999993,
+            130.14549999999963,
+            112.42999999999938,
+            105.41333300000042,
+            124.96329200000037,
+            115.51554100000067,
+            108.54662500000086,
+            113.35233300000073
+          ],
+          "idleRssBytes": [
+            95715328,
+            97009664,
+            97206272,
+            95666176,
+            95567872
+          ]
+        },
+        "Node JS": {
+          "milliseconds": [
+            55.57312499999989,
+            63.259042000000136,
+            62.53620799999999,
+            55.438624999999774,
+            56.15620799999988,
+            54.53037500000028,
+            68.6662080000001,
+            52.77833299999975,
+            61.983665999999175,
+            50.71845900000062,
+            152.9461250000004,
+            56.511708,
+            50.54454200000055,
+            50.46666699999969,
+            51.020416999999725,
+            133.5008340000004,
+            119.17258399999992,
+            69.03837500000009,
+            83.25166699999954,
+            59.087375000000065,
+            58.48191600000064,
+            61.102999999999156,
+            68.97670800000014,
+            52.55341599999883,
+            53.47758299999987
+          ],
+          "idleRssBytes": [
+            56279040,
+            56410112,
+            56311808,
+            56393728,
+            56164352
+          ]
+        },
+        "Bun TS": {
+          "milliseconds": [
+            38.01924999999983,
+            54.590999999999894,
+            41.17112499999985,
+            39.3107500000001,
+            46.034541999999874,
+            34.81012499999997,
+            38.18529200000012,
+            36.682624999999916,
+            75.69400000000041,
+            34.28570899999977,
+            123.75758300000052,
+            47.56641600000057,
+            30.30225000000064,
+            31.70533400000022,
+            33.081999999999425,
+            34.47862500000065,
+            73.80487499999981,
+            79.87804200000028,
+            73.93783299999996,
+            44.24004100000002,
+            51.522791999999754,
+            48.98179099999834,
+            44.25174999999945,
+            36.40720799999872,
+            45.08808300000055
+          ],
+          "idleRssBytes": [
+            39337984,
+            39469056,
+            39485440,
+            39403520,
+            39567360
+          ]
+        },
+        "Perry": {
+          "milliseconds": [
+            11.634165999999823,
+            12.711708000000272,
+            10.655707999999777,
+            16.48566699999992,
+            12.757375000000138,
+            13.046457999999802,
+            12.85695799999985,
+            11.434792000000016,
+            13.883832999999868,
+            23.364333000000443,
+            17.021958000000268,
+            13.128875000000335,
+            11.098791000000347,
+            12.425833999999668,
+            12.36791599999924,
+            11.510208000000603,
+            44.7489170000008,
+            17.665875000000597,
+            16.4130839999998,
+            13.524999999999636,
+            11.100792000000183,
+            12.847083999999086,
+            14.185999999999694,
+            10.219832999999198,
+            9.280457999999271
+          ],
+          "idleRssBytes": [
+            18907136,
+            18874368,
+            18874368,
+            18874368,
+            18890752
+          ]
+        }
+      },
+      "searches": {
+        "Node TS": {},
+        "Node JS": {},
+        "Bun TS": {},
+        "Perry": {}
+      },
+      "localMoves": {
+        "Node TS": [],
+        "Node JS": [],
+        "Bun TS": [],
+        "Perry": []
+      }
+    }
+  ],
+  "distribution": {
+    "source": {
+      "bytes": 59341,
+      "gzipBytes": 16694,
+      "files": [
+        {
+          "path": "package.json",
+          "bytes": 1255,
+          "gzipBytes": 471
+        },
+        {
+          "path": "engine/src/chess.ts",
+          "bytes": 37159,
+          "gzipBytes": 9535
+        },
+        {
+          "path": "tui/src/app.ts",
+          "bytes": 14919,
+          "gzipBytes": 4495
+        },
+        {
+          "path": "tui/src/main.ts",
+          "bytes": 6008,
+          "gzipBytes": 2193
+        }
+      ]
+    },
+    "javascript": {
+      "bytes": 65850,
+      "gzipBytes": 16135,
+      "files": [
+        {
+          "path": "package.json",
+          "bytes": 1255,
+          "gzipBytes": 471
+        },
+        {
+          "path": "dist/engine/src/chess.js",
+          "bytes": 40334,
+          "gzipBytes": 8988
+        },
+        {
+          "path": "dist/tui/src/app.js",
+          "bytes": 17350,
+          "gzipBytes": 4472
+        },
+        {
+          "path": "dist/tui/src/main.js",
+          "bytes": 6911,
+          "gzipBytes": 2204
+        }
+      ]
+    },
+    "nodeRuntime": {
+      "bytes": 145265936,
+      "gzipBytes": 45307771,
+      "files": [
+        {
+          "path": "/Users/amlug/.local/opt/node-v26.5.1-darwin-arm64/bin/node",
+          "bytes": 145265936,
+          "gzipBytes": 45307771
+        }
+      ]
+    },
+    "bunRuntime": {
+      "bytes": 63096576,
+      "gzipBytes": 24310308,
+      "files": [
+        {
+          "path": "/Users/amlug/.bun/bin/bun",
+          "bytes": 63096576,
+          "gzipBytes": 24310308
+        }
+      ]
+    },
+    "perryExecutable": {
+      "bytes": 10267192,
+      "gzipBytes": 4426597,
+      "files": [
+        {
+          "path": "dist/chess",
+          "bytes": 10267192,
+          "gzipBytes": 4426597
+        }
+      ]
+    },
+    "linkage": {
+      "node": "/Users/amlug/.local/opt/node-v26.5.1-darwin-arm64/bin/node:\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 3502.1.255)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 61439.120.27)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 1900.180.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)",
+      "bun": "/Users/amlug/.bun/bin/bun:\n\t/usr/lib/libicucore.A.dylib (compatibility version 1.0.0, current version 74.2.0)\n\t/usr/lib/libresolv.9.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 1800.105.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)",
+      "perry": "dist/chess:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 61901.120.67)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5026.5.4)\n\t/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/SystemConfiguration (compatibility version 1.0.0, current version 1405.120.5)\n\t/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)\n\t/usr/lib/libresolv.9.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)"
+    }
+  },
+  "profile": {
+    "perryMainSamples": 35519,
+    "perrySelfSamples": {
+      "perry_method_engine_src_chess_ts__Chess__attacked": 6346,
+      "perry_method_engine_src_chess_ts__Chess__evaluate$pshape": 3931,
+      "perry_fn_engine_src_chess_ts__onBoard$spec_b": 2542,
+      "perry_method_engine_src_chess_ts__Chess__make": 2459,
+      "perry_method_engine_src_chess_ts__Chess__unmake$pshape": 2236,
+      "perry_method_engine_src_chess_ts__Chess__generatePseudo$pshape": 2000,
+      "_tlv_get_addr": 1025,
+      "js_array_record_stack_enter": 683,
+      "perry_method_engine_src_chess_ts__Chess__orderMoves": 602,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier31remembered_child_needs_tracking": 565,
+      "perry_method_engine_src_chess_ts__Chess__quiescence": 558,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array15iterator_method25prototype_iterator_method": 508,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array15iterator_method25iterator_method_from_slot": 502,
+      "perry_method_engine_src_chess_ts__Chess__set$generic": 468,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing35js_array_set_f64_extend_strict_impl": 416,
+      "perry_birth_class": 370,
+      "js_array_numeric_push_f64_unboxed": 369,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array13iterator_step23array_iterator_property": 339,
+      "<deduplicated_symbol>": 335,
+      "_RINvNtNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes12layout_probe7indexed3getKb1_Kb0_KB1m_EBa_": 291,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set17get_field_by_name33get_field_by_name_past_data_probe": 277,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier28write_barrier_decoded_parent": 244,
+      "_platform_memset_pattern16": 230,
+      "perry_array_index_normalize_i32": 217,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime14typed_feedback33packed_f64_loop_admits_live_array": 203,
+      "perry_fn_engine_src_chess_ts__opposite": 198,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object11layout_desc5store12family_store": 195,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get19try_data_lookup_key": 183,
+      "perry_fn_engine_src_chess_ts__onBoard": 174,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6header29array_has_element_descriptors": 172,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime14typed_feedback24numeric_array_push_guard": 169,
+      "js_array_grow": 166,
+      "_platform_memmove": 166,
+      "perry_method_engine_src_chess_ts__Chess__negamax": 165,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object11layout_desc5store21family_own_key_hashed": 155,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc13barrier_store22barrier_child_prologue": 149,
+      "_RINvNtNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes12layout_probe7indexed9continuedKb1_Kb0_KB1s_EBa_": 147,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get23try_settled_get_by_name": 146,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6malloc27gc_malloc_header_is_tracked": 139,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier26barrier_remembering_parent": 135,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14prototype_addr22resolve_prototype_addr": 133,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing5keyed44js_array_set_index_or_string_with_strictness": 133,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object19iterator_prototypes28array_record_close_is_absent": 126,
+      "_platform_memcmp": 125,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena9page_meta33classify_heap_generation_uncached": 125,
+      "perry_fn_engine_src_chess_ts__encode": 118,
+      "perry_probe_get": 117,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props14is_closure_ptr": 115,
+      "js_gc_note_slot_layout": 109,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object11layout_desc5store18family_store_value": 107,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc10remembered34remember_mutable_old_to_young_slot": 103,
+      "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon12format_exact": 101,
+      "js_typed_feedback_numeric_array_push_guard": 100,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime6string12concat_parts18concat_parts_sizedKj20_EB6_": 90,
+      "js_write_barrier_slot": 85,
+      "js_string_addref_if_heap_string": 82,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes19consult_shape_index": 80,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value": 78,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors30array_prototype_property_value": 76,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object15prototype_chain23object_static_prototype": 73,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes": 69,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6header29rebuild_array_numeric_raw_f64": 65,
+      "perry_fn_engine_src_chess_ts__moveTo$spec_b": 65,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_": 63,
+      "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2": 62,
+      "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8": 57,
+      "perry_fn_engine_src_chess_ts__movePromotion$spec_b": 56,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method24native_call_method_tower": 55,
+      "js_object_get_field_by_name_f64": 55,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object9prop_plan16read_plan_lookup": 55,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array15header_gc_slots25store_array_slot_resolved": 55,
+      "_RINvMNtNtCs9D7NrJNbPej_13perry_runtime2gc7copyingNtB3_23CopyingNurseryCollector9mark_addrKb0_EB7_": 51,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail": 47,
+      "_RNCINvNtNtCs9D7NrJNbPej_13perry_runtime2gc17layout_slot_visit22visit_gc_rewrite_slotsKb0_NCNCINvNtB6_10remembered37restore_surviving_dirty_coverage_implKB1m_E00E0B8_": 46,
+      "js_object_get_field": 45,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime6string20string_storage_alloc": 45,
+      "js_put_value_set": 44,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup38keys_find_slot_by_bytes_dense_resolved": 44,
+      "js_typed_feedback_array_set_index_or_string": 43,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes23object_shape_descriptor": 42,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6append4grow": 41,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props12present_slot": 40,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method12class_holder12chain_method": 39,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5value10addr_class26try_read_tracked_gc_header": 38,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object15field_rep_store17checked_slot_bits": 37,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6header39js_array_is_numeric_f64_layout_resolved": 36,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array8subclass35clear_packed_subclass_numeric_proof": 36,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5value13dynamic_arith10to_numeric": 36,
+      "_RNvNtNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps4lazy10skip_slots": 35,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime6object17object_is_regular": 34,
+      "js_numeric_step": 34,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors39default_object_prototype_property_value": 33,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object9key_attrs23attributed_storage_slot": 33,
+      "js_array_push_f64_spec_or_own": 32,
+      "js_object_get_field_by_name": 32,
+      "js_array_note_numeric_write": 32,
+      "_RNvMNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes15shapes_own_dataNtB2_12OwnDataShape12plain_lookup": 30,
+      "DYLD-STUB$$memset_pattern16": 29,
+      "perry_fn_engine_src_chess_ts__moveFrom$spec_b": 29,
+      "js_native_call_method_by_id": 27,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6intern22intern_prehashed_bytes": 26,
+      "js_array_slice": 26,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method12class_holder32guarded_class_instance_prototype": 24,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6concat13fast_itoa_i64": 24,
+      "js_dynamic_neg": 24,
+      "_RINvMNtNtCs9D7NrJNbPej_13perry_runtime2gc7copyingNtB3_23CopyingNurseryCollector15mark_classifiedKb0_EB7_": 24,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array13element_shape27note_element_store_with_bit": 24,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime3map10string_key12find_indexed": 24,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14prototype_addr33object_prototype_addr_if_resolved": 23,
+      "_RNCNCINvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc7copying15remembered_scan35scan_remembered_dirty_slots_copyingKb0_NCINvB8_24run_copied_minor_attemptKB1J_Esc_0E00Bc_": 23,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method8own_slot24find_method_slot_indexed": 22,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6concat18format_number_into": 21,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6malloc16ensure_set_built": 21,
+      "js_array_alloc_with_length": 21,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array8push_pop18push_spec_declined": 20,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6intern11atom_lookup": 20,
+      "DYLD-STUB$$memcmp": 20,
+      "_RNvNvNtCs7iaa78gPu5S_5alloc3fmt6format12format_inner": 19,
+      "_RINvNtNtCsbuT5dCMLKzJ_4core3fmt5float29float_to_decimal_common_exactdEB6_": 19,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc13barrier_store42runtime_store_jsvalue_slot_layout_deferred": 19,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime6object31object_keys_and_live_slot_count": 18,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier19gc_note_black_birth": 17,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set17get_field_by_name18fast_lane_own_read": 17,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props6lookup": 17,
+      "_RNCINvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier23scan_dirty_object_slotsKb0_Es0_0B8_": 17,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object13accessor_pair12own_accessor": 17,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string10provenance19raw_string_metadata": 17,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime6string33perry_string_ref_from_dispatch_id": 16,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes": 16,
+      "_RNvMNtNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps4lazyNtB2_10RecordWalk4next": 16,
+      "perry_probe_family_method": 15,
+      "js_array_get_index_or_string": 15,
+      "_RINvMNtNtCs9D7NrJNbPej_13perry_runtime2gc7copyingNtB3_23CopyingNurseryCollector18scan_object_fieldsKb0_EB7_": 15,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props30closure_get_dynamic_prop_keyed": 15,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime7closure8dispatch5calln19dispatch_body_slice": 15,
+      "js_array_record_stack_dispatch": 14,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing25array_iteration_is_exotic": 14,
+      "js_to_numeric": 14,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_value": 14,
+      "perry_birth_empty_array": 14,
+      "js_string_concat_parts_5": 14,
+      "DYLD-STUB$$memcpy": 13,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method12class_holder23is_iterator_helper_name": 13,
+      "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter21write_formatted_parts": 12,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array13iterator_step18array_record_close": 12,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc10dead_owner41prune_dead_owner_side_tables_copied_minor": 12,
+      "_RNvMNtCs9D7NrJNbPej_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key": 12,
+      "_RNCNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_": 12,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11class_value21legacy_class_ptr_word": 12,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing9read_cold18read_cold_dispatch": 11,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array15header_gc_slots20rebuild_array_layout": 11,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc10dead_owner37owner_is_dead_copied_minor_from_space": 11,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime11date_layout17is_date_cell_addr": 11,
+      "js_jsvalue_equals": 11,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object8overflow5table": 11,
+      "_platform_memset": 10,
+      "_RNvNtCsbuT5dCMLKzJ_4core3fmt5write": 10,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object12own_override20push_or_own_declined": 10,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14concat_reverse10fill_slots": 10,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6intern19scan_property_atoms": 10,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id": 10,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set11enumeration21canonical_array_index": 10,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method12class_holder12key_position": 9,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10slot_store23store_object_field_slot": 9,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array8push_pop26js_array_push_f64_resolved": 9,
+      "js_array_fill": 9,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key": 9,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime15temporal_layout21is_temporal_cell_addr": 9,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors30accessor_receiver_override_end": 9,
+      "_RINvNtCsbuT5dCMLKzJ_4core3ptr9drop_glueNtNtNtCs9D7NrJNbPej_13perry_runtime6object17call_method_depth20CallMethodDepthGuardEBH_": 9,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena10allocators23arena_alloc_gc_survivor": 9,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6header21clean_arr_ptr_resolve": 8,
+      "_RNvMs2_NtNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps4lazyNtB5_14MatchedRecords4next": 8,
+      "js_array_constructor_single": 8,
+      "_RNCNvNtCs9D7NrJNbPej_13perry_runtime22collection_iter_object33dispatch_map_iterator_method_emits_0B5_": 8,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object9key_attrs25object_key_entry_filtered": 8,
+      "_RNvMNtNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps5indexNtB4_13StackMapIndex13match_records": 8,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc17allocation_pacing7due_arm": 8,
+      "_RNvMs_NtNtCs9D7NrJNbPej_13perry_runtime3map5storeNtB4_11StringIndex6insert": 8,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array7species34array_species_create_with_capacity": 7,
+      "_RNCNvMNtNtCs9D7NrJNbPej_13perry_runtime6object17call_method_depthNtB4_20CallMethodDepthGuard8enter_at0B8_": 7,
+      "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon9mul_pow10": 7,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name": 7,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing9read_cold15read_cold_entry": 6,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes28linked_object_prototype_word": 6,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object19iterator_prototypes26ensure_iterator_prototypes": 6,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes16shapes_prototype27prune_dead_shape_prototypes": 6,
+      "madvise": 6,
+      "_RNvMNtNtCs9D7NrJNbPej_13perry_runtime2gc7copyingNtB2_23CopyingNurseryCollector16rewrite_raw_addr": 6,
+      "js_string_coerce_box": 6,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc7copying24run_copied_minor_attemptKb0_EB6_": 5,
+      "perry_method_engine_src_chess_ts__Chess__visit": 5,
+      "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy5grisu16format_exact_opt": 5,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors32accessor_receiver_override_begin": 5,
+      "mi_malloc_aligned": 5,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc3pin28scan_pinned_object_roots_mut": 5,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime3map19string_content_hash": 5,
+      "_RNvXsZ_NtCs7iaa78gPu5S_5alloc6stringNtB5_6StringNtNtCsbuT5dCMLKzJ_4core3fmt5Write9write_str": 4,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy29gc_budgeted_due_trigger_probe": 4,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy40external_side_old_reclaim_pressure_bytes": 4,
+      "mi_free": 4,
+      "_RNvNtNtCsjg6BkPd3pDx_17compiler_builtins3int19specialized_div_rem12u128_div_rem": 4,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime4json20scan_parse_roots_mut": 4,
+      "_RNvMs4_NtNtCs9D7NrJNbPej_13perry_runtime2gc5rootsNtB5_18RuntimeRootVisitor21visit_tagged_raw_addr": 4,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6buffer5store6layout15header_is_owned": 4,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object9key_attrs22object_key_is_accessor": 4,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena9page_meta43flush_deferred_old_page_registrations_batch": 4,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena9page_meta37classify_heap_space_in_range_uncached": 4,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object13native_module37scan_native_callable_export_roots_mut": 4,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method12class_holder20compiled_user_method": 4,
+      "perry_fn_engine_src_chess_ts__moveTo": 4,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set22array_retargeted_proto16live_array_owner": 4,
+      "_RNvMs2_NtNtCs9D7NrJNbPej_13perry_runtime5arena5blockNtB5_5Arena18try_alloc_after_gc": 4,
+      "js_string_concat_parts": 4,
+      "__bzero": 4,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes26null_linked_prototype_word": 3,
+      "_RNvMs1_NtCs7OeGyiOLT68_9hashbrown3mapINtB5_7HashMapjuNtNtCs9D7NrJNbPej_13perry_runtime9fast_hash9PtrHasherE6insertBT_": 3,
+      "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_": 3,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6format28number_to_string_box_general": 3,
+      "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter19pad_formatted_parts": 3,
+      "_RINvMs6_NtCs7OeGyiOLT68_9hashbrown3rawINtB6_8RawTableTjuEE14reserve_rehashNCINvNtB8_3map11make_hasherjuNtNtCs9D7NrJNbPej_13perry_runtime9fast_hash9PtrHasherE0EB1H_": 3,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime7promise25scan_iter_result_root_mut": 3,
+      "js_eq": 3,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena10allocators23arena_alloc_gc_promoted": 3,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array13element_shape19clear_element_shape": 3,
+      "js_array_push_f64": 3,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier15remembered_mark21dirty_slot_ranges_for": 3,
+      "perry_fn_engine_src_chess_ts__sign": 3,
+      "perry_method_engine_src_chess_ts__Chess__orderMoves__eclo": 3,
+      "_RNvNtNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes12layout_probe6verify5check": 3,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes16shapes_prototype18identity_edge_slot": 3,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime2gc35gc_collect_minor_with_trigger_inner": 2,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier23scan_dirty_object_slotsKb0_EB6_": 2,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5reset34copying_reset_from_spaces_and_flip": 2,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state21owner_key_is_accessor": 2,
+      "_RINvMs0_NtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_mapsNtB6_12ResolvedRoot18visit_with_contextQNCINvNtBa_7copying24run_copied_minor_attemptKb0_Es1_0EBc_": 2,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure5alloc32scan_singleton_closure_roots_mut": 2,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object14class_registry9construct32scan_current_new_target_root_mut": 2,
+      "_RNvMs_NtNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps4lazyNtB4_8SlotIter4next": 2,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy23next_arena_trigger_base": 2,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime6object27scan_object_cache_roots_mut": 2,
+      "_RNvMs_NtNtNtCs9D7NrJNbPej_13perry_runtime2gc6oldgen13sweep_objectsNtB4_22ArenaSweepObjectsState19reclaim_dead_object": 2,
+      "_RNvMs0_NtNtCs9D7NrJNbPej_13perry_runtime2gc4markNtB5_22ValidPointerSetBuilder4step": 2,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14prototype_addr32array_prototype_addr_if_resolved": 2,
+      "__findenv_locked": 2,
+      "_RNvNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec17digits_to_dec_str": 2,
+      "perry_array_read_cold_shared": 2,
+      "js_write_barrier_slot_validated_parent": 2,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena11young_large23exact_young_leaf_header": 2,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena10allocators27arena_alloc_no_collect_slow": 2,
+      "_RNvMs_NtNtNtCs9D7NrJNbPej_13perry_runtime2gc6layout11child_slotsNtB4_21HeapChildSlotIterator3new": 2,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method13bare_receiver29canonicalize_bare_gc_receiver": 2,
+      "_RNCNvNtNtCs9D7NrJNbPej_13perry_runtime5array8iterator23array_from_spread_value0B7_": 2,
+      "js_map_get": 2,
+      "_RINvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc7copying15remembered_scan35scan_remembered_dirty_slots_copyingKb0_NCINvB4_24run_copied_minor_attemptKB1F_Esc_0EB8_": 1,
+      "_RNCINvNtNtCs9D7NrJNbPej_13perry_runtime2gc10remembered37restore_surviving_dirty_coverage_implKb0_E0B8_": 1,
+      "_RNvMNtNtCs9D7NrJNbPej_13perry_runtime2gc9ephemeronNtB2_10Ephemerons6absorb": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5reset20reset_region_to_zero": 1,
+      "__udivti3": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy25gc_check_trigger_evaluate": 1,
+      "_RINvNvMs5_NtCs7iaa78gPu5S_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_": 1,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime7weakref40scan_pending_finalization_jobs_roots_mut": 1,
+      "_RINvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps26visit_stack_map_root_slotsQNCINvNtB6_7copying24run_copied_minor_attemptKb0_Es1_0EB8_": 1,
+      "_RINvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps10visit_fastQNCINvNtB6_7copying24run_copied_minor_attemptKb0_Es1_0EB8_": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena9page_meta28old_page_account_dirty_slots": 1,
+      "_RNvXNtCsbuT5dCMLKzJ_4core3anyNtNtNtCs9D7NrJNbPej_13perry_runtime5timer7gc_scan18TimerRootScanStateNtB2_3Any7type_idBx_": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7promise12native_async38scan_native_async_completion_roots_mut": 1,
+      "mi_bitmap_setN": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena9page_meta26old_arena_headers_on_pages": 1,
+      "mi_realloc_aligned": 1,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps12ensure_built": 1,
+      "OUTLINED_FUNCTION_58": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7process11node_module36scan_process_module_loader_roots_mut": 1,
+      "js_array_slice_values": 1,
+      "_RNvMs_NtNtNtCs9D7NrJNbPej_13perry_runtime5arena9page_meta7compactNtB4_11PageObjects15contains_prefix": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc5types26gc_type_after_payload_move": 1,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes23shapes_evaluation_brand22evaluation_holder_slot": 1,
+      "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growCs9D7NrJNbPej_13perry_runtime": 1,
+      "mi_theap_malloc_zero_aligned_at_overalloc": 1,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime7node_vm17scan_vm_roots_mut": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots17exit_gc_root_lock": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy34old_gen_reclaimable_pressure_bytes": 1,
+      "OUTLINED_FUNCTION_18": 1,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime3tty33scan_tty_resize_callback_root_mut": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6concat26scan_concat_memo_roots_mut": 1,
+      "_RNvMs1_NtNtCs9D7NrJNbPej_13perry_runtime2gc6oldgenNtB5_21IncrementalSweepState4step": 1,
+      "_RNvMNtNtNtCs9D7NrJNbPej_13perry_runtime2gc6oldgen13sweep_objectsNtB2_22ArenaSweepObjectsState14process_object": 1,
+      "_RNvMs_NtNtNtCs9D7NrJNbPej_13perry_runtime2gc6oldgen11sweep_batchNtB4_20PendingOldUnregister5flush": 1,
+      "_RINvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc4mark10mark_slots29trace_heap_rewrite_slots_implKb0_Kb1_KB1v_EB8_": 1,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc17layout_slot_visit33visit_gc_rewrite_slot_descriptorsKb0_NCINvNtNtB4_4mark10mark_slots29trace_heap_rewrite_slots_implKB1v_Kb1_KB2C_Es_0EB6_": 1,
+      "_RNvMs_NtNtCs9D7NrJNbPej_13perry_runtime2gc4markNtB4_15ValidPointerSet8contains": 1,
+      "_RNCNvNtNtCs9D7NrJNbPej_13perry_runtime5arena6pinned28collect_pinned_arena_headers0B7_": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16side_table_roots31scan_transition_cache_roots_mut": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16side_table_roots26scan_transition_cache_slot": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object21array_tail_transition17note_live_entries": 1,
+      "_RINvNtNtNtNtCsbuT5dCMLKzJ_4core5slice4sort6shared9smallsort25insertion_sort_shift_leftTjjENvYB1m_NtNtBa_3cmp10PartialOrd2ltECs9D7NrJNbPej_13perry_runtime": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5timer4mock21scan_mock_timers_step": 1,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots21lock_gc_root_registryINtNtCsbuT5dCMLKzJ_4core6option6OptionINtNtNtNtCsOI96fOWkqn_3std11collections4hash3map7HashMapNtNtCs7iaa78gPu5S_5alloc6string6StringdEEEB6_": 1,
+      "_RNvNtCsk6Q9ivKTmpm_12perry_stdlib8readline23scan_readline_roots_mut": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2os18os_process_emitter28process_emitter_root_scanner": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14prototype_addr35scan_prototype_addr_cache_roots_mut": 1,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors40scan_accessor_receiver_override_root_mut": 1,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime10agent_ptrs30scan_intrinsic_proto_roots_mut": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2os15process_streams39scan_process_stream_singleton_roots_mut": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6header27scan_template_raw_roots_mut": 1,
+      "mi_theap_malloc_zero_aligned_at_generic": 1,
+      "mach_absolute_time": 1,
+      "_RINvMs_NtNtCs9D7NrJNbPej_13perry_runtime2gc7copyingNtB5_22CopiedMinorEligibility8evaluateKb0_EB9_": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena4walk18arena_in_use_bytes": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc17allocation_pacing12sample_arena": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena9page_meta24old_pages_begin_gc_cycle": 1,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps15fp_to_sp_offset": 1,
+      "_RNvMNtNtCs9D7NrJNbPej_13perry_runtime2gc9young_logINtB2_8YoungLogmE6extendB6_": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy24contract_scan_heal_guard": 1,
+      "perry_method_engine_src_chess_ts__Chess__quiescence__eclo$call_entry": 1,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime5frame29scan_frame_callback_roots_mut": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object14class_gc_roots32scan_class_inheritance_roots_mut": 1,
+      "_RNvNtNtNtCsOI96fOWkqn_3std3sys3env4unix13env_read_lock": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object9class_env24scan_class_env_roots_mut": 1,
+      "perry_method_engine_src_chess_ts__Chess__orderMoves__eclo$call_entry": 1,
+      "_RNCNvNtNtCs9D7NrJNbPej_13perry_runtime6object9read_stub15read_stub_probe0B7_": 1,
+      "_RNvMs_NtNtNtCs9D7NrJNbPej_13perry_runtime5arena9page_meta10page_classNtB4_22PageGenerationCacheSet6insert": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc8old_free25old_free_take_exact_class": 1,
+      "js_map_set": 1,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime3map25map_get_resolved_fallback": 1,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set7ic_miss26is_array_method_value_name": 1,
+      "js_is_truthy": 1,
+      "perry_method_engine_src_chess_ts__Chess__quiescence__eclo": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy32arena_growth_full_escalation_due": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena6inline23sync_inline_arena_state": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena10from_space14walk_and_store": 1,
+      "_RNvMs2_NtNtCs9D7NrJNbPej_13perry_runtime5arena5blockNtB5_5Arena11set_current": 1,
+      "perry_fn_engine_src_chess_ts__moveFrom": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5block24old_gen_in_use_bytes_add": 1,
+      "_RNvMNtNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier11maintenanceNtB2_23RememberedSetClearState12step_counted": 1,
+      "js_gc_loop_safepoint": 1,
+      "perry_method_engine_src_chess_ts__Chess__visit__eclo$call_entry": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc13barrier_store29runtime_write_barrier_gc_slot": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier26write_barrier_slot_decoded": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier28mark_dirty_old_page_uncached": 1,
+      "js_map_size": 1,
+      "_RNvXNtNtCs7iaa78gPu5S_5alloc3vec21spec_from_iter_nestedINtB4_3VecjEINtB2_18SpecFromIterNestedjINtNtNtNtCsbuT5dCMLKzJ_4core4iter8adapters6copied6CopiedINtNtNtNtCsOI96fOWkqn_3std11collections4hash3set4IterjEEE9from_iterCs9D7NrJNbPej_13perry_runtime": 1,
+      "_RNCINvNtNtCs9D7NrJNbPej_13perry_runtime5arena12owned_stores22walk_from_space_ownersNCNvB4_50finalize_dead_copied_minor_from_space_owned_storess0_0E0B8_": 1,
+      "_RNvMs4_NtNtCs9D7NrJNbPej_13perry_runtime2gc5rootsNtB5_18RuntimeRootVisitor17visit_nanbox_bits": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes27prune_dead_shape_keys_young": 1,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots21lock_gc_root_registryNtNtNtB6_7promise12native_async19NativeAsyncRegistryEB6_": 1,
+      "perry_fn_engine_src_chess_ts__movePromotion": 1,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime3map26heal_forwarded_array_value": 1,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime7closure8dispatch10value_call23call_compiled_body_this": 1,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5stats24record_arena_live_census": 1,
+      "write": 1,
+      "_RNvXs0_NtNtCs9D7NrJNbPej_13perry_runtime5arena5blockNtB5_5ArenaNtNtNtCsbuT5dCMLKzJ_4core3ops4drop4Drop4drop": 1,
+      "__munmap": 1,
+      "std::unique_ptr<PointerEventItem>::~unique_ptr[abi:nqn210106]()": 1,
+      "start": 0,
+      "main": 0,
+      "perry_fn_tui_src_main_ts__run": 0,
+      "perry_closure_tui_src_main_ts__6": 0,
+      "perry_method_tui_src_app_ts__ChessApp__advanceComputer$pshape": 0,
+      "perry_method_engine_src_chess_ts__Chess__search": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy25gc_safepoint_moving_minor": 0,
+      "_RNCINvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc7copying15remembered_scan35scan_remembered_dirty_slots_copyingKb0_NCINvB6_24run_copied_minor_attemptKB1H_Esc_0E0Ba_": 0,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc10remembered37restore_surviving_dirty_coverage_implKb0_EB6_": 0,
+      "js_inline_arena_slow_alloc": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5block16arena_cell_alloc": 0,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots13scanner_shims26timer_mutable_root_scanner": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5timer7gc_scan25scan_timer_roots_mut_step": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5block15try_alloc_block": 0,
+      "mi_theap_collect_ex": 0,
+      "_mi_theap_collect_retired": 0,
+      "_mi_arenas_page_free": 0,
+      "_mi_arenas_free": 0,
+      "mi_arena_schedule_purge": 0,
+      "_RNvMs7_NtCs7iaa78gPu5S_5alloc7raw_vecINtB5_6RawVecjE8grow_oneCs8JYorfHlXFl_6miette": 0,
+      "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growCs8JYorfHlXFl_6miette": 0,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots10stack_maps21record_slot_registers": 0,
+      "_RINvNvMs5_NtCs7iaa78gPu5S_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECs9D7NrJNbPej_13perry_runtime": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena10allocators19arena_alloc_gc_slow": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena10allocators16arena_alloc_slow": 0,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime2gc39gc_collect_full_mark_sweep_with_trigger": 0,
+      "_RINvMs5_NtNtCs9D7NrJNbPej_13perry_runtime2gc5cycleNtB6_12GcCycleState21step_with_diagnosticsKb0_EBa_": 0,
+      "_RINvMs0_NtNtCs9D7NrJNbPej_13perry_runtime2gc5cycleNtB6_23TraceWorklistCycleState4stepKb0_EBa_": 0,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc4mark37drain_trace_worklist_step_rememberingKb0_EB6_": 0,
+      "_RNCINvNtNtNtCs9D7NrJNbPej_13perry_runtime2gc4mark10mark_slots29trace_heap_rewrite_slots_implKb0_Kb1_KB1x_Es_0Ba_": 0,
+      "_RINvMs2_NtNtCs9D7NrJNbPej_13perry_runtime2gc5cycleNtB6_18RootScanCycleState21step_current_subphaseKb0_EBa_": 0,
+      "_RNvMNtNtNtCs9D7NrJNbPej_13perry_runtime2gc5cycle20registered_root_scanNtB2_30MutableRegisteredRootScanState4step": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc17cycle_malloc_trim19run_allocator_purge": 0,
+      "_mi_arenas_collect": 0,
+      "_mi_bitmap_forall_setc_ranges": 0,
+      "mi_arena_try_purge_visitor": 0,
+      "mi_arena_try_purge_range": 0,
+      "_mi_os_purge_ex": 0,
+      "mi_os_decommit_ex": 0,
+      "_RNvMs1_NtNtCs9D7NrJNbPej_13perry_runtime2gc6oldgenNtB5_21IncrementalSweepState29with_dead_collection_finalize": 0,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime16ui_text_registry31scan_ui_text_registry_roots_mut": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc16promote_in_place29in_place_promotion_admissible": 0,
+      "_RNvNtNtNtCsOI96fOWkqn_3std3sys3env4unix6getenv": 0,
+      "_RNCNvNtNtNtCsOI96fOWkqn_3std3sys3env4unix6getenv0B9_": 0,
+      "getenv": 0,
+      "_RNvMNtNtNtNtCsOI96fOWkqn_3std3sys3pal4unix4timeNtB2_8Timespec3now": 0,
+      "clock_gettime": 0,
+      "clock_gettime_nsec_np": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc11leaf_escape10set_escape": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5reset34discard_previously_idle_eden_pages": 0,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime2gc25gc_force_evacuate_enabled": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5block31advance_block_pool_reuse_window": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime3map5entry15append_resolved": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc17trigger_watermark24retire_trigger_watermark": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc17allocation_pacing15note_allocation": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2os18os_process_emitter37scan_process_event_listener_roots_mut": 0,
+      "_RNvMNtNtCs9D7NrJNbPej_13perry_runtime2gc15heap_generationNtB2_10HeapChange5begin": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime3map5entry11grow_rooted": 0,
+      "_RNvNtCs9D7NrJNbPej_13perry_runtime3map15ensure_capacity": 0,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime3map5store14alloc_store_inKb0_EB6_": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier28replay_old_parent_slot_range": 0,
+      "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc7barrier25remembered_dirty_snapshotKb0_EB6_": 0,
+      "_RINvMs2_NtNtCsOI96fOWkqn_3std6thread5localINtB6_8LocalKeyINtNtCsbuT5dCMLKzJ_4core4cell7RefCellNtNtNtCs9D7NrJNbPej_13perry_runtime5arena5block9BlockPoolEE4withNCNvB1w_15block_pool_take0INtNtBY_6option6OptionOhEEB1A_": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena12owned_stores50finalize_dead_copied_minor_from_space_owned_stores": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5regex11perex_cache14scan_roots_mut": 0,
+      "perry_closure_tui_src_main_ts__3": 0,
+      "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime7closure8dispatch5calln10slow_call1": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2os15process_streams25process_stdout_write_stub": 0,
+      "_RNvYNvNtNtCs9D7NrJNbPej_13perry_runtime2os20process_stream_write12write_stdoutINtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTRShEE9call_onceB8_": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2os20process_stream_write12write_all_fd": 0,
+      "dyld4::LibSystemHelpersWrapper::exit(int) const": 0,
+      "dyld4::LibSystemHelpers::exit(int) const": 0,
+      "exit": 0,
+      "dyld::ThreadLocalVariables::finalizeList(void*)": 0,
+      "invocation function for block in dyld::ThreadLocalVariables::finalizeList(void*)": 0,
+      "_RNvNvNtNtNtNtCsOI96fOWkqn_3std3sys12thread_local5guard5apple6enable9run_dtors": 0,
+      "_RINvNtNtNtNtCsOI96fOWkqn_3std3sys12thread_local6native5eager7destroyINtNtCs9D7NrJNbPej_13perry_runtime7tls_hot7HotCellNtNtNtB19_5arena5block9ArenaCellKj1_EEB19_": 0,
+      "_RINvNtNtNtNtCsOI96fOWkqn_3std3sys12thread_local6native5eager7destroyINtNtCsbuT5dCMLKzJ_4core4cell7RefCellNtNtNtCs9D7NrJNbPej_13perry_runtime5arena5block9BlockPoolEEB1L_": 0,
+      "_RNvXNtNtCs9D7NrJNbPej_13perry_runtime5arena5blockNtB2_9BlockPoolNtNtNtCsbuT5dCMLKzJ_4core3ops4drop4Drop4drop": 0,
+      "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena6region5unmap": 0,
+      "__cxa_finalize_ranges": 0
+    },
+    "perryGroups": {
+      "other": 1271,
+      "runtime": 11255,
+      "compiled_engine": 21968,
+      "thread_local_lookup": 1025
+    },
+    "perryCollectorStackSamples": 939,
+    "nodeSelfMicroseconds": {
+      "evaluate": 1334278,
+      "attacked": 1143870,
+      "make": 620248,
+      "at": 503594,
+      "generatePseudo": 484506,
+      "negamax": 282833,
+      "generateLegal": 242162,
+      "onBoard": 225201,
+      "set": 218575,
+      "(garbage collector)": 178575,
+      "unmake": 153690,
+      "orderMoves": 132634,
+      "positionKey": 123157,
+      "quiescence": 122147,
+      "sign": 55411,
+      "moveTo": 26287,
+      "(program)": 26081,
+      "king": 20158,
+      "addPawn": 20070,
+      "opposite": 18977,
+      "(idle)": 9625,
+      "moveFrom": 8810,
+      "repetitions": 6317,
+      "insufficientMaterial": 4272,
+      "effectiveEp": 3778,
+      "compileForInternalLoader": 2536,
+      "encode": 2517,
+      "movePromotion": 2412,
+      "getNearestParentPackageJSONType": 2273,
+      "search": 1269,
+      "": 1256,
+      "once": 1256,
+      "compileSourceTextModule": 1252,
+      "draw": 1250,
+      "wrapper": 1225,
+      "searchKey": 1207,
+      "open": 406
+    }
+  },
+  "variants": {
+    "workload": "import { Chess } from \"./engine.ts\";\nconst game = new Chess();\nif (game.perft(3) !== 8902) throw new Error(\"perft mismatch\");\nconst before = game.fen();\nconst result = game.search({ level: 10, maxNodes: 250000 });\nif (game.fen() !== before) throw new Error(\"search changed position\");\nconsole.log(JSON.stringify(result));\n",
+    "rounds": 3,
+    "results": [
+      {
+        "variant": "baseline",
+        "runtime": "Perry",
+        "ms": 19526.172042000006,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "baseline",
+        "runtime": "Node",
+        "ms": 1890.7334589999955,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "inline-bounds",
+        "runtime": "Perry",
+        "ms": 7393.073208999995,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "inline-bounds",
+        "runtime": "Node",
+        "ms": 1200.7888329999987,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "indexed-attacks",
+        "runtime": "Perry",
+        "ms": 6901.498875000005,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "indexed-attacks",
+        "runtime": "Node",
+        "ms": 1377.2263339999918,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "both",
+        "runtime": "Perry",
+        "ms": 6050.677624999997,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "both",
+        "runtime": "Node",
+        "ms": 1247.6392080000078,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "inline-bounds",
+        "runtime": "Perry",
+        "ms": 6502.922541000007,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "inline-bounds",
+        "runtime": "Node",
+        "ms": 1123.8532500000147,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "indexed-attacks",
+        "runtime": "Perry",
+        "ms": 5678.425542000012,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "indexed-attacks",
+        "runtime": "Node",
+        "ms": 1181.7815420000115,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "both",
+        "runtime": "Perry",
+        "ms": 5583.717457999999,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "both",
+        "runtime": "Node",
+        "ms": 1161.3433749999967,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "baseline",
+        "runtime": "Perry",
+        "ms": 6425.451124999992,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "baseline",
+        "runtime": "Node",
+        "ms": 1187.5965419999848,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "indexed-attacks",
+        "runtime": "Perry",
+        "ms": 5460.279957999999,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "indexed-attacks",
+        "runtime": "Node",
+        "ms": 1092.5852500000037,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "both",
+        "runtime": "Perry",
+        "ms": 5363.97325000001,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "both",
+        "runtime": "Node",
+        "ms": 1048.4156659999862,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "baseline",
+        "runtime": "Perry",
+        "ms": 6035.871332999988,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "baseline",
+        "runtime": "Node",
+        "ms": 1072.0289169999887,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "inline-bounds",
+        "runtime": "Perry",
+        "ms": 5768.784083999984,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      },
+      {
+        "variant": "inline-bounds",
+        "runtime": "Node",
+        "ms": 1208.3695000000007,
+        "fingerprint": "{\"move\":{\"from\":\"b1\",\"to\":\"c3\",\"promotion\":null,\"uci\":\"b1c3\",\"capture\":false,\"castle\":false,\"enPassant\":false},\"score\":14,\"depth\":7,\"nodes\":250000,\"principalVariation\":[\"b1c3\",\"b8c6\",\"g1f3\",\"g8f6\",\"a2a4\",\"a7a5\",\"h2h4\"],\"completed\":false,\"claimDraw\":false}"
+      }
+    ]
+  },
+  "standaloneReproducer": [
+    {
+      "runtime": "Node",
+      "round": 0,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 58.907375,
+      "instructions": 1706378359
+    },
+    {
+      "runtime": "Node",
+      "round": 0,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 47.77075,
+      "instructions": 1527011140
+    },
+    {
+      "runtime": "Bun",
+      "round": 0,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 76.62562499999999,
+      "instructions": 1718710655
+    },
+    {
+      "runtime": "Bun",
+      "round": 0,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 51.596625,
+      "instructions": 722271697
+    },
+    {
+      "runtime": "Perry",
+      "round": 0,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 608.002084,
+      "instructions": 8431847081
+    },
+    {
+      "runtime": "Perry",
+      "round": 0,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 311.230417,
+      "instructions": 5279583310
+    },
+    {
+      "runtime": "Bun",
+      "round": 1,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 55.77979200000001,
+      "instructions": 936450675
+    },
+    {
+      "runtime": "Bun",
+      "round": 1,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 52.311167000000005,
+      "instructions": 729491220
+    },
+    {
+      "runtime": "Perry",
+      "round": 1,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 613.523834,
+      "instructions": 8410054211
+    },
+    {
+      "runtime": "Perry",
+      "round": 1,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 311.00591699999995,
+      "instructions": 5278706219
+    },
+    {
+      "runtime": "Node",
+      "round": 1,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 58.584292,
+      "instructions": 1693788895
+    },
+    {
+      "runtime": "Node",
+      "round": 1,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 46.769917,
+      "instructions": 1523834667
+    },
+    {
+      "runtime": "Perry",
+      "round": 2,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 603.446166,
+      "instructions": 8409411535
+    },
+    {
+      "runtime": "Perry",
+      "round": 2,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 308.835833,
+      "instructions": 5279325592
+    },
+    {
+      "runtime": "Node",
+      "round": 2,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 57.918458,
+      "instructions": 1686233444
+    },
+    {
+      "runtime": "Node",
+      "round": 2,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 46.07441599999999,
+      "instructions": 1520654853
+    },
+    {
+      "runtime": "Bun",
+      "round": 2,
+      "mode": "forof",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 57.218167,
+      "instructions": 944326801
+    },
+    {
+      "runtime": "Bun",
+      "round": 2,
+      "mode": "indexed",
+      "iterations": 5000000,
+      "warmup": 42188,
+      "checksum": 2109378,
+      "milliseconds": 51.219792,
+      "instructions": 728400904
+    }
+  ],
+  "sha256": {
+    "engine/src/chess.ts": "9f3d4d0d376efba2368e192194f86102aa890e5e93be48fec473075f0065860d",
+    "tui/src/app.ts": "f74a97acd9c208ce9d985f1517fbb42d2882a6d07d0e4817a3ded0794d55737f",
+    "tui/src/main.ts": "cc7eacaa914efac934ba451158bfc9747614bf816e219fb2ef12c62319559345",
+    "dist/chess": "028d53291d5935ea30c3263c4223d4c2933c7a0184ce548e0d709c9d6dbe9dc6"
+  }
+}

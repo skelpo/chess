@@ -1,0 +1,79 @@
+Follow-up to #13663. This is a separate code-generation size opportunity from #13659's feature pruning and #13662's runtime optimization profiles. No size-oriented optimization or performance tradeoff is requested.
+
+## Public two-module reproduction
+
+`histogram.ts`:
+
+```typescript
+// Public reduction for regular/$pshape bodies retained with identical logic.
+export class Histogram {
+  bins: number[] = new Array<number>(8).fill(0);
+  count: number = 0;
+  add(index: number): void {
+    this.bins[index & 7] = (this.bins[index & 7] ?? 0) + 1;
+    this.count++;
+  }
+  score(): number {
+    let result = this.count;
+    for (let i = 0; i < 8; i++) {
+      const value = this.bins[i] ?? 0;
+      result += value * (i + 1);
+    }
+    return result;
+  }
+  text(): string {
+    let result = "";
+    for (let i = 0; i < 8; i++) result += String(this.bins[i] ?? 0) + ":";
+    return result;
+  }
+}
+
+```
+
+`main.ts`:
+
+```typescript
+import { Histogram } from "./histogram.ts";
+const histogram = new Histogram();
+for (let i = 0; i < 1000; i++) histogram.add(i);
+console.log(histogram.score());
+console.log(histogram.text());
+
+```
+
+```sh
+mkdir -p llvm
+PERRY_RUNTIME_DIR=/path/to/matching/runtime PERRY_LL_OPT_LEVEL=s PERRY_SPECIALIZED_ABI=1 PERRY_KEEP_SYMBOLS=1 PERRY_DISABLE_BUILD_CACHE=1 PERRY_NO_CACHE=1 PERRY_SAVE_LL="$PWD/llvm" perry compile main.ts -o histogram --trace llvm --strict-eval --strict-dynamic-import --strict-unimplemented
+nm -n histogram
+./histogram
+node main.ts
+```
+
+Pin: `2359699bee1ec7b98478a0db44f195a5a086b30d`; matching default release runtime/stdlib static archives and GC-effects sidecars; runtime O3 / stdlib Os / ThinLTO, repository unwind settings. macOS 26.5 ARM64. Both programs print:
+
+```text
+5500
+125:125:125:125:125:125:125:125:
+```
+
+The two-module boundary matters: the equivalent one-module fixture did not retain both copies in the final executable.
+
+## Retained bodies
+
+| Method | Ordinary body bytes | `$pshape` body bytes |
+| --- | ---: | ---: |
+| `Histogram.score` | 2,364 | 2,364 |
+| `Histogram.text` | 2,792 | 2,792 |
+
+All four symbols have different addresses. `score` and `text` have **identical ordinary/$pshape LLVM bodies** (excluding their declaration lines/attributes). Thus 5,156 bytes are represented by an extra copy in this reduction. Byte extents are address deltas within Mach-O `__text`, with aliases counted once and padding assigned to the preceding symbol; this is potential sharing, **not an implemented saving**.
+
+The full private app retains 12 ordinary/$pshape pairs with equal per-pair extents, totaling **110,736 bytes for one side**. Examples: evaluation 11,432 bytes each, move generation 22,084 each, command handler 31,980 each. The evaluator's IR bodies differ only in two feedback-site IDs; move generation differs in five feedback-site IDs. Other pairs include regex site identities or additional metadata differences, so the entire 110,736-byte upper bound must not be treated as proved safe to merge.
+
+## Requested work and acceptance
+
+- Suppress or share a representation-specialized body when lowering establishes that it performs the same operations as the ordinary body. Keep distinct public entries/metadata where identity or call conventions require them.
+- Evaluate whether semantically equivalent feedback sites can share the implementation without merging observations incorrectly. Do not simply strip all IDs or apply unsafe machine-code folding.
+- Preserve GC statepoint/root metadata, function identity/name/length, stack traces and exception unwinding, inter-module method entry contracts, and generic fallback behavior. Keep genuinely specialized clones when they reduce hot work.
+- Measure fewer retained code bytes with unchanged results and search/evaluation performance. There is no request to apply Oz, disable useful specialization globally, or accept a throughput regression.
+
+The app's generated engine+UI code is about 0.69 MB of the 9.31 MB stripped binary, so this is an incremental opportunity, not a claim that clone sharing alone achieves the overall size target. Existing profile/retention accounting stays in #13663.

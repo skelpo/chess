@@ -1,0 +1,2144 @@
+{
+  "source": "dist/perry-blockers/original-evaluate-sample.txt",
+  "totalMainThreadSamples": 9823,
+  "method": "Residual main-thread tree counts; recursive inclusive symbols counted once per sample. Sampling shares are not removable-overhead estimates.",
+  "families": [
+    {
+      "name": "generated engine",
+      "samples": 7015,
+      "percent": 71.4140283009264
+    },
+    {
+      "name": "runtime",
+      "samples": 2092,
+      "percent": 21.296956123383897
+    },
+    {
+      "name": "other",
+      "samples": 532,
+      "percent": 5.415860735009671
+    },
+    {
+      "name": "generated support",
+      "samples": 116,
+      "percent": 1.1809019647765449
+    },
+    {
+      "name": "TLS lookup",
+      "samples": 68,
+      "percent": 0.6922528759034918
+    }
+  ],
+  "functions": [
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "demangled": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "selfSamples": 7005,
+      "selfPercent": 71.31222640741117,
+      "inclusiveSamples": 9806,
+      "inclusivePercent": 99.82693678102413
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "demangled": "perry_runtime::closure::dynamic_props::is_closure_ptr",
+      "selfSamples": 220,
+      "selfPercent": 2.2396416573348263,
+      "inclusiveSamples": 220,
+      "inclusivePercent": 2.2396416573348263
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon12format_exact",
+      "demangled": "core::num::imp::flt2dec::strategy::dragon::format_exact",
+      "selfSamples": 160,
+      "selfPercent": 1.6288302962435102,
+      "inclusiveSamples": 237,
+      "inclusivePercent": 2.4127048763106993
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors30array_prototype_property_value",
+      "demangled": "perry_runtime::object::field_get_set::accessors::array_prototype_property_value",
+      "selfSamples": 157,
+      "selfPercent": 1.5982897281889443,
+      "inclusiveSamples": 1479,
+      "inclusivePercent": 15.056500050900947
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set17get_field_by_name33get_field_by_name_past_data_probe",
+      "demangled": "perry_runtime::object::field_get_set::get_field_by_name::get_field_by_name_past_data_probe",
+      "selfSamples": 148,
+      "selfPercent": 1.5066680240252468,
+      "inclusiveSamples": 277,
+      "inclusivePercent": 2.819912450371577
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "demangled": "perry_runtime::object::prototype_chain::object_static_prototype",
+      "selfSamples": 125,
+      "selfPercent": 1.2725236689402424,
+      "inclusiveSamples": 191,
+      "inclusivePercent": 1.9444161661406902
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "demangled": "perry_runtime::object::descriptor_state::get_accessor_descriptor_bytes",
+      "selfSamples": 121,
+      "selfPercent": 1.2318029115341544,
+      "inclusiveSamples": 220,
+      "inclusivePercent": 2.2396416573348263
+    },
+    {
+      "name": "perry_array_index_normalize_i32",
+      "demangled": "perry_array_index_normalize_i32",
+      "selfSamples": 116,
+      "selfPercent": 1.1809019647765449,
+      "inclusiveSamples": 116,
+      "inclusivePercent": 1.1809019647765449
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes19consult_shape_index",
+      "demangled": "perry_runtime::object::shapes::consult_shape_index",
+      "selfSamples": 96,
+      "selfPercent": 0.9772981777461061,
+      "inclusiveSamples": 96,
+      "inclusivePercent": 0.9772981777461061
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup38keys_find_slot_by_bytes_dense_resolved",
+      "demangled": "perry_runtime::object::keys_lookup::keys_find_slot_by_bytes_dense_resolved",
+      "selfSamples": 88,
+      "selfPercent": 0.8958566629339306,
+      "inclusiveSamples": 88,
+      "inclusivePercent": 0.8958566629339306
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors39default_object_prototype_property_value",
+      "demangled": "perry_runtime::object::field_get_set::accessors::default_object_prototype_property_value",
+      "selfSamples": 83,
+      "selfPercent": 0.8449557161763209,
+      "inclusiveSamples": 258,
+      "inclusivePercent": 2.62648885269266
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props12present_slot",
+      "demangled": "perry_runtime::array::named_props::present_slot",
+      "selfSamples": 80,
+      "selfPercent": 0.8144151481217551,
+      "inclusiveSamples": 300,
+      "inclusivePercent": 3.0540568054565815
+    },
+    {
+      "name": "_RINvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "demangled": "perry_runtime::object::shapes::shape_slot_lookup_verdict::<perry_runtime::object::object_keys::ObjectKeys>",
+      "selfSamples": 74,
+      "selfPercent": 0.7533340120126234,
+      "inclusiveSamples": 169,
+      "inclusivePercent": 1.7204520004072075
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "demangled": "perry_runtime::object::field_get_set::get_field_by_name_tail::get_field_by_name_object_tail",
+      "selfSamples": 73,
+      "selfPercent": 0.7431538226611015,
+      "inclusiveSamples": 1698,
+      "inclusivePercent": 17.28596151888425
+    },
+    {
+      "name": "_tlv_get_addr",
+      "demangled": "_tlv_get_addr",
+      "selfSamples": 68,
+      "selfPercent": 0.6922528759034918,
+      "inclusiveSamples": 68,
+      "inclusivePercent": 0.6922528759034918
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get19try_data_lookup_key",
+      "demangled": "perry_runtime::object::native_get::try_data_lookup_key",
+      "selfSamples": 62,
+      "selfPercent": 0.6311717397943601,
+      "inclusiveSamples": 178,
+      "inclusivePercent": 1.812073704570905
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "demangled": "<core::num::imp::bignum::Big64x20>::mul_pow2",
+      "selfSamples": 60,
+      "selfPercent": 0.6108113610913163,
+      "inclusiveSamples": 60,
+      "inclusivePercent": 0.6108113610913163
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6header29rebuild_array_numeric_raw_f64",
+      "demangled": "perry_runtime::array::header::rebuild_array_numeric_raw_f64",
+      "selfSamples": 54,
+      "selfPercent": 0.5497302249821847,
+      "inclusiveSamples": 54,
+      "inclusivePercent": 0.5497302249821847
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5value13dynamic_arith10to_numeric",
+      "demangled": "perry_runtime::value::dynamic_arith::to_numeric",
+      "selfSamples": 46,
+      "selfPercent": 0.46828871017000917,
+      "inclusiveSamples": 46,
+      "inclusivePercent": 0.46828871017000917
+    },
+    {
+      "name": "_RINvNtNtCsbuT5dCMLKzJ_4core3fmt5float29float_to_decimal_common_exactdEB6_",
+      "demangled": "core::fmt::float::float_to_decimal_common_exact::<f64>",
+      "selfSamples": 41,
+      "selfPercent": 0.41738776341239947,
+      "inclusiveSamples": 414,
+      "inclusivePercent": 4.214598391530083
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter21write_formatted_parts",
+      "demangled": "<core::fmt::Formatter>::write_formatted_parts",
+      "selfSamples": 40,
+      "selfPercent": 0.40720757406087754,
+      "inclusiveSamples": 109,
+      "inclusivePercent": 1.1096406393158913
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6intern22intern_prehashed_bytes",
+      "demangled": "perry_runtime::string::intern::intern_prehashed_bytes",
+      "selfSamples": 38,
+      "selfPercent": 0.38684719535783363,
+      "inclusiveSamples": 44,
+      "inclusivePercent": 0.4479283314669653
+    },
+    {
+      "name": "js_array_get_index_or_string",
+      "demangled": "js_array_get_index_or_string",
+      "selfSamples": 36,
+      "selfPercent": 0.36648681665478977,
+      "inclusiveSamples": 2423,
+      "inclusivePercent": 24.666598798737656
+    },
+    {
+      "name": "_platform_memmove",
+      "demangled": "_platform_memmove",
+      "selfSamples": 32,
+      "selfPercent": 0.325766059248702,
+      "inclusiveSamples": 32,
+      "inclusivePercent": 0.325766059248702
+    },
+    {
+      "name": "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8",
+      "demangled": "core::str::converts::from_utf8",
+      "selfSamples": 32,
+      "selfPercent": 0.325766059248702,
+      "inclusiveSamples": 32,
+      "inclusivePercent": 0.325766059248702
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get23try_settled_get_by_name",
+      "demangled": "perry_runtime::object::native_get::try_settled_get_by_name",
+      "selfSamples": 29,
+      "selfPercent": 0.2952254911941362,
+      "inclusiveSamples": 52,
+      "inclusivePercent": 0.5293698462791407
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "demangled": "perry_runtime::object::weakref_proto_thunks::weak_wrapper_class_id",
+      "selfSamples": 27,
+      "selfPercent": 0.27486511249109236,
+      "inclusiveSamples": 27,
+      "inclusivePercent": 0.27486511249109236
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime6string20string_storage_alloc",
+      "demangled": "perry_runtime::string::string_storage_alloc",
+      "selfSamples": 27,
+      "selfPercent": 0.27486511249109236,
+      "inclusiveSamples": 27,
+      "inclusivePercent": 0.27486511249109236
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes",
+      "demangled": "perry_runtime::object::keys_lookup::keys_find_slot_by_bytes",
+      "selfSamples": 26,
+      "selfPercent": 0.26468492313957037,
+      "inclusiveSamples": 191,
+      "inclusivePercent": 1.9444161661406902
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14prototype_addr22resolve_prototype_addr",
+      "demangled": "perry_runtime::array::prototype_addr::resolve_prototype_addr",
+      "selfSamples": 25,
+      "selfPercent": 0.25450473378804844,
+      "inclusiveSamples": 25,
+      "inclusivePercent": 0.25450473378804844
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "demangled": "perry_runtime::object::field_get_set::has_property::closure_dynamic_prop_by_key",
+      "selfSamples": 25,
+      "selfPercent": 0.25450473378804844,
+      "inclusiveSamples": 94,
+      "inclusivePercent": 0.9569377990430622
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5value10addr_class26try_read_tracked_gc_header",
+      "demangled": "perry_runtime::value::addr_class::try_read_tracked_gc_header",
+      "selfSamples": 25,
+      "selfPercent": 0.25450473378804844,
+      "inclusiveSamples": 25,
+      "inclusivePercent": 0.25450473378804844
+    },
+    {
+      "name": "js_dynamic_neg",
+      "demangled": "js_dynamic_neg",
+      "selfSamples": 25,
+      "selfPercent": 0.25450473378804844,
+      "inclusiveSamples": 60,
+      "inclusivePercent": 0.6108113610913163
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "demangled": "perry_runtime::object::field_get_set::accessors::own_data_field_by_name",
+      "selfSamples": 23,
+      "selfPercent": 0.23414435508500459,
+      "inclusiveSamples": 23,
+      "inclusivePercent": 0.23414435508500459
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors30accessor_receiver_override_end",
+      "demangled": "perry_runtime::object::field_get_set::accessors::accessor_receiver_override_end",
+      "selfSamples": 23,
+      "selfPercent": 0.23414435508500459,
+      "inclusiveSamples": 23,
+      "inclusivePercent": 0.23414435508500459
+    },
+    {
+      "name": "_RINvNvMs5_NtCs7iaa78gPu5S_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_",
+      "demangled": "<alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>",
+      "selfSamples": 21,
+      "selfPercent": 0.2137839763819607,
+      "inclusiveSamples": 45,
+      "inclusivePercent": 0.45810852081848724
+    },
+    {
+      "name": "js_array_fill",
+      "demangled": "js_array_fill",
+      "selfSamples": 21,
+      "selfPercent": 0.2137839763819607,
+      "inclusiveSamples": 21,
+      "inclusivePercent": 0.2137839763819607
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14concat_reverse10fill_slots",
+      "demangled": "perry_runtime::array::concat_reverse::fill_slots",
+      "selfSamples": 20,
+      "selfPercent": 0.20360378703043877,
+      "inclusiveSamples": 91,
+      "inclusivePercent": 0.9263972309884964
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object13accessor_pair12own_accessor",
+      "demangled": "perry_runtime::object::accessor_pair::own_accessor",
+      "selfSamples": 18,
+      "selfPercent": 0.18324340832739489,
+      "inclusiveSamples": 37,
+      "inclusivePercent": 0.3766670060063117
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11class_value21legacy_class_ptr_word",
+      "demangled": "perry_runtime::object::class_value::legacy_class_ptr_word",
+      "selfSamples": 18,
+      "selfPercent": 0.18324340832739489,
+      "inclusiveSamples": 18,
+      "inclusivePercent": 0.18324340832739489
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props30closure_get_dynamic_prop_keyed",
+      "demangled": "perry_runtime::closure::dynamic_props::closure_get_dynamic_prop_keyed",
+      "selfSamples": 16,
+      "selfPercent": 0.162883029624351,
+      "inclusiveSamples": 50,
+      "inclusivePercent": 0.5090094675760969
+    },
+    {
+      "name": "js_object_get_field_by_name",
+      "demangled": "js_object_get_field_by_name",
+      "selfSamples": 16,
+      "selfPercent": 0.162883029624351,
+      "inclusiveSamples": 72,
+      "inclusivePercent": 0.7329736333095795
+    },
+    {
+      "name": "js_array_alloc_with_length",
+      "demangled": "js_array_alloc_with_length",
+      "selfSamples": 16,
+      "selfPercent": 0.162883029624351,
+      "inclusiveSamples": 24,
+      "inclusivePercent": 0.24432454443652651
+    },
+    {
+      "name": "_RNvNtCsbuT5dCMLKzJ_4core3fmt5write",
+      "demangled": "core::fmt::write",
+      "selfSamples": 15,
+      "selfPercent": 0.15270284027282907,
+      "inclusiveSamples": 434,
+      "inclusivePercent": 4.418202178560521
+    },
+    {
+      "name": "mi_malloc_aligned",
+      "demangled": "mi_malloc_aligned",
+      "selfSamples": 15,
+      "selfPercent": 0.15270284027282907,
+      "inclusiveSamples": 19,
+      "inclusivePercent": 0.19342359767891681
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value",
+      "demangled": "perry_runtime::object::native_call_method::gc_pointer_and_type_from_value",
+      "selfSamples": 14,
+      "selfPercent": 0.14252265092130714,
+      "inclusiveSamples": 14,
+      "inclusivePercent": 0.14252265092130714
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_value",
+      "demangled": "perry_runtime::typedarray_props::typed_array_addr_from_value",
+      "selfSamples": 14,
+      "selfPercent": 0.14252265092130714,
+      "inclusiveSamples": 51,
+      "inclusivePercent": 0.5191896569276189
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime11date_layout17is_date_cell_addr",
+      "demangled": "perry_runtime::date_layout::is_date_cell_addr",
+      "selfSamples": 14,
+      "selfPercent": 0.14252265092130714,
+      "inclusiveSamples": 14,
+      "inclusivePercent": 0.14252265092130714
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon9mul_pow10",
+      "demangled": "core::num::imp::flt2dec::strategy::dragon::mul_pow10",
+      "selfSamples": 14,
+      "selfPercent": 0.14252265092130714,
+      "inclusiveSamples": 14,
+      "inclusivePercent": 0.14252265092130714
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing9read_cold18read_cold_dispatch",
+      "demangled": "perry_runtime::array::indexing::read_cold::read_cold_dispatch",
+      "selfSamples": 13,
+      "selfPercent": 0.13234246156978519,
+      "inclusiveSamples": 2449,
+      "inclusivePercent": 24.931283721877225
+    },
+    {
+      "name": "_RNCNvNtCs9D7NrJNbPej_13perry_runtime22collection_iter_object33dispatch_map_iterator_method_emits_0B5_",
+      "demangled": "perry_runtime::collection_iter_object::dispatch_map_iterator_method_emit::{closure#1}",
+      "selfSamples": 13,
+      "selfPercent": 0.13234246156978519,
+      "inclusiveSamples": 13,
+      "inclusivePercent": 0.13234246156978519
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set11enumeration21canonical_array_index",
+      "demangled": "perry_runtime::object::field_get_set::enumeration::canonical_array_index",
+      "selfSamples": 13,
+      "selfPercent": 0.13234246156978519,
+      "inclusiveSamples": 13,
+      "inclusivePercent": 0.13234246156978519
+    },
+    {
+      "name": "_RNCNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_",
+      "demangled": "perry_runtime::typedarray_props::typed_array_addr_from_value::{closure#2}",
+      "selfSamples": 12,
+      "selfPercent": 0.12216227221826326,
+      "inclusiveSamples": 39,
+      "inclusivePercent": 0.3970273847093556
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors32accessor_receiver_override_begin",
+      "demangled": "perry_runtime::object::field_get_set::accessors::accessor_receiver_override_begin",
+      "selfSamples": 12,
+      "selfPercent": 0.12216227221826326,
+      "inclusiveSamples": 12,
+      "inclusivePercent": 0.12216227221826326
+    },
+    {
+      "name": "_RNvXsZ_NtCs7iaa78gPu5S_5alloc6stringNtB5_6StringNtNtCsbuT5dCMLKzJ_4core3fmt5Write9write_str",
+      "demangled": "<alloc::string::String as core::fmt::Write>::write_str",
+      "selfSamples": 12,
+      "selfPercent": 0.12216227221826326,
+      "inclusiveSamples": 67,
+      "inclusivePercent": 0.6820726865519698
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing9read_cold15read_cold_entry",
+      "demangled": "perry_runtime::array::indexing::read_cold::read_cold_entry",
+      "selfSamples": 12,
+      "selfPercent": 0.12216227221826326,
+      "inclusiveSamples": 12,
+      "inclusivePercent": 0.12216227221826326
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array15header_gc_slots20rebuild_array_layout",
+      "demangled": "perry_runtime::array::header_gc_slots::rebuild_array_layout",
+      "selfSamples": 12,
+      "selfPercent": 0.12216227221826326,
+      "inclusiveSamples": 71,
+      "inclusivePercent": 0.7227934439580577
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime15temporal_layout21is_temporal_cell_addr",
+      "demangled": "perry_runtime::temporal_layout::is_temporal_cell_addr",
+      "selfSamples": 11,
+      "selfPercent": 0.11198208286674133,
+      "inclusiveSamples": 11,
+      "inclusivePercent": 0.11198208286674133
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string10provenance19raw_string_metadata",
+      "demangled": "perry_runtime::string::provenance::raw_string_metadata",
+      "selfSamples": 11,
+      "selfPercent": 0.11198208286674133,
+      "inclusiveSamples": 11,
+      "inclusivePercent": 0.11198208286674133
+    },
+    {
+      "name": "_RNvNvNtCs7iaa78gPu5S_5alloc3fmt6format12format_inner",
+      "demangled": "alloc::fmt::format::format_inner",
+      "selfSamples": 10,
+      "selfPercent": 0.10180189351521939,
+      "inclusiveSamples": 442,
+      "inclusivePercent": 4.499643693372697
+    },
+    {
+      "name": "perry_fn_engine_src_chess_ts__sign",
+      "demangled": "perry_fn_engine_src_chess_ts__sign",
+      "selfSamples": 10,
+      "selfPercent": 0.10180189351521939,
+      "inclusiveSamples": 10,
+      "inclusivePercent": 0.10180189351521939
+    },
+    {
+      "name": "DYLD-STUB$$memcpy",
+      "demangled": "DYLD-STUB$$memcpy",
+      "selfSamples": 9,
+      "selfPercent": 0.09162170416369744,
+      "inclusiveSamples": 9,
+      "inclusivePercent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvMNtCs9D7NrJNbPej_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key",
+      "demangled": "<perry_runtime::string::OwnedStringBytes>::copy_of_key",
+      "selfSamples": 9,
+      "selfPercent": 0.09162170416369744,
+      "inclusiveSamples": 28,
+      "inclusivePercent": 0.2850453018426143
+    },
+    {
+      "name": "_RNvNtNtCsjg6BkPd3pDx_17compiler_builtins3int19specialized_div_rem12u128_div_rem",
+      "demangled": "compiler_builtins::int::specialized_div_rem::u128_div_rem",
+      "selfSamples": 9,
+      "selfPercent": 0.09162170416369744,
+      "inclusiveSamples": 9,
+      "inclusivePercent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy5grisu16format_exact_opt",
+      "demangled": "core::num::imp::flt2dec::strategy::grisu::format_exact_opt",
+      "selfSamples": 9,
+      "selfPercent": 0.09162170416369744,
+      "inclusiveSamples": 9,
+      "inclusivePercent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvMNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes15shapes_own_dataNtB2_12OwnDataShape12plain_lookup",
+      "demangled": "<perry_runtime::object::shapes::shapes_own_data::OwnDataShape>::plain_lookup",
+      "selfSamples": 8,
+      "selfPercent": 0.0814415148121755,
+      "inclusiveSamples": 8,
+      "inclusivePercent": 0.0814415148121755
+    },
+    {
+      "name": "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_",
+      "demangled": "<alloc::raw_vec::RawVecInner>::finish_grow",
+      "selfSamples": 8,
+      "selfPercent": 0.0814415148121755,
+      "inclusiveSamples": 22,
+      "inclusivePercent": 0.22396416573348266
+    },
+    {
+      "name": "mi_free",
+      "demangled": "mi_free",
+      "selfSamples": 8,
+      "selfPercent": 0.0814415148121755,
+      "inclusiveSamples": 12,
+      "inclusivePercent": 0.12216227221826326
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props6lookup",
+      "demangled": "perry_runtime::array::named_props::lookup",
+      "selfSamples": 7,
+      "selfPercent": 0.07126132546065357,
+      "inclusiveSamples": 304,
+      "inclusivePercent": 3.094777562862669
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array13element_shape19clear_element_shape",
+      "demangled": "perry_runtime::array::element_shape::clear_element_shape",
+      "selfSamples": 7,
+      "selfPercent": 0.07126132546065357,
+      "inclusiveSamples": 7,
+      "inclusivePercent": 0.07126132546065357
+    },
+    {
+      "name": "js_array_constructor_single",
+      "demangled": "js_array_constructor_single",
+      "selfSamples": 7,
+      "selfPercent": 0.07126132546065357,
+      "inclusiveSamples": 31,
+      "inclusivePercent": 0.31558586989718007
+    },
+    {
+      "name": "_RNvNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec17digits_to_dec_str",
+      "demangled": "core::num::imp::flt2dec::digits_to_dec_str",
+      "selfSamples": 6,
+      "selfPercent": 0.06108113610913163,
+      "inclusiveSamples": 6,
+      "inclusivePercent": 0.06108113610913163
+    },
+    {
+      "name": "_platform_memcmp",
+      "demangled": "_platform_memcmp",
+      "selfSamples": 5,
+      "selfPercent": 0.05090094675760969,
+      "inclusiveSamples": 5,
+      "inclusivePercent": 0.05090094675760969
+    },
+    {
+      "name": "_RNCNvNtNtCs9D7NrJNbPej_13perry_runtime5array8iterator23array_from_spread_value0B7_",
+      "demangled": "perry_runtime::array::iterator::array_from_spread_value::{closure#0}",
+      "selfSamples": 5,
+      "selfPercent": 0.05090094675760969,
+      "inclusiveSamples": 5,
+      "inclusivePercent": 0.05090094675760969
+    },
+    {
+      "name": "main",
+      "demangled": "main",
+      "selfSamples": 4,
+      "selfPercent": 0.04072075740608775,
+      "inclusiveSamples": 9823,
+      "inclusivePercent": 100.0
+    },
+    {
+      "name": "__udivti3",
+      "demangled": "__udivti3",
+      "selfSamples": 4,
+      "selfPercent": 0.04072075740608775,
+      "inclusiveSamples": 13,
+      "inclusivePercent": 0.13234246156978519
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter19pad_formatted_parts",
+      "demangled": "<core::fmt::Formatter>::pad_formatted_parts",
+      "selfSamples": 4,
+      "selfPercent": 0.04072075740608775,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.04072075740608775
+    },
+    {
+      "name": "OUTLINED_FUNCTION_41",
+      "demangled": "OUTLINED_FUNCTION_41",
+      "selfSamples": 4,
+      "selfPercent": 0.04072075740608775,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6buffer5store6layout15header_is_owned",
+      "demangled": "perry_runtime::buffer::store::layout::header_is_owned",
+      "selfSamples": 3,
+      "selfPercent": 0.030540568054565814,
+      "inclusiveSamples": 28,
+      "inclusivePercent": 0.2850453018426143
+    },
+    {
+      "name": "OUTLINED_FUNCTION_58",
+      "demangled": "OUTLINED_FUNCTION_58",
+      "selfSamples": 3,
+      "selfPercent": 0.030540568054565814,
+      "inclusiveSamples": 3,
+      "inclusivePercent": 0.030540568054565814
+    },
+    {
+      "name": "_platform_memset_pattern16",
+      "demangled": "_platform_memset_pattern16",
+      "selfSamples": 3,
+      "selfPercent": 0.030540568054565814,
+      "inclusiveSamples": 3,
+      "inclusivePercent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvMs4_NtNtCs9D7NrJNbPej_13perry_runtime2gc5rootsNtB5_18RuntimeRootVisitor21visit_tagged_raw_addr",
+      "demangled": "<perry_runtime::gc::roots::RuntimeRootVisitor>::visit_tagged_raw_addr",
+      "selfSamples": 2,
+      "selfPercent": 0.020360378703043875,
+      "inclusiveSamples": 2,
+      "inclusivePercent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc10dead_owner41prune_dead_owner_side_tables_copied_minor",
+      "demangled": "perry_runtime::gc::dead_owner::prune_dead_owner_side_tables_copied_minor",
+      "selfSamples": 2,
+      "selfPercent": 0.020360378703043875,
+      "inclusiveSamples": 3,
+      "inclusivePercent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set7ic_miss26is_array_method_value_name",
+      "demangled": "perry_runtime::object::field_get_set::ic_miss::is_array_method_value_name",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "DYLD-STUB$$memcmp",
+      "demangled": "DYLD-STUB$$memcmp",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "OUTLINED_FUNCTION_18",
+      "demangled": "OUTLINED_FUNCTION_18",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvXs7_NtNtCsbuT5dCMLKzJ_4core3fmt5floatdNtB7_7Display3fmt",
+      "demangled": "<f64 as core::fmt::Display>::fmt",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "DYLD-STUB$$memset_pattern16",
+      "demangled": "DYLD-STUB$$memset_pattern16",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc17allocation_pacing7due_arm",
+      "demangled": "perry_runtime::gc::allocation_pacing::due_arm",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 3,
+      "inclusivePercent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena6inline23sync_inline_arena_state",
+      "demangled": "perry_runtime::arena::inline::sync_inline_arena_state",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy16gc_check_trigger",
+      "demangled": "perry_runtime::gc::policy::gc_check_trigger",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvMNtNtCs9D7NrJNbPej_13perry_runtime2gc7copyingNtB2_23CopyingNurseryCollector16rewrite_raw_addr",
+      "demangled": "<perry_runtime::gc::copying::CopyingNurseryCollector>::rewrite_raw_addr",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6string8char_ops11utf16_index26scan_utf16_index_roots_mut",
+      "demangled": "perry_runtime::string::char_ops::utf16_index::scan_utf16_index_roots_mut",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes16shapes_prototype27prune_dead_shape_prototypes",
+      "demangled": "perry_runtime::object::shapes::shapes_prototype::prune_dead_shape_prototypes",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots17exit_gc_root_lock",
+      "demangled": "perry_runtime::gc::roots::exit_gc_root_lock",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots47visit_ffi_mutable_registered_roots_with_sources",
+      "demangled": "perry_runtime::gc::roots::visit_ffi_mutable_registered_roots_with_sources",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RINvNtCsbuT5dCMLKzJ_4core3ptr9drop_glueNtNtNtCs9D7NrJNbPej_13perry_runtime2gc15heap_generation10HeapChangeEBH_",
+      "demangled": "core::ptr::drop_glue::<perry_runtime::gc::heap_generation::HeapChange>",
+      "selfSamples": 1,
+      "selfPercent": 0.010180189351521938,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "start",
+      "demangled": "start",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 9823,
+      "inclusivePercent": 100.0
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc17allocation_pacing12sample_arena",
+      "demangled": "perry_runtime::gc::allocation_pacing::sample_arena",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 2,
+      "inclusivePercent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena10allocators19arena_alloc_gc_slow",
+      "demangled": "perry_runtime::arena::allocators::arena_alloc_gc_slow",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy25gc_check_trigger_evaluate",
+      "demangled": "perry_runtime::gc::policy::gc_check_trigger_evaluate",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 3,
+      "inclusivePercent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy29gc_budgeted_due_trigger_probe",
+      "demangled": "perry_runtime::gc::policy::gc_budgeted_due_trigger_probe",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 3,
+      "inclusivePercent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena5block16arena_cell_alloc",
+      "demangled": "perry_runtime::arena::block::arena_cell_alloc",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena10allocators16arena_alloc_slow",
+      "demangled": "perry_runtime::arena::allocators::arena_alloc_slow",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy25gc_safepoint_moving_minor",
+      "demangled": "perry_runtime::gc::policy::gc_safepoint_moving_minor",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 11,
+      "inclusivePercent": 0.11198208286674133
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime2gc35gc_collect_minor_with_trigger_inner",
+      "demangled": "perry_runtime::gc::gc_collect_minor_with_trigger_inner",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 11,
+      "inclusivePercent": 0.11198208286674133
+    },
+    {
+      "name": "_RINvNtNtCs9D7NrJNbPej_13perry_runtime2gc7copying24run_copied_minor_attemptKb0_EB6_",
+      "demangled": "perry_runtime::gc::copying::run_copied_minor_attempt::<false>",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 11,
+      "inclusivePercent": 0.11198208286674133
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime4json20scan_parse_roots_mut",
+      "demangled": "perry_runtime::json::scan_parse_roots_mut",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6intern19scan_property_atoms",
+      "demangled": "perry_runtime::string::intern::scan_property_atoms",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.010180189351521938
+    }
+  ],
+  "locations": [
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 6052,
+      "samples": 5120,
+      "percent": 52.122569479792325
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 880,
+      "samples": 971,
+      "percent": 9.884963860327803
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 3876,
+      "samples": 655,
+      "percent": 6.668024025246869
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 3028,
+      "samples": 241,
+      "percent": 2.4534256337167872
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 52,
+      "samples": 215,
+      "percent": 2.1887407105772168
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon12format_exact",
+      "offset": 520,
+      "samples": 160,
+      "percent": 1.6288302962435102
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "offset": 1952,
+      "samples": 90,
+      "percent": 0.9162170416369745
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors30array_prototype_property_value",
+      "offset": 2384,
+      "samples": 88,
+      "percent": 0.8958566629339306
+    },
+    {
+      "name": "perry_array_index_normalize_i32",
+      "offset": 44,
+      "samples": 83,
+      "percent": 0.8449557161763209
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors39default_object_prototype_property_value",
+      "offset": 1340,
+      "samples": 80,
+      "percent": 0.8144151481217551
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props12present_slot",
+      "offset": 104,
+      "samples": 76,
+      "percent": 0.7736943907156673
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set17get_field_by_name33get_field_by_name_past_data_probe",
+      "offset": 748,
+      "samples": 74,
+      "percent": 0.7533340120126234
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set17get_field_by_name33get_field_by_name_past_data_probe",
+      "offset": 28,
+      "samples": 74,
+      "percent": 0.7533340120126234
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors30array_prototype_property_value",
+      "offset": 2564,
+      "samples": 69,
+      "percent": 0.7024330652550137
+    },
+    {
+      "name": "_tlv_get_addr",
+      "offset": 4,
+      "samples": 67,
+      "percent": 0.6820726865519698
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes19consult_shape_index",
+      "offset": 1196,
+      "samples": 66,
+      "percent": 0.671892497200448
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6header29rebuild_array_numeric_raw_f64",
+      "offset": 304,
+      "samples": 53,
+      "percent": 0.5395500356306627
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup38keys_find_slot_by_bytes_dense_resolved",
+      "offset": 548,
+      "samples": 45,
+      "percent": 0.45810852081848724
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 3080,
+      "samples": 45,
+      "percent": 0.45810852081848724
+    },
+    {
+      "name": "_RINvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "offset": 96,
+      "samples": 44,
+      "percent": 0.4479283314669653
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup38keys_find_slot_by_bytes_dense_resolved",
+      "offset": 684,
+      "samples": 43,
+      "percent": 0.43774814211544333
+    },
+    {
+      "name": "_RINvNtNtCsbuT5dCMLKzJ_4core3fmt5float29float_to_decimal_common_exactdEB6_",
+      "offset": 92,
+      "samples": 40,
+      "percent": 0.40720757406087754
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "offset": 56,
+      "samples": 39,
+      "percent": 0.3970273847093556
+    },
+    {
+      "name": "js_array_get_index_or_string",
+      "offset": 996,
+      "samples": 36,
+      "percent": 0.36648681665478977
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter21write_formatted_parts",
+      "offset": 44,
+      "samples": 35,
+      "percent": 0.35630662730326784
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5value13dynamic_arith10to_numeric",
+      "offset": 36,
+      "samples": 35,
+      "percent": 0.35630662730326784
+    },
+    {
+      "name": "perry_array_index_normalize_i32",
+      "offset": 0,
+      "samples": 33,
+      "percent": 0.335946248600224
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 44,
+      "samples": 33,
+      "percent": 0.335946248600224
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "offset": 220,
+      "samples": 33,
+      "percent": 0.335946248600224
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 48,
+      "samples": 29,
+      "percent": 0.2952254911941362
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes19consult_shape_index",
+      "offset": 1176,
+      "samples": 29,
+      "percent": 0.2952254911941362
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "offset": 0,
+      "samples": 29,
+      "percent": 0.2952254911941362
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime6string20string_storage_alloc",
+      "offset": 196,
+      "samples": 27,
+      "percent": 0.27486511249109236
+    },
+    {
+      "name": "_RINvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "offset": 48,
+      "samples": 25,
+      "percent": 0.25450473378804844
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5value10addr_class26try_read_tracked_gc_header",
+      "offset": 48,
+      "samples": 25,
+      "percent": 0.25450473378804844
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 428,
+      "samples": 22,
+      "percent": 0.22396416573348266
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6intern22intern_prehashed_bytes",
+      "offset": 16,
+      "samples": 21,
+      "percent": 0.2137839763819607
+    },
+    {
+      "name": "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8",
+      "offset": 0,
+      "samples": 21,
+      "percent": 0.2137839763819607
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "offset": 28,
+      "samples": 20,
+      "percent": 0.20360378703043877
+    },
+    {
+      "name": "js_array_fill",
+      "offset": 312,
+      "samples": 20,
+      "percent": 0.20360378703043877
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14prototype_addr22resolve_prototype_addr",
+      "offset": 36,
+      "samples": 19,
+      "percent": 0.19342359767891681
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 1688,
+      "samples": 19,
+      "percent": 0.19342359767891681
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors30accessor_receiver_override_end",
+      "offset": 48,
+      "samples": 19,
+      "percent": 0.19342359767891681
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 272,
+      "samples": 18,
+      "percent": 0.18324340832739489
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 152,
+      "samples": 18,
+      "percent": 0.18324340832739489
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "offset": 96,
+      "samples": 18,
+      "percent": 0.18324340832739489
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get23try_settled_get_by_name",
+      "offset": 336,
+      "samples": 17,
+      "percent": 0.17306321897587296
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6intern22intern_prehashed_bytes",
+      "offset": 80,
+      "samples": 16,
+      "percent": 0.162883029624351
+    },
+    {
+      "name": "_RINvNvMs5_NtCs7iaa78gPu5S_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_",
+      "offset": 84,
+      "samples": 16,
+      "percent": 0.162883029624351
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 0,
+      "samples": 15,
+      "percent": 0.15270284027282907
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14concat_reverse10fill_slots",
+      "offset": 1384,
+      "samples": 15,
+      "percent": 0.15270284027282907
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "offset": 0,
+      "samples": 14,
+      "percent": 0.14252265092130714
+    },
+    {
+      "name": "mi_malloc_aligned",
+      "offset": 4,
+      "samples": 14,
+      "percent": 0.14252265092130714
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11class_value21legacy_class_ptr_word",
+      "offset": 20,
+      "samples": 13,
+      "percent": 0.13234246156978519
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing9read_cold18read_cold_dispatch",
+      "offset": 8,
+      "samples": 13,
+      "percent": 0.13234246156978519
+    },
+    {
+      "name": "js_dynamic_neg",
+      "offset": 8,
+      "samples": 13,
+      "percent": 0.13234246156978519
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors32accessor_receiver_override_begin",
+      "offset": 48,
+      "samples": 12,
+      "percent": 0.12216227221826326
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "offset": 348,
+      "samples": 12,
+      "percent": 0.12216227221826326
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon9mul_pow10",
+      "offset": 24,
+      "samples": 12,
+      "percent": 0.12216227221826326
+    },
+    {
+      "name": "_RNvNtCsbuT5dCMLKzJ_4core3fmt5write",
+      "offset": 104,
+      "samples": 12,
+      "percent": 0.12216227221826326
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime5array8indexing9read_cold15read_cold_entry",
+      "offset": 12,
+      "samples": 12,
+      "percent": 0.12216227221826326
+    },
+    {
+      "name": "js_dynamic_neg",
+      "offset": 240,
+      "samples": 12,
+      "percent": 0.12216227221826326
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get23try_settled_get_by_name",
+      "offset": 24,
+      "samples": 11,
+      "percent": 0.11198208286674133
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes",
+      "offset": 160,
+      "samples": 11,
+      "percent": 0.11198208286674133
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5value13dynamic_arith10to_numeric",
+      "offset": 468,
+      "samples": 11,
+      "percent": 0.11198208286674133
+    },
+    {
+      "name": "js_object_get_field_by_name",
+      "offset": 0,
+      "samples": 10,
+      "percent": 0.10180189351521939
+    },
+    {
+      "name": "perry_fn_engine_src_chess_ts__sign",
+      "offset": 28,
+      "samples": 10,
+      "percent": 0.10180189351521939
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "offset": 56,
+      "samples": 9,
+      "percent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime15temporal_layout21is_temporal_cell_addr",
+      "offset": 28,
+      "samples": 9,
+      "percent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvNtNtCsjg6BkPd3pDx_17compiler_builtins3int19specialized_div_rem12u128_div_rem",
+      "offset": 124,
+      "samples": 9,
+      "percent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvXsZ_NtCs7iaa78gPu5S_5alloc6stringNtB5_6StringNtNtCsbuT5dCMLKzJ_4core3fmt5Write9write_str",
+      "offset": 28,
+      "samples": 9,
+      "percent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy5grisu16format_exact_opt",
+      "offset": 164,
+      "samples": 9,
+      "percent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvNvNtCs7iaa78gPu5S_5alloc3fmt6format12format_inner",
+      "offset": 0,
+      "samples": 9,
+      "percent": 0.09162170416369744
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string10provenance19raw_string_metadata",
+      "offset": 0,
+      "samples": 9,
+      "percent": 0.09162170416369744
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 68,
+      "samples": 9,
+      "percent": 0.09162170416369744
+    },
+    {
+      "name": "_RNCNvNtCs9D7NrJNbPej_13perry_runtime22collection_iter_object33dispatch_map_iterator_method_emits_0B5_",
+      "offset": 108,
+      "samples": 8,
+      "percent": 0.0814415148121755
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "offset": 28,
+      "samples": 8,
+      "percent": 0.0814415148121755
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set11enumeration21canonical_array_index",
+      "offset": 44,
+      "samples": 8,
+      "percent": 0.0814415148121755
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props30closure_get_dynamic_prop_keyed",
+      "offset": 3404,
+      "samples": 8,
+      "percent": 0.0814415148121755
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 64,
+      "samples": 8,
+      "percent": 0.0814415148121755
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "offset": 432,
+      "samples": 8,
+      "percent": 0.0814415148121755
+    },
+    {
+      "name": "js_array_alloc_with_length",
+      "offset": 276,
+      "samples": 8,
+      "percent": 0.0814415148121755
+    },
+    {
+      "name": "js_array_alloc_with_length",
+      "offset": 72,
+      "samples": 8,
+      "percent": 0.0814415148121755
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes",
+      "offset": 208,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object13accessor_pair12own_accessor",
+      "offset": 208,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "DYLD-STUB$$memcpy",
+      "offset": 4,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes",
+      "offset": 12,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 248,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value",
+      "offset": 116,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8",
+      "offset": 44,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_value",
+      "offset": 212,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime11date_layout17is_date_cell_addr",
+      "offset": 0,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "offset": 0,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "js_array_constructor_single",
+      "offset": 0,
+      "samples": 7,
+      "percent": 0.07126132546065357
+    },
+    {
+      "name": "_RNvMNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes15shapes_own_dataNtB2_12OwnDataShape12plain_lookup",
+      "offset": 52,
+      "samples": 6,
+      "percent": 0.06108113610913163
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "offset": 868,
+      "samples": 6,
+      "percent": 0.06108113610913163
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object13accessor_pair12own_accessor",
+      "offset": 1192,
+      "samples": 6,
+      "percent": 0.06108113610913163
+    },
+    {
+      "name": "js_object_get_field_by_name",
+      "offset": 56,
+      "samples": 6,
+      "percent": 0.06108113610913163
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 0,
+      "samples": 6,
+      "percent": 0.06108113610913163
+    },
+    {
+      "name": "_RNvNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec17digits_to_dec_str",
+      "offset": 24,
+      "samples": 6,
+      "percent": 0.06108113610913163
+    },
+    {
+      "name": "mi_free",
+      "offset": 28,
+      "samples": 6,
+      "percent": 0.06108113610913163
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 144,
+      "samples": 6,
+      "percent": 0.06108113610913163
+    },
+    {
+      "name": "_platform_memcmp",
+      "offset": 272,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 508,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props30closure_get_dynamic_prop_keyed",
+      "offset": 3408,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNCNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_",
+      "offset": 40,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11class_value21legacy_class_ptr_word",
+      "offset": 168,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14prototype_addr22resolve_prototype_addr",
+      "offset": 8,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "offset": 996,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNCNvNtCs9D7NrJNbPej_13perry_runtime22collection_iter_object33dispatch_map_iterator_method_emits_0B5_",
+      "offset": 40,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set11enumeration21canonical_array_index",
+      "offset": 12,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_",
+      "offset": 20,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RINvNvMs5_NtCs7iaa78gPu5S_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_",
+      "offset": 88,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter21write_formatted_parts",
+      "offset": 624,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array15header_gc_slots20rebuild_array_layout",
+      "offset": 124,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14concat_reverse10fill_slots",
+      "offset": 1536,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array15header_gc_slots20rebuild_array_layout",
+      "offset": 44,
+      "samples": 5,
+      "percent": 0.05090094675760969
+    },
+    {
+      "name": "_RINvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "offset": 1564,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props12present_slot",
+      "offset": 1268,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value",
+      "offset": 468,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime11date_layout17is_date_cell_addr",
+      "offset": 72,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvMNtCs9D7NrJNbPej_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key",
+      "offset": 160,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "offset": 528,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object13accessor_pair12own_accessor",
+      "offset": 16,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors30accessor_receiver_override_end",
+      "offset": 92,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props6lookup",
+      "offset": 0,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNCNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_",
+      "offset": 36,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_value",
+      "offset": 0,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8",
+      "offset": 528,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "__udivti3",
+      "offset": 0,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter19pad_formatted_parts",
+      "offset": 16,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "OUTLINED_FUNCTION_41",
+      "offset": 16,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array13element_shape19clear_element_shape",
+      "offset": 440,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "main",
+      "offset": 2436,
+      "samples": 4,
+      "percent": 0.04072075740608775
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 12,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 396,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors39default_object_prototype_property_value",
+      "offset": 1392,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime7closure13dynamic_props30closure_get_dynamic_prop_keyed",
+      "offset": 60,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_value",
+      "offset": 184,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNCNvNtCs9D7NrJNbPej_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_",
+      "offset": 80,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvMNtCs9D7NrJNbPej_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key",
+      "offset": 52,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNCNvNtNtCs9D7NrJNbPej_13perry_runtime5array8iterator23array_from_spread_value0B7_",
+      "offset": 92,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value",
+      "offset": 20,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 460,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 36,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime11date_layout17is_date_cell_addr",
+      "offset": 128,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "OUTLINED_FUNCTION_58",
+      "offset": 12,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_",
+      "offset": 128,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvXsZ_NtCs7iaa78gPu5S_5alloc6stringNtB5_6StringNtNtCsbuT5dCMLKzJ_4core3fmt5Write9write_str",
+      "offset": 84,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtCsbuT5dCMLKzJ_4core3fmt5write",
+      "offset": 424,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 428,
+      "samples": 3,
+      "percent": 0.030540568054565814
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "offset": 3304,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props6lookup",
+      "offset": 40,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 2772,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6buffer5store6layout15header_is_owned",
+      "offset": 4,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtCs9D7NrJNbPej_13perry_runtime15temporal_layout21is_temporal_cell_addr",
+      "offset": 136,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "offset": 24,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 0,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNCNvNtNtCs9D7NrJNbPej_13perry_runtime5array8iterator23array_from_spread_value0B7_",
+      "offset": 20,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "DYLD-STUB$$memcpy",
+      "offset": 0,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvMNtCs9D7NrJNbPej_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key",
+      "offset": 56,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 3096,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon9mul_pow10",
+      "offset": 376,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 436,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string10provenance19raw_string_metadata",
+      "offset": 1868,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "mi_free",
+      "offset": 0,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array15header_gc_slots20rebuild_array_layout",
+      "offset": 1264,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array13element_shape19clear_element_shape",
+      "offset": 0,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_platform_memset_pattern16",
+      "offset": 160,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvMs4_NtNtCs9D7NrJNbPej_13perry_runtime2gc5rootsNtB5_18RuntimeRootVisitor21visit_tagged_raw_addr",
+      "offset": 88,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc10dead_owner41prune_dead_owner_side_tables_copied_minor",
+      "offset": 136,
+      "samples": 2,
+      "percent": 0.020360378703043875
+    },
+    {
+      "name": "_RNvMNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes15shapes_own_dataNtB2_12OwnDataShape12plain_lookup",
+      "offset": 592,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes19consult_shape_index",
+      "offset": 1580,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes",
+      "offset": 1060,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object13accessor_pair12own_accessor",
+      "offset": 1188,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array11named_props6lookup",
+      "offset": 124,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RINvNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "offset": 1568,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 292,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 400,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object13field_get_set7ic_miss26is_array_method_value_name",
+      "offset": 368,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvMNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes15shapes_own_dataNtB2_12OwnDataShape12plain_lookup",
+      "offset": 588,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array14prototype_addr22resolve_prototype_addr",
+      "offset": 100,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "DYLD-STUB$$memcmp",
+      "offset": 4,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6string6intern22intern_prehashed_bytes",
+      "offset": 520,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6buffer5store6layout15header_is_owned",
+      "offset": 32,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime6object10native_get23try_settled_get_by_name",
+      "offset": 592,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "mi_malloc_aligned",
+      "offset": 64,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "OUTLINED_FUNCTION_18",
+      "offset": 20,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvXs7_NtNtCsbuT5dCMLKzJ_4core3fmt5floatdNtB7_7Display3fmt",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RINvNtNtCsbuT5dCMLKzJ_4core3fmt5float29float_to_decimal_common_exactdEB6_",
+      "offset": 776,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNvNtCs7iaa78gPu5S_5alloc3fmt6format12format_inner",
+      "offset": 336,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array13element_shape19clear_element_shape",
+      "offset": 444,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5array6header29rebuild_array_numeric_raw_f64",
+      "offset": 156,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "DYLD-STUB$$memset_pattern16",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_platform_memset_pattern16",
+      "offset": 228,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime5arena6inline23sync_inline_arena_state",
+      "offset": 84,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_tlv_get_addr",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc17allocation_pacing7due_arm",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc6policy16gc_check_trigger",
+      "offset": 144,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvMNtNtCs9D7NrJNbPej_13perry_runtime2gc7copyingNtB2_23CopyingNurseryCollector16rewrite_raw_addr",
+      "offset": 16,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6string8char_ops11utf16_index26scan_utf16_index_roots_mut",
+      "offset": 104,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtNtCs9D7NrJNbPej_13perry_runtime6object6shapes16shapes_prototype27prune_dead_shape_prototypes",
+      "offset": 140,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots17exit_gc_root_lock",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RNvNtNtCs9D7NrJNbPej_13perry_runtime2gc5roots47visit_ffi_mutable_registered_roots_with_sources",
+      "offset": 404,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "_RINvNtCsbuT5dCMLKzJ_4core3ptr9drop_glueNtNtNtCs9D7NrJNbPej_13perry_runtime2gc15heap_generation10HeapChangeEBH_",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    },
+    {
+      "name": "js_array_fill",
+      "offset": 924,
+      "samples": 1,
+      "percent": 0.010180189351521938
+    }
+  ]
+}

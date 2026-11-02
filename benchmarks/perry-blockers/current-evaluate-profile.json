@@ -1,0 +1,2190 @@
+{
+  "source": "dist/perry-blockers/current-evaluate-sample.txt",
+  "totalMainThreadSamples": 10024,
+  "method": "Residual main-thread tree counts; recursive inclusive symbols counted once per sample. Sampling shares are not removable-overhead estimates.",
+  "families": [
+    {
+      "name": "generated engine",
+      "samples": 6881,
+      "percent": 68.64525139664805
+    },
+    {
+      "name": "runtime",
+      "samples": 2462,
+      "percent": 24.561053471667996
+    },
+    {
+      "name": "other",
+      "samples": 543,
+      "percent": 5.416999201915403
+    },
+    {
+      "name": "generated support",
+      "samples": 100,
+      "percent": 0.9976057462090981
+    },
+    {
+      "name": "TLS lookup",
+      "samples": 38,
+      "percent": 0.3790901835594573
+    }
+  ],
+  "functions": [
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "demangled": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "selfSamples": 6862,
+      "selfPercent": 68.45570630486831,
+      "inclusiveSamples": 10006,
+      "inclusivePercent": 99.82043096568236
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set17get_field_by_name33get_field_by_name_past_data_probe",
+      "demangled": "perry_runtime::object::field_get_set::get_field_by_name::get_field_by_name_past_data_probe",
+      "selfSamples": 218,
+      "selfPercent": 2.174780526735834,
+      "inclusiveSamples": 340,
+      "inclusivePercent": 3.3918595371109337
+    },
+    {
+      "name": "js_array_constructor_single",
+      "demangled": "js_array_constructor_single",
+      "selfSamples": 207,
+      "selfPercent": 2.0650438946528333,
+      "inclusiveSamples": 237,
+      "inclusivePercent": 2.3643256185155628
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon12format_exact",
+      "demangled": "core::num::imp::flt2dec::strategy::dragon::format_exact",
+      "selfSamples": 166,
+      "selfPercent": 1.656025538707103,
+      "inclusiveSamples": 236,
+      "inclusivePercent": 2.3543495610534717
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "demangled": "perry_runtime::closure::dynamic_props::is_closure_ptr",
+      "selfSamples": 161,
+      "selfPercent": 1.606145251396648,
+      "inclusiveSamples": 161,
+      "inclusivePercent": 1.606145251396648
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "demangled": "perry_runtime::object::descriptor_state::get_accessor_descriptor_bytes",
+      "selfSamples": 131,
+      "selfPercent": 1.3068635275339187,
+      "inclusiveSamples": 222,
+      "inclusivePercent": 2.214684756584198
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object10native_get19try_data_lookup_key",
+      "demangled": "perry_runtime::object::native_get::try_data_lookup_key",
+      "selfSamples": 120,
+      "selfPercent": 1.1971268954509178,
+      "inclusiveSamples": 191,
+      "inclusivePercent": 1.9054269752593775
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors30array_prototype_property_value",
+      "demangled": "perry_runtime::object::field_get_set::accessors::array_prototype_property_value",
+      "selfSamples": 108,
+      "selfPercent": 1.077414205905826,
+      "inclusiveSamples": 1322,
+      "inclusivePercent": 13.188347964884278
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors39default_object_prototype_property_value",
+      "demangled": "perry_runtime::object::field_get_set::accessors::default_object_prototype_property_value",
+      "selfSamples": 107,
+      "selfPercent": 1.067438148443735,
+      "inclusiveSamples": 243,
+      "inclusivePercent": 2.4241819632881088
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state17descriptor_holder",
+      "demangled": "perry_runtime::object::descriptor_state::descriptor_holder",
+      "selfSamples": 107,
+      "selfPercent": 1.067438148443735,
+      "inclusiveSamples": 163,
+      "inclusivePercent": 1.62609736632083
+    },
+    {
+      "name": "perry_array_index_normalize_i32",
+      "demangled": "perry_array_index_normalize_i32",
+      "selfSamples": 100,
+      "selfPercent": 0.9976057462090981,
+      "inclusiveSamples": 100,
+      "inclusivePercent": 0.9976057462090981
+    },
+    {
+      "name": "_RINvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "demangled": "perry_runtime::object::shapes::shape_slot_lookup_verdict::<perry_runtime::object::object_keys::ObjectKeys>",
+      "selfSamples": 89,
+      "selfPercent": 0.8878691141260974,
+      "inclusiveSamples": 146,
+      "inclusivePercent": 1.4565043894652834
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "demangled": "perry_runtime::object::field_get_set::get_field_by_name_tail::get_field_by_name_object_tail",
+      "selfSamples": 85,
+      "selfPercent": 0.8479648842777334,
+      "inclusiveSamples": 1571,
+      "inclusivePercent": 15.672386272944932
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props12present_slot",
+      "demangled": "perry_runtime::array::named_props::present_slot",
+      "selfSamples": 77,
+      "selfPercent": 0.7681564245810056,
+      "inclusiveSamples": 255,
+      "inclusivePercent": 2.5438946528332003
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object11keys_lookup38keys_find_slot_by_bytes_dense_resolved",
+      "demangled": "perry_runtime::object::keys_lookup::keys_find_slot_by_bytes_dense_resolved",
+      "selfSamples": 58,
+      "selfPercent": 0.578611332801277,
+      "inclusiveSamples": 58,
+      "inclusivePercent": 0.578611332801277
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes19consult_shape_index",
+      "demangled": "perry_runtime::object::shapes::consult_shape_index",
+      "selfSamples": 58,
+      "selfPercent": 0.578611332801277,
+      "inclusiveSamples": 58,
+      "inclusivePercent": 0.578611332801277
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value",
+      "demangled": "perry_runtime::object::native_call_method::gc_pointer_and_type_from_value",
+      "selfSamples": 51,
+      "selfPercent": 0.50877893056664,
+      "inclusiveSamples": 51,
+      "inclusivePercent": 0.50877893056664
+    },
+    {
+      "name": "_RNvMNtCsfV4pUniihAp_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key",
+      "demangled": "<perry_runtime::string::OwnedStringBytes>::copy_of_key",
+      "selfSamples": 51,
+      "selfPercent": 0.50877893056664,
+      "inclusiveSamples": 55,
+      "inclusivePercent": 0.548683160415004
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array6header29rebuild_array_numeric_raw_f64",
+      "demangled": "perry_runtime::array::header::rebuild_array_numeric_raw_f64",
+      "selfSamples": 51,
+      "selfPercent": 0.50877893056664,
+      "inclusiveSamples": 51,
+      "inclusivePercent": 0.50877893056664
+    },
+    {
+      "name": "js_array_get_index_or_string",
+      "demangled": "js_array_get_index_or_string",
+      "selfSamples": 49,
+      "selfPercent": 0.4888268156424581,
+      "inclusiveSamples": 2543,
+      "inclusivePercent": 25.369114126097365
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5value13dynamic_arith10to_numeric",
+      "demangled": "perry_runtime::value::dynamic_arith::to_numeric",
+      "selfSamples": 49,
+      "selfPercent": 0.4888268156424581,
+      "inclusiveSamples": 49,
+      "inclusivePercent": 0.4888268156424581
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "demangled": "<core::num::imp::bignum::Big64x20>::mul_pow2",
+      "selfSamples": 47,
+      "selfPercent": 0.46887470071827614,
+      "inclusiveSamples": 47,
+      "inclusivePercent": 0.46887470071827614
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string6intern22intern_prehashed_bytes",
+      "demangled": "perry_runtime::string::intern::intern_prehashed_bytes",
+      "selfSamples": 45,
+      "selfPercent": 0.44892258579409416,
+      "inclusiveSamples": 62,
+      "inclusivePercent": 0.6185155626496409
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object18native_call_method12class_holder29class_instance_inherited_read",
+      "demangled": "perry_runtime::object::native_call_method::class_holder::class_instance_inherited_read",
+      "selfSamples": 40,
+      "selfPercent": 0.39904229848363926,
+      "inclusiveSamples": 89,
+      "inclusivePercent": 0.8878691141260974
+    },
+    {
+      "name": "_tlv_get_addr",
+      "demangled": "_tlv_get_addr",
+      "selfSamples": 38,
+      "selfPercent": 0.3790901835594573,
+      "inclusiveSamples": 38,
+      "inclusivePercent": 0.3790901835594573
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "demangled": "perry_runtime::object::field_get_set::has_property::closure_dynamic_prop_by_key",
+      "selfSamples": 37,
+      "selfPercent": 0.3691141260973663,
+      "inclusiveSamples": 85,
+      "inclusivePercent": 0.8479648842777334
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array15header_gc_slots20rebuild_array_layout",
+      "demangled": "perry_runtime::array::header_gc_slots::rebuild_array_layout",
+      "selfSamples": 37,
+      "selfPercent": 0.3691141260973663,
+      "inclusiveSamples": 90,
+      "inclusivePercent": 0.8978451715881883
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "demangled": "perry_runtime::object::prototype_chain::object_static_prototype",
+      "selfSamples": 35,
+      "selfPercent": 0.34916201117318435,
+      "inclusiveSamples": 198,
+      "inclusivePercent": 1.9752593774940144
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5value10addr_class26try_read_tracked_gc_header",
+      "demangled": "perry_runtime::value::addr_class::try_read_tracked_gc_header",
+      "selfSamples": 31,
+      "selfPercent": 0.30925778132482046,
+      "inclusiveSamples": 31,
+      "inclusivePercent": 0.30925778132482046
+    },
+    {
+      "name": "_RINvNtNtCsbuT5dCMLKzJ_4core3fmt5float29float_to_decimal_common_exactdEB6_",
+      "demangled": "core::fmt::float::float_to_decimal_common_exact::<f64>",
+      "selfSamples": 30,
+      "selfPercent": 0.29928172386272944,
+      "inclusiveSamples": 417,
+      "inclusivePercent": 4.160015961691939
+    },
+    {
+      "name": "js_dynamic_neg",
+      "demangled": "js_dynamic_neg",
+      "selfSamples": 29,
+      "selfPercent": 0.2893056664006385,
+      "inclusiveSamples": 67,
+      "inclusivePercent": 0.6683958499600958
+    },
+    {
+      "name": "js_array_alloc_with_length",
+      "demangled": "js_array_alloc_with_length",
+      "selfSamples": 29,
+      "selfPercent": 0.2893056664006385,
+      "inclusiveSamples": 32,
+      "inclusivePercent": 0.3192338387869114
+    },
+    {
+      "name": "_RINvNvMs5_NtCs7iaa78gPu5S_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_",
+      "demangled": "<alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>",
+      "selfSamples": 28,
+      "selfPercent": 0.27932960893854747,
+      "inclusiveSamples": 63,
+      "inclusivePercent": 0.6284916201117319
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object13accessor_pair12own_accessor",
+      "demangled": "perry_runtime::object::accessor_pair::own_accessor",
+      "selfSamples": 27,
+      "selfPercent": 0.2693535514764565,
+      "inclusiveSamples": 44,
+      "inclusivePercent": 0.4389465283320032
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy5grisu16format_exact_opt",
+      "demangled": "core::num::imp::flt2dec::strategy::grisu::format_exact_opt",
+      "selfSamples": 27,
+      "selfPercent": 0.2693535514764565,
+      "inclusiveSamples": 27,
+      "inclusivePercent": 0.2693535514764565
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime6string20string_storage_alloc",
+      "demangled": "perry_runtime::string::string_storage_alloc",
+      "selfSamples": 27,
+      "selfPercent": 0.2693535514764565,
+      "inclusiveSamples": 27,
+      "inclusivePercent": 0.2693535514764565
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array14prototype_addr22resolve_prototype_addr",
+      "demangled": "perry_runtime::array::prototype_addr::resolve_prototype_addr",
+      "selfSamples": 26,
+      "selfPercent": 0.2593774940143655,
+      "inclusiveSamples": 26,
+      "inclusivePercent": 0.2593774940143655
+    },
+    {
+      "name": "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8",
+      "demangled": "core::str::converts::from_utf8",
+      "selfSamples": 25,
+      "selfPercent": 0.24940143655227454,
+      "inclusiveSamples": 25,
+      "inclusivePercent": 0.24940143655227454
+    },
+    {
+      "name": "_RNCNvNtCsfV4pUniihAp_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_",
+      "demangled": "perry_runtime::typedarray_props::typed_array_addr_from_value::{closure#2}",
+      "selfSamples": 24,
+      "selfPercent": 0.23942537909018355,
+      "inclusiveSamples": 57,
+      "inclusivePercent": 0.568635275339186
+    },
+    {
+      "name": "js_array_fill",
+      "demangled": "js_array_fill",
+      "selfSamples": 22,
+      "selfPercent": 0.2194732641660016,
+      "inclusiveSamples": 22,
+      "inclusivePercent": 0.2194732641660016
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes",
+      "demangled": "perry_runtime::object::keys_lookup::keys_find_slot_by_bytes",
+      "selfSamples": 19,
+      "selfPercent": 0.18954509177972864,
+      "inclusiveSamples": 165,
+      "inclusivePercent": 1.646049481245012
+    },
+    {
+      "name": "js_object_get_field_by_name",
+      "demangled": "js_object_get_field_by_name",
+      "selfSamples": 19,
+      "selfPercent": 0.18954509177972864,
+      "inclusiveSamples": 137,
+      "inclusivePercent": 1.3667198723064644
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "demangled": "perry_runtime::object::weakref_proto_thunks::weak_wrapper_class_id",
+      "selfSamples": 19,
+      "selfPercent": 0.18954509177972864,
+      "inclusiveSamples": 19,
+      "inclusivePercent": 0.18954509177972864
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors30accessor_receiver_override_end",
+      "demangled": "perry_runtime::object::field_get_set::accessors::accessor_receiver_override_end",
+      "selfSamples": 19,
+      "selfPercent": 0.18954509177972864,
+      "inclusiveSamples": 19,
+      "inclusivePercent": 0.18954509177972864
+    },
+    {
+      "name": "_RNvNvNtCs7iaa78gPu5S_5alloc3fmt6format12format_inner",
+      "demangled": "alloc::fmt::format::format_inner",
+      "selfSamples": 19,
+      "selfPercent": 0.18954509177972864,
+      "inclusiveSamples": 463,
+      "inclusivePercent": 4.618914604948125
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter21write_formatted_parts",
+      "demangled": "<core::fmt::Formatter>::write_formatted_parts",
+      "selfSamples": 19,
+      "selfPercent": 0.18954509177972864,
+      "inclusiveSamples": 103,
+      "inclusivePercent": 1.0275339185953711
+    },
+    {
+      "name": "perry_fn_engine_src_chess_ts__sign",
+      "demangled": "perry_fn_engine_src_chess_ts__sign",
+      "selfSamples": 19,
+      "selfPercent": 0.18954509177972864,
+      "inclusiveSamples": 19,
+      "inclusivePercent": 0.18954509177972864
+    },
+    {
+      "name": "_platform_memcmp",
+      "demangled": "_platform_memcmp",
+      "selfSamples": 17,
+      "selfPercent": 0.1695929768555467,
+      "inclusiveSamples": 17,
+      "inclusivePercent": 0.1695929768555467
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props6lookup",
+      "demangled": "perry_runtime::array::named_props::lookup",
+      "selfSamples": 16,
+      "selfPercent": 0.1596169193934557,
+      "inclusiveSamples": 269,
+      "inclusivePercent": 2.683559457302474
+    },
+    {
+      "name": "_RNCNvNtCsfV4pUniihAp_13perry_runtime22collection_iter_object33dispatch_map_iterator_method_emits_0B5_",
+      "demangled": "perry_runtime::collection_iter_object::dispatch_map_iterator_method_emit::{closure#1}",
+      "selfSamples": 16,
+      "selfPercent": 0.1596169193934557,
+      "inclusiveSamples": 16,
+      "inclusivePercent": 0.1596169193934557
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props30closure_get_dynamic_prop_keyed",
+      "demangled": "perry_runtime::closure::dynamic_props::closure_get_dynamic_prop_keyed",
+      "selfSamples": 16,
+      "selfPercent": 0.1596169193934557,
+      "inclusiveSamples": 30,
+      "inclusivePercent": 0.29928172386272944
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set11enumeration21canonical_array_index",
+      "demangled": "perry_runtime::object::field_get_set::enumeration::canonical_array_index",
+      "selfSamples": 16,
+      "selfPercent": 0.1596169193934557,
+      "inclusiveSamples": 16,
+      "inclusivePercent": 0.1596169193934557
+    },
+    {
+      "name": "_platform_memmove",
+      "demangled": "_platform_memmove",
+      "selfSamples": 15,
+      "selfPercent": 0.14964086193136472,
+      "inclusiveSamples": 15,
+      "inclusivePercent": 0.14964086193136472
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "demangled": "perry_runtime::object::field_get_set::accessors::own_data_field_by_name",
+      "selfSamples": 15,
+      "selfPercent": 0.14964086193136472,
+      "inclusiveSamples": 15,
+      "inclusivePercent": 0.14964086193136472
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime15temporal_layout21is_temporal_cell_addr",
+      "demangled": "perry_runtime::temporal_layout::is_temporal_cell_addr",
+      "selfSamples": 15,
+      "selfPercent": 0.14964086193136472,
+      "inclusiveSamples": 15,
+      "inclusivePercent": 0.14964086193136472
+    },
+    {
+      "name": "_RNvNtNtCsjg6BkPd3pDx_17compiler_builtins3int19specialized_div_rem12u128_div_rem",
+      "demangled": "compiler_builtins::int::specialized_div_rem::u128_div_rem",
+      "selfSamples": 15,
+      "selfPercent": 0.14964086193136472,
+      "inclusiveSamples": 15,
+      "inclusivePercent": 0.14964086193136472
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array14concat_reverse10fill_slots",
+      "demangled": "perry_runtime::array::concat_reverse::fill_slots",
+      "selfSamples": 15,
+      "selfPercent": 0.14964086193136472,
+      "inclusiveSamples": 107,
+      "inclusivePercent": 1.067438148443735
+    },
+    {
+      "name": "_RNvNtCsbuT5dCMLKzJ_4core3fmt5write",
+      "demangled": "core::fmt::write",
+      "selfSamples": 14,
+      "selfPercent": 0.13966480446927373,
+      "inclusiveSamples": 445,
+      "inclusivePercent": 4.439345570630487
+    },
+    {
+      "name": "_RNvXsZ_NtCs7iaa78gPu5S_5alloc6stringNtB5_6StringNtNtCsbuT5dCMLKzJ_4core3fmt5Write9write_str",
+      "demangled": "<alloc::string::String as core::fmt::Write>::write_str",
+      "selfSamples": 14,
+      "selfPercent": 0.13966480446927373,
+      "inclusiveSamples": 81,
+      "inclusivePercent": 0.8080606544293695
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string10provenance19raw_string_metadata",
+      "demangled": "perry_runtime::string::provenance::raw_string_metadata",
+      "selfSamples": 13,
+      "selfPercent": 0.12968874700718275,
+      "inclusiveSamples": 13,
+      "inclusivePercent": 0.12968874700718275
+    },
+    {
+      "name": "OUTLINED_FUNCTION_58",
+      "demangled": "OUTLINED_FUNCTION_58",
+      "selfSamples": 12,
+      "selfPercent": 0.11971268954509177,
+      "inclusiveSamples": 12,
+      "inclusivePercent": 0.11971268954509177
+    },
+    {
+      "name": "mi_free",
+      "demangled": "mi_free",
+      "selfSamples": 12,
+      "selfPercent": 0.11971268954509177,
+      "inclusiveSamples": 14,
+      "inclusivePercent": 0.13966480446927373
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon9mul_pow10",
+      "demangled": "core::num::imp::flt2dec::strategy::dragon::mul_pow10",
+      "selfSamples": 11,
+      "selfPercent": 0.1097366320830008,
+      "inclusiveSamples": 11,
+      "inclusivePercent": 0.1097366320830008
+    },
+    {
+      "name": "mi_malloc_aligned",
+      "demangled": "mi_malloc_aligned",
+      "selfSamples": 11,
+      "selfPercent": 0.1097366320830008,
+      "inclusiveSamples": 34,
+      "inclusivePercent": 0.3391859537110934
+    },
+    {
+      "name": "OUTLINED_FUNCTION_18",
+      "demangled": "OUTLINED_FUNCTION_18",
+      "selfSamples": 11,
+      "selfPercent": 0.1097366320830008,
+      "inclusiveSamples": 11,
+      "inclusivePercent": 0.1097366320830008
+    },
+    {
+      "name": "_RNvXs7_NtNtCsbuT5dCMLKzJ_4core3fmt5floatdNtB7_7Display3fmt",
+      "demangled": "<f64 as core::fmt::Display>::fmt",
+      "selfSamples": 10,
+      "selfPercent": 0.09976057462090981,
+      "inclusiveSamples": 10,
+      "inclusivePercent": 0.09976057462090981
+    },
+    {
+      "name": "main",
+      "demangled": "main",
+      "selfSamples": 9,
+      "selfPercent": 0.08978451715881884,
+      "inclusiveSamples": 10024,
+      "inclusivePercent": 100.0
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime16typedarray_props27typed_array_addr_from_value",
+      "demangled": "perry_runtime::typedarray_props::typed_array_addr_from_value",
+      "selfSamples": 9,
+      "selfPercent": 0.08978451715881884,
+      "inclusiveSamples": 68,
+      "inclusivePercent": 0.6783719074221868
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter19pad_formatted_parts",
+      "demangled": "<core::fmt::Formatter>::pad_formatted_parts",
+      "selfSamples": 9,
+      "selfPercent": 0.08978451715881884,
+      "inclusiveSamples": 9,
+      "inclusivePercent": 0.08978451715881884
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime11date_layout17is_date_cell_addr",
+      "demangled": "perry_runtime::date_layout::is_date_cell_addr",
+      "selfSamples": 8,
+      "selfPercent": 0.07980845969672785,
+      "inclusiveSamples": 8,
+      "inclusivePercent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec17digits_to_dec_str",
+      "demangled": "core::num::imp::flt2dec::digits_to_dec_str",
+      "selfSamples": 8,
+      "selfPercent": 0.07980845969672785,
+      "inclusiveSamples": 8,
+      "inclusivePercent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object11class_value21legacy_class_ptr_word",
+      "demangled": "perry_runtime::object::class_value::legacy_class_ptr_word",
+      "selfSamples": 6,
+      "selfPercent": 0.05985634477254589,
+      "inclusiveSamples": 6,
+      "inclusivePercent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvMNtNtCsfV4pUniihAp_13perry_runtime2gc7copyingNtB2_23CopyingNurseryCollector16rewrite_raw_addr",
+      "demangled": "<perry_runtime::gc::copying::CopyingNurseryCollector>::rewrite_raw_addr",
+      "selfSamples": 6,
+      "selfPercent": 0.05985634477254589,
+      "inclusiveSamples": 6,
+      "inclusivePercent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6buffer5store6layout15header_is_owned",
+      "demangled": "perry_runtime::buffer::store::layout::header_is_owned",
+      "selfSamples": 5,
+      "selfPercent": 0.04988028731045491,
+      "inclusiveSamples": 30,
+      "inclusivePercent": 0.29928172386272944
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set7ic_miss26is_array_method_value_name",
+      "demangled": "perry_runtime::object::field_get_set::ic_miss::is_array_method_value_name",
+      "selfSamples": 5,
+      "selfPercent": 0.04988028731045491,
+      "inclusiveSamples": 5,
+      "inclusivePercent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime5array8indexing9read_cold15read_cold_entry",
+      "demangled": "perry_runtime::array::indexing::read_cold::read_cold_entry",
+      "selfSamples": 5,
+      "selfPercent": 0.04988028731045491,
+      "inclusiveSamples": 5,
+      "inclusivePercent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string6intern19scan_property_atoms",
+      "demangled": "perry_runtime::string::intern::scan_property_atoms",
+      "selfSamples": 5,
+      "selfPercent": 0.04988028731045491,
+      "inclusiveSamples": 6,
+      "inclusivePercent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvMNtNtNtCsfV4pUniihAp_13perry_runtime6object6shapes15shapes_own_dataNtB2_12OwnDataShape12plain_lookup",
+      "demangled": "<perry_runtime::object::shapes::shapes_own_data::OwnDataShape>::plain_lookup",
+      "selfSamples": 4,
+      "selfPercent": 0.03990422984836393,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.03990422984836393
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set22array_retargeted_proto16live_array_owner",
+      "demangled": "perry_runtime::object::field_get_set::array_retargeted_proto::live_array_owner",
+      "selfSamples": 4,
+      "selfPercent": 0.03990422984836393,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.03990422984836393
+    },
+    {
+      "name": "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_",
+      "demangled": "<alloc::raw_vec::RawVecInner>::finish_grow",
+      "selfSamples": 4,
+      "selfPercent": 0.03990422984836393,
+      "inclusiveSamples": 15,
+      "inclusivePercent": 0.14964086193136472
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array13element_shape19clear_element_shape",
+      "demangled": "perry_runtime::array::element_shape::clear_element_shape",
+      "selfSamples": 4,
+      "selfPercent": 0.03990422984836393,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.03990422984836393
+    },
+    {
+      "name": "js_math_round",
+      "demangled": "js_math_round",
+      "selfSamples": 4,
+      "selfPercent": 0.03990422984836393,
+      "inclusiveSamples": 4,
+      "inclusivePercent": 0.03990422984836393
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime5array8indexing9read_cold18read_cold_dispatch",
+      "demangled": "perry_runtime::array::indexing::read_cold::read_cold_dispatch",
+      "selfSamples": 3,
+      "selfPercent": 0.029928172386272944,
+      "inclusiveSamples": 2563,
+      "inclusivePercent": 25.568635275339187
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors32accessor_receiver_override_begin",
+      "demangled": "perry_runtime::object::field_get_set::accessors::accessor_receiver_override_begin",
+      "selfSamples": 3,
+      "selfPercent": 0.029928172386272944,
+      "inclusiveSamples": 3,
+      "inclusivePercent": 0.029928172386272944
+    },
+    {
+      "name": "DYLD-STUB$$memcpy",
+      "demangled": "DYLD-STUB$$memcpy",
+      "selfSamples": 3,
+      "selfPercent": 0.029928172386272944,
+      "inclusiveSamples": 3,
+      "inclusivePercent": 0.029928172386272944
+    },
+    {
+      "name": "__udivti3",
+      "demangled": "__udivti3",
+      "selfSamples": 3,
+      "selfPercent": 0.029928172386272944,
+      "inclusiveSamples": 18,
+      "inclusivePercent": 0.17956903431763768
+    },
+    {
+      "name": "OUTLINED_FUNCTION_41",
+      "demangled": "OUTLINED_FUNCTION_41",
+      "selfSamples": 2,
+      "selfPercent": 0.019952114924181964,
+      "inclusiveSamples": 2,
+      "inclusivePercent": 0.019952114924181964
+    },
+    {
+      "name": "_RNCNvNtNtCsfV4pUniihAp_13perry_runtime5array8iterator23array_from_spread_value0B7_",
+      "demangled": "perry_runtime::array::iterator::array_from_spread_value::{closure#0}",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "DYLD-STUB$$memset_pattern16",
+      "demangled": "DYLD-STUB$$memset_pattern16",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime2gc17allocation_pacing7due_arm",
+      "demangled": "perry_runtime::gc::allocation_pacing::due_arm",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_platform_memset_pattern16",
+      "demangled": "_platform_memset_pattern16",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime16ui_text_registry31scan_ui_text_registry_roots_mut",
+      "demangled": "perry_runtime::ui_text_registry::scan_ui_text_registry_roots_mut",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes26scan_shape_table_rekey_mut",
+      "demangled": "perry_runtime::object::shapes::scan_shape_table_rekey_mut",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5timer4mock21scan_mock_timers_step",
+      "demangled": "perry_runtime::timer::mock::scan_mock_timers_step",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5arena5reset20reset_region_to_zero",
+      "demangled": "perry_runtime::arena::reset::reset_region_to_zero",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RINvMNtNtCsfV4pUniihAp_13perry_runtime2gc7copyingNtB3_23CopyingNurseryCollector9mark_addrKb0_EB7_",
+      "demangled": "<perry_runtime::gc::copying::CopyingNurseryCollector>::mark_addr::<false>",
+      "selfSamples": 1,
+      "selfPercent": 0.009976057462090982,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "start",
+      "demangled": "start",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 10024,
+      "inclusivePercent": 100.0
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5arena10allocators19arena_alloc_gc_slow",
+      "demangled": "perry_runtime::arena::allocators::arena_alloc_gc_slow",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5arena10allocators16arena_alloc_slow",
+      "demangled": "perry_runtime::arena::allocators::arena_alloc_slow",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime2gc6policy25gc_check_trigger_evaluate",
+      "demangled": "perry_runtime::gc::policy::gc_check_trigger_evaluate",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime2gc6policy29gc_budgeted_due_trigger_probe",
+      "demangled": "perry_runtime::gc::policy::gc_budgeted_due_trigger_probe",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime2gc6policy25gc_safepoint_moving_minor",
+      "demangled": "perry_runtime::gc::policy::gc_safepoint_moving_minor",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 16,
+      "inclusivePercent": 0.1596169193934557
+    },
+    {
+      "name": "_RINvNtNtCsfV4pUniihAp_13perry_runtime2gc7copying24run_copied_minor_attemptKb0_EB6_",
+      "demangled": "perry_runtime::gc::copying::run_copied_minor_attempt::<false>",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 16,
+      "inclusivePercent": 0.1596169193934557
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5regex11perex_cache14scan_roots_mut",
+      "demangled": "perry_runtime::regex::perex_cache::scan_roots_mut",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 5,
+      "inclusivePercent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime2gc35gc_collect_minor_with_trigger_inner",
+      "demangled": "perry_runtime::gc::gc_collect_minor_with_trigger_inner",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 16,
+      "inclusivePercent": 0.1596169193934557
+    },
+    {
+      "name": "_RNvMs4_NtNtCsfV4pUniihAp_13perry_runtime2gc5rootsNtB5_18RuntimeRootVisitor21visit_tagged_raw_addr",
+      "demangled": "<perry_runtime::gc::roots::RuntimeRootVisitor>::visit_tagged_raw_addr",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 5,
+      "inclusivePercent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime2gc5roots13scanner_shims26timer_mutable_root_scanner",
+      "demangled": "perry_runtime::gc::roots::scanner_shims::timer_mutable_root_scanner",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5timer7gc_scan25scan_timer_roots_mut_step",
+      "demangled": "perry_runtime::timer::gc_scan::scan_timer_roots_mut_step",
+      "selfSamples": 0,
+      "selfPercent": 0.0,
+      "inclusiveSamples": 1,
+      "inclusivePercent": 0.009976057462090982
+    }
+  ],
+  "locations": [
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 6104,
+      "samples": 5191,
+      "percent": 51.785714285714285
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 896,
+      "samples": 725,
+      "percent": 7.232641660015962
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 7832,
+      "samples": 687,
+      "percent": 6.853551476456504
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 3024,
+      "samples": 240,
+      "percent": 2.3942537909018355
+    },
+    {
+      "name": "js_array_constructor_single",
+      "offset": 0,
+      "samples": 205,
+      "percent": 2.045091779728651
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon12format_exact",
+      "offset": 520,
+      "samples": 162,
+      "percent": 1.616121308858739
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set17get_field_by_name33get_field_by_name_past_data_probe",
+      "offset": 0,
+      "samples": 136,
+      "percent": 1.3567438148443736
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 52,
+      "samples": 98,
+      "percent": 0.9776536312849162
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors39default_object_prototype_property_value",
+      "offset": 1340,
+      "samples": 85,
+      "percent": 0.8479648842777334
+    },
+    {
+      "name": "perry_array_index_normalize_i32",
+      "offset": 44,
+      "samples": 83,
+      "percent": 0.8280127693535515
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set17get_field_by_name33get_field_by_name_past_data_probe",
+      "offset": 748,
+      "samples": 82,
+      "percent": 0.8180367118914605
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors30array_prototype_property_value",
+      "offset": 2564,
+      "samples": 70,
+      "percent": 0.6983240223463687
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object11keys_lookup38keys_find_slot_by_bytes_dense_resolved",
+      "offset": 548,
+      "samples": 58,
+      "percent": 0.578611332801277
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 2848,
+      "samples": 56,
+      "percent": 0.5586592178770949
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "offset": 88,
+      "samples": 51,
+      "percent": 0.50877893056664
+    },
+    {
+      "name": "js_array_get_index_or_string",
+      "offset": 964,
+      "samples": 49,
+      "percent": 0.4888268156424581
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state17descriptor_holder",
+      "offset": 1692,
+      "samples": 48,
+      "percent": 0.4788507581803671
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 1688,
+      "samples": 48,
+      "percent": 0.4788507581803671
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props12present_slot",
+      "offset": 104,
+      "samples": 47,
+      "percent": 0.46887470071827614
+    },
+    {
+      "name": "_RNvMNtCsfV4pUniihAp_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key",
+      "offset": 160,
+      "samples": 44,
+      "percent": 0.4389465283320032
+    },
+    {
+      "name": "_RINvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "offset": 208,
+      "samples": 41,
+      "percent": 0.40901835594573027
+    },
+    {
+      "name": "_RINvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "offset": 152,
+      "samples": 41,
+      "percent": 0.40901835594573027
+    },
+    {
+      "name": "_tlv_get_addr",
+      "offset": 4,
+      "samples": 38,
+      "percent": 0.3790901835594573
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5value13dynamic_arith10to_numeric",
+      "offset": 36,
+      "samples": 38,
+      "percent": 0.3790901835594573
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors30array_prototype_property_value",
+      "offset": 2384,
+      "samples": 37,
+      "percent": 0.3691141260973663
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes19consult_shape_index",
+      "offset": 1176,
+      "samples": 35,
+      "percent": 0.34916201117318435
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state17descriptor_holder",
+      "offset": 1756,
+      "samples": 35,
+      "percent": 0.34916201117318435
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 2024,
+      "samples": 34,
+      "percent": 0.3391859537110934
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value",
+      "offset": 0,
+      "samples": 32,
+      "percent": 0.3192338387869114
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 2744,
+      "samples": 30,
+      "percent": 0.29928172386272944
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "offset": 2332,
+      "samples": 30,
+      "percent": 0.29928172386272944
+    },
+    {
+      "name": "_RINvNtNtCsbuT5dCMLKzJ_4core3fmt5float29float_to_decimal_common_exactdEB6_",
+      "offset": 624,
+      "samples": 30,
+      "percent": 0.29928172386272944
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array6header29rebuild_array_numeric_raw_f64",
+      "offset": 260,
+      "samples": 30,
+      "percent": 0.29928172386272944
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array15header_gc_slots20rebuild_array_layout",
+      "offset": 0,
+      "samples": 30,
+      "percent": 0.29928172386272944
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object18native_call_method12class_holder29class_instance_inherited_read",
+      "offset": 0,
+      "samples": 29,
+      "percent": 0.2893056664006385
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "offset": 400,
+      "samples": 28,
+      "percent": 0.27932960893854747
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 300,
+      "samples": 27,
+      "percent": 0.2693535514764565
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy5grisu16format_exact_opt",
+      "offset": 0,
+      "samples": 27,
+      "percent": 0.2693535514764565
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime6string20string_storage_alloc",
+      "offset": 0,
+      "samples": 27,
+      "percent": 0.2693535514764565
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5value10addr_class26try_read_tracked_gc_header",
+      "offset": 48,
+      "samples": 25,
+      "percent": 0.24940143655227454
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array14prototype_addr22resolve_prototype_addr",
+      "offset": 36,
+      "samples": 24,
+      "percent": 0.23942537909018355
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string6intern22intern_prehashed_bytes",
+      "offset": 0,
+      "samples": 23,
+      "percent": 0.2294493216280926
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 416,
+      "samples": 23,
+      "percent": 0.2294493216280926
+    },
+    {
+      "name": "_RINvNvMs5_NtCs7iaa78gPu5S_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_",
+      "offset": 84,
+      "samples": 23,
+      "percent": 0.2294493216280926
+    },
+    {
+      "name": "js_dynamic_neg",
+      "offset": 20,
+      "samples": 23,
+      "percent": 0.2294493216280926
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string6intern22intern_prehashed_bytes",
+      "offset": 124,
+      "samples": 21,
+      "percent": 0.20949720670391062
+    },
+    {
+      "name": "_RNCNvNtCsfV4pUniihAp_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_",
+      "offset": 0,
+      "samples": 20,
+      "percent": 0.19952114924181963
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors39default_object_prototype_property_value",
+      "offset": 68,
+      "samples": 19,
+      "percent": 0.18954509177972864
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 340,
+      "samples": 19,
+      "percent": 0.18954509177972864
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 2732,
+      "samples": 19,
+      "percent": 0.18954509177972864
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter21write_formatted_parts",
+      "offset": 44,
+      "samples": 19,
+      "percent": 0.18954509177972864
+    },
+    {
+      "name": "_RNvNvNtCs7iaa78gPu5S_5alloc3fmt6format12format_inner",
+      "offset": 32,
+      "samples": 19,
+      "percent": 0.18954509177972864
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array6header29rebuild_array_numeric_raw_f64",
+      "offset": 304,
+      "samples": 19,
+      "percent": 0.18954509177972864
+    },
+    {
+      "name": "perry_fn_engine_src_chess_ts__sign",
+      "offset": 0,
+      "samples": 19,
+      "percent": 0.18954509177972864
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes",
+      "offset": 8,
+      "samples": 18,
+      "percent": 0.17956903431763768
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props12present_slot",
+      "offset": 92,
+      "samples": 18,
+      "percent": 0.17956903431763768
+    },
+    {
+      "name": "js_array_fill",
+      "offset": 676,
+      "samples": 18,
+      "percent": 0.17956903431763768
+    },
+    {
+      "name": "perry_array_index_normalize_i32",
+      "offset": 60,
+      "samples": 17,
+      "percent": 0.1695929768555467
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value",
+      "offset": 288,
+      "samples": 17,
+      "percent": 0.1695929768555467
+    },
+    {
+      "name": "js_array_alloc_with_length",
+      "offset": 132,
+      "samples": 17,
+      "percent": 0.1695929768555467
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set11enumeration21canonical_array_index",
+      "offset": 0,
+      "samples": 16,
+      "percent": 0.1596169193934557
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 412,
+      "samples": 16,
+      "percent": 0.1596169193934557
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "offset": 540,
+      "samples": 16,
+      "percent": 0.1596169193934557
+    },
+    {
+      "name": "_RNCNvNtCsfV4pUniihAp_13perry_runtime22collection_iter_object33dispatch_map_iterator_method_emits_0B5_",
+      "offset": 92,
+      "samples": 15,
+      "percent": 0.14964086193136472
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "offset": 0,
+      "samples": 15,
+      "percent": 0.14964086193136472
+    },
+    {
+      "name": "js_object_get_field_by_name",
+      "offset": 0,
+      "samples": 15,
+      "percent": 0.14964086193136472
+    },
+    {
+      "name": "_RNvNtNtCsjg6BkPd3pDx_17compiler_builtins3int19specialized_div_rem12u128_div_rem",
+      "offset": 124,
+      "samples": 15,
+      "percent": 0.14964086193136472
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props30closure_get_dynamic_prop_keyed",
+      "offset": 2036,
+      "samples": 14,
+      "percent": 0.13966480446927373
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "offset": 356,
+      "samples": 13,
+      "percent": 0.12968874700718275
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes19consult_shape_index",
+      "offset": 1196,
+      "samples": 13,
+      "percent": 0.12968874700718275
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 4,
+      "samples": 13,
+      "percent": 0.12968874700718275
+    },
+    {
+      "name": "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8",
+      "offset": 0,
+      "samples": 13,
+      "percent": 0.12968874700718275
+    },
+    {
+      "name": "_RNvNtCsbuT5dCMLKzJ_4core3fmt5write",
+      "offset": 116,
+      "samples": 13,
+      "percent": 0.12968874700718275
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state17descriptor_holder",
+      "offset": 164,
+      "samples": 12,
+      "percent": 0.11971268954509177
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object13accessor_pair12own_accessor",
+      "offset": 0,
+      "samples": 12,
+      "percent": 0.11971268954509177
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state17descriptor_holder",
+      "offset": 2004,
+      "samples": 12,
+      "percent": 0.11971268954509177
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors30accessor_receiver_override_end",
+      "offset": 48,
+      "samples": 12,
+      "percent": 0.11971268954509177
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 0,
+      "samples": 12,
+      "percent": 0.11971268954509177
+    },
+    {
+      "name": "OUTLINED_FUNCTION_58",
+      "offset": 0,
+      "samples": 12,
+      "percent": 0.11971268954509177
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object18native_call_method12class_holder29class_instance_inherited_read",
+      "offset": 48,
+      "samples": 11,
+      "percent": 0.1097366320830008
+    },
+    {
+      "name": "mi_malloc_aligned",
+      "offset": 40,
+      "samples": 11,
+      "percent": 0.1097366320830008
+    },
+    {
+      "name": "OUTLINED_FUNCTION_18",
+      "offset": 20,
+      "samples": 11,
+      "percent": 0.1097366320830008
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string10provenance19raw_string_metadata",
+      "offset": 0,
+      "samples": 11,
+      "percent": 0.1097366320830008
+    },
+    {
+      "name": "mi_free",
+      "offset": 32,
+      "samples": 11,
+      "percent": 0.1097366320830008
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5value13dynamic_arith10to_numeric",
+      "offset": 468,
+      "samples": 11,
+      "percent": 0.1097366320830008
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props12present_slot",
+      "offset": 556,
+      "samples": 10,
+      "percent": 0.09976057462090981
+    },
+    {
+      "name": "_platform_memcmp",
+      "offset": 256,
+      "samples": 10,
+      "percent": 0.09976057462090981
+    },
+    {
+      "name": "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8",
+      "offset": 60,
+      "samples": 10,
+      "percent": 0.09976057462090981
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon9mul_pow10",
+      "offset": 24,
+      "samples": 10,
+      "percent": 0.09976057462090981
+    },
+    {
+      "name": "_RNvXs7_NtNtCsbuT5dCMLKzJ_4core3fmt5floatdNtB7_7Display3fmt",
+      "offset": 0,
+      "samples": 10,
+      "percent": 0.09976057462090981
+    },
+    {
+      "name": "js_array_alloc_with_length",
+      "offset": 120,
+      "samples": 10,
+      "percent": 0.09976057462090981
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object13accessor_pair12own_accessor",
+      "offset": 1188,
+      "samples": 9,
+      "percent": 0.08978451715881884
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes19consult_shape_index",
+      "offset": 728,
+      "samples": 9,
+      "percent": 0.08978451715881884
+    },
+    {
+      "name": "_RNvMsa_NtCsbuT5dCMLKzJ_4core3fmtNtB5_9Formatter19pad_formatted_parts",
+      "offset": 20,
+      "samples": 9,
+      "percent": 0.08978451715881884
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 440,
+      "samples": 9,
+      "percent": 0.08978451715881884
+    },
+    {
+      "name": "main",
+      "offset": 2348,
+      "samples": 9,
+      "percent": 0.08978451715881884
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 60,
+      "samples": 8,
+      "percent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime15temporal_layout21is_temporal_cell_addr",
+      "offset": 136,
+      "samples": 8,
+      "percent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "offset": 92,
+      "samples": 8,
+      "percent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime16typedarray_props27typed_array_addr_from_value",
+      "offset": 216,
+      "samples": 8,
+      "percent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "offset": 96,
+      "samples": 8,
+      "percent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvXsZ_NtCs7iaa78gPu5S_5alloc6stringNtB5_6StringNtNtCsbuT5dCMLKzJ_4core3fmt5Write9write_str",
+      "offset": 0,
+      "samples": 8,
+      "percent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec17digits_to_dec_str",
+      "offset": 0,
+      "samples": 8,
+      "percent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array14concat_reverse10fill_slots",
+      "offset": 1836,
+      "samples": 8,
+      "percent": 0.07980845969672785
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props6lookup",
+      "offset": 44,
+      "samples": 7,
+      "percent": 0.06983240223463687
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "offset": 36,
+      "samples": 7,
+      "percent": 0.06983240223463687
+    },
+    {
+      "name": "_platform_memcmp",
+      "offset": 280,
+      "samples": 7,
+      "percent": 0.06983240223463687
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors30accessor_receiver_override_end",
+      "offset": 92,
+      "samples": 7,
+      "percent": 0.06983240223463687
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "offset": 852,
+      "samples": 7,
+      "percent": 0.06983240223463687
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array15header_gc_slots20rebuild_array_layout",
+      "offset": 124,
+      "samples": 7,
+      "percent": 0.06983240223463687
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array14concat_reverse10fill_slots",
+      "offset": 1440,
+      "samples": 7,
+      "percent": 0.06983240223463687
+    },
+    {
+      "name": "_RINvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "offset": 96,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "offset": 12,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5value10addr_class26try_read_tracked_gc_header",
+      "offset": 656,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 40,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "offset": 404,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props6lookup",
+      "offset": 0,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime15temporal_layout21is_temporal_cell_addr",
+      "offset": 128,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object11class_value21legacy_class_ptr_word",
+      "offset": 0,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 0,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "offset": 180,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 208,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "js_dynamic_neg",
+      "offset": 240,
+      "samples": 6,
+      "percent": 0.05985634477254589
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 460,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "offset": 56,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set7ic_miss26is_array_method_value_name",
+      "offset": 120,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 0,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvMNtCsfV4pUniihAp_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key",
+      "offset": 0,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvMs2_NtNtNtCsbuT5dCMLKzJ_4core3num3imp6bignumNtB5_8Big64x208mul_pow2",
+      "offset": 432,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RINvNvMs5_NtCs7iaa78gPu5S_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_",
+      "offset": 88,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime5array8indexing9read_cold15read_cold_entry",
+      "offset": 120,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvMNtNtCsfV4pUniihAp_13perry_runtime2gc7copyingNtB2_23CopyingNurseryCollector16rewrite_raw_addr",
+      "offset": 464,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string6intern19scan_property_atoms",
+      "offset": 156,
+      "samples": 5,
+      "percent": 0.04988028731045491
+    },
+    {
+      "name": "_RNvMNtNtNtCsfV4pUniihAp_13perry_runtime6object6shapes15shapes_own_dataNtB2_12OwnDataShape12plain_lookup",
+      "offset": 20,
+      "samples": 4,
+      "percent": 0.03990422984836393
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object13accessor_pair12own_accessor",
+      "offset": 1176,
+      "samples": 4,
+      "percent": 0.03990422984836393
+    },
+    {
+      "name": "js_object_get_field_by_name",
+      "offset": 180,
+      "samples": 4,
+      "percent": 0.03990422984836393
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 448,
+      "samples": 4,
+      "percent": 0.03990422984836393
+    },
+    {
+      "name": "_RNvXsZ_NtCs7iaa78gPu5S_5alloc6stringNtB5_6StringNtNtCsbuT5dCMLKzJ_4core3fmt5Write9write_str",
+      "offset": 24,
+      "samples": 4,
+      "percent": 0.03990422984836393
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon12format_exact",
+      "offset": 2336,
+      "samples": 4,
+      "percent": 0.03990422984836393
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array13element_shape19clear_element_shape",
+      "offset": 0,
+      "samples": 4,
+      "percent": 0.03990422984836393
+    },
+    {
+      "name": "js_math_round",
+      "offset": 0,
+      "samples": 4,
+      "percent": 0.03990422984836393
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props6lookup",
+      "offset": 124,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors39default_object_prototype_property_value",
+      "offset": 1392,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNCNvNtCsfV4pUniihAp_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_",
+      "offset": 36,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime11date_layout17is_date_cell_addr",
+      "offset": 28,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 64,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime11date_layout17is_date_cell_addr",
+      "offset": 128,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 400,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors32accessor_receiver_override_begin",
+      "offset": 48,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props14is_closure_ptr",
+      "offset": 508,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6buffer5store6layout15header_is_owned",
+      "offset": 32,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "DYLD-STUB$$memcpy",
+      "offset": 4,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "__udivti3",
+      "offset": 0,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_",
+      "offset": 128,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "js_array_fill",
+      "offset": 644,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 68,
+      "samples": 3,
+      "percent": 0.029928172386272944
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array11named_props12present_slot",
+      "offset": 1268,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object13accessor_pair12own_accessor",
+      "offset": 208,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime7closure13dynamic_props30closure_get_dynamic_prop_keyed",
+      "offset": 2048,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvMNtCsfV4pUniihAp_13perry_runtime6stringNtB2_16OwnedStringBytes11copy_of_key",
+      "offset": 136,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 24,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set22array_retargeted_proto16live_array_owner",
+      "offset": 36,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object10native_get19try_data_lookup_key",
+      "offset": 2760,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array14prototype_addr22resolve_prototype_addr",
+      "offset": 8,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "offset": 984,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object18native_call_method30gc_pointer_and_type_from_value",
+      "offset": 468,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime11date_layout17is_date_cell_addr",
+      "offset": 72,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set22array_retargeted_proto16live_array_owner",
+      "offset": 0,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtCsbuT5dCMLKzJ_4core3str8converts9from_utf8",
+      "offset": 84,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvXsZ_NtCs7iaa78gPu5S_5alloc6stringNtB5_6StringNtNtCsbuT5dCMLKzJ_4core3fmt5Write9write_str",
+      "offset": 84,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string10provenance19raw_string_metadata",
+      "offset": 1868,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set22get_field_by_name_tail29get_field_by_name_object_tail",
+      "offset": 996,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "OUTLINED_FUNCTION_41",
+      "offset": 16,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime5array8indexing9read_cold18read_cold_dispatch",
+      "offset": 72,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "js_array_alloc_with_length",
+      "offset": 596,
+      "samples": 2,
+      "percent": 0.019952114924181964
+    },
+    {
+      "name": "_RINvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes25shape_slot_lookup_verdictNtNtB4_11object_keys10ObjectKeysEB6_",
+      "offset": 1564,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6string6intern22intern_prehashed_bytes",
+      "offset": 520,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object11keys_lookup23keys_find_slot_by_bytes",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6buffer5store6layout15header_is_owned",
+      "offset": 4,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime16typedarray_props27typed_array_addr_from_value",
+      "offset": 24,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 36,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set12has_property27closure_dynamic_prop_by_key",
+      "offset": 528,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime15temporal_layout21is_temporal_cell_addr",
+      "offset": 28,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes19consult_shape_index",
+      "offset": 1588,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object15prototype_chain23object_static_prototype",
+      "offset": 616,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "offset": 868,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors22own_data_field_by_name",
+      "offset": 44,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNCNvNtNtCsfV4pUniihAp_13perry_runtime5array8iterator23array_from_spread_value0B7_",
+      "offset": 104,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNCNvNtCsfV4pUniihAp_13perry_runtime22collection_iter_object33dispatch_map_iterator_method_emits_0B5_",
+      "offset": 40,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6buffer5store6layout15header_is_owned",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNCNvNtCsfV4pUniihAp_13perry_runtime16typedarray_props27typed_array_addr_from_values0_0B5_",
+      "offset": 80,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object20weakref_proto_thunks21weak_wrapper_class_id",
+      "offset": 292,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object16descriptor_state29get_accessor_descriptor_bytes",
+      "offset": 3096,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime6object13field_get_set9accessors30array_prototype_property_value",
+      "offset": 3200,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtNtNtNtCsbuT5dCMLKzJ_4core3num3imp7flt2dec8strategy6dragon9mul_pow10",
+      "offset": 376,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvMs8_NtCs7iaa78gPu5S_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_",
+      "offset": 20,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_platform_memmove",
+      "offset": 428,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtCsbuT5dCMLKzJ_4core3fmt5write",
+      "offset": 424,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "mi_free",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array6header29rebuild_array_numeric_raw_f64",
+      "offset": 144,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "DYLD-STUB$$memset_pattern16",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5array6header29rebuild_array_numeric_raw_f64",
+      "offset": 156,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime2gc17allocation_pacing7due_arm",
+      "offset": 236,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_platform_memset_pattern16",
+      "offset": 160,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "js_array_constructor_single",
+      "offset": 24,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvMNtNtCsfV4pUniihAp_13perry_runtime2gc7copyingNtB2_23CopyingNurseryCollector16rewrite_raw_addr",
+      "offset": 16,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtCsfV4pUniihAp_13perry_runtime16ui_text_registry31scan_ui_text_registry_roots_mut",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime6object6shapes26scan_shape_table_rekey_mut",
+      "offset": 152,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5timer4mock21scan_mock_timers_step",
+      "offset": 0,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtCsfV4pUniihAp_13perry_runtime5arena5reset20reset_region_to_zero",
+      "offset": 32,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RINvMNtNtCsfV4pUniihAp_13perry_runtime2gc7copyingNtB3_23CopyingNurseryCollector9mark_addrKb0_EB7_",
+      "offset": 244,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "perry_method_engine_src_chess_ts__Chess__evaluate$pshape",
+      "offset": 11368,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "_RNvNtNtNtCsfV4pUniihAp_13perry_runtime5array8indexing9read_cold18read_cold_dispatch",
+      "offset": 528,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "js_array_constructor_single",
+      "offset": 480,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    },
+    {
+      "name": "js_array_fill",
+      "offset": 928,
+      "samples": 1,
+      "percent": 0.009976057462090982
+    }
+  ]
+}

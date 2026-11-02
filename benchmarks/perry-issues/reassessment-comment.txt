@@ -1,0 +1,56 @@
+Reassessed all four tickets on integrated main `2359699bee1ec7b98478a0db44f195a5a086b30d`, using a freshly built compiler and matching runtime/stdlib archives. The original comparison artifacts are from `b384cd7be035899e80908c5013baf8e88f08c892`. Three targeted fixes verify, but the end-to-end performance/size objective remains open.
+
+## Ticket status and public reductions
+
+- #13659 / #13669: CLOSED/MERGED. Unrelated user `.search()` and renamed `.findValue()` now both produce 5,568,912-byte stripped/signed executables, without the regex installer. Direct literal signal arrows prune IPC/regex too. However, assigning the arrow to a local for same-identity listener removal still retains them: new standalone issue **#13679**, measured **+1,365,776 bytes** on the same current compiler/runtime.
+- #13660 / #13670: CLOSED/MERGED. The rejected-clone admission call is gone from the minimal scan. Integrated main gives 499.47 instructions/probe for `j++` and 499.59 for `j += 1`, versus 1,001.67 and 809.73 originally. The combined improvement also includes #13675; this is not an attribution of the entire gain to #13670.
+- #13661 / #13675: CLOSED/MERGED. Public access fixture, unchanged source: live-bound **783.86 → 494.56**, fixed-bound **667.33 → 494.68**, method **1,028.82 → 630.26 instructions/probe**. Node controls are about 174–176. Three rotated rounds at both 5M and 10M probes, using `(median I(10M) - median I(5M)) / 5M`; checksums match throughout.
+- #13662: still OPEN. #13677 is MERGED and provides a measured incremental cold-installer improvement. Its own controlled O2/fat-LTO application test reports 16,256 bytes saved with unchanged search/evaluation. The original 4.43 MiB size plus original performance remains unachieved; blanket Oz remains unacceptable for this workload.
+- Iterator #13655 is also now merged. The existing public for-of fixture improves **590.33 → 315.33 ms** at 5M probes in this integrated comparison. This does not imply the same improvement in full search.
+
+## End-to-end results: the remaining gap
+
+Unchanged original engine/UI source; app Os (`PERRY_LL_OPT_LEVEL=s`), specialized ABI enabled, default release runtime/stdlib features, runtime O3 / stdlib Os / ThinLTO, repository unwind flags preserved. Current artifacts use matching static-wrapper archives and regenerated GC-effects sidecars. No blanket Oz. macOS 26.5 ARM64 / Apple M1 Max, 64 GiB; Node 26.5.1, Bun 1.3.14. Node remains pinned to the earlier comparison version, rather than the newer version used in individual upstream PR tests.
+
+Three rotated, serial rounds, after all builds completed. Inner wall time excludes setup/warmup/startup; hardware counters cover the whole process. Workload fingerprints and game-state restoration match in all 72 samples.
+
+| Measurement | Original Perry | Current Perry | Current pruned copy |
+| --- | ---: | ---: | ---: |
+| Stripped/signed app bytes | 10,267,192 | 9,306,320 | 9,257,088 |
+| Search, 250K nodes, ms | 5,876.10 | 5,808.81 | 5,772.00 |
+| Search instructions, billions | 105.946 | 105.665 | 105.673 |
+| Evaluation, 100K, ms | 455.73 | 529.73 | 531.31 |
+| Legal moves, ms | 148.51 | 138.43 | 139.73 |
+| Perft, ms | 145.48 | 136.54 | 136.05 |
+| Warm-filesystem startup, ms | 8.38 | 8.02 | 8.00 |
+| Idle RSS, MiB | 18.00 | 17.05 | 16.84 |
+| Search peak RSS, MiB | 23.72 | 23.66 | 23.27 |
+
+Current Node/Bun/ScriptC full-search medians are **950.73 / 908.80 / 1,017.19 ms**, retiring **19.324 / 17.662 / 16.724 billion instructions**. Perry remains approximately six times slower. Its ~1% search timing improvement and ~0.27% instruction reduction are effectively flat relative to the gap; three rounds do not establish a significant small timing gain. The synthetic reductions are working, but do not account for most of the full engine's instruction budget.
+
+The pruned copy retains prior regex-free helpers, lexical signal wrappers and source-header metadata, with all five increment-spelling workarounds reverted. It is still **822,128 bytes larger** than the earlier 8,434,960-byte locally patched speed control. #13679 provides a controlled standalone missed-pruning case. The whole app delta cannot be assigned to it without an isolated patch comparison because the integrated toolchain/source copy also changed.
+
+## Confirmed evaluation regression requiring attribution
+
+Evaluation is about **16% slower**. A second, longer check ran three alternating original/current pairs of 1M evaluations. Every run returns checksum 10,000,000. Raw inner times (ms):
+
+- Original: `4578.617375, 4579.670875, 4558.181917`.
+- Current: `5297.345542, 5308.606167, 5448.772708`.
+- Medians: **4,578.62 → 5,308.61 ms**; retired instructions **83.826 → 86.911 G**; cycles **14.211 → 16.529 G**.
+
+Both instruction count and cycles per instruction worsen. This is an observed integration regression, **not yet a bisected cause or a claim that one of these four PRs caused it**. These revisions contain additional changes. The private application's source is not published here, so this observation is carried as outstanding attribution work in this tracker; the separately actionable callback issue has a complete public reproduction.
+
+## Validation and remaining work
+
+Both current variants pass the same 875-assertion native/Node fingerprint, nine CLI scenarios including 1.5M-node search, 95 text cases, and quit/Ctrl-C/SIGTERM terminal restoration. Typechecking passes. All 150 microbenchmark samples match. Startup uses 25 launches after three discarded launches, rotated order; idle RSS uses five launches. These are warm-filesystem starts; sub-millisecond local-move changes are too noisy for strong claims.
+
+An early attempt to combine the new compiler with old runtime archives was discarded after discovering an ABI layout change. No accepted timing data uses that arm. The accepted runtime/stdlib are built from the same pin as the compiler using `cargo build --release --locked -j3 -p perry-runtime-static -p perry-stdlib-static`, preserving the repository's nightly/unwind setup. Generated apps use all three strict flags and disabled caches. The original installed toolchain and application source remain unchanged.
+
+Remaining work for this tracker:
+
+1. Isolate and reduce the unchanged ~106G-instruction full-search budget; do not extrapolate synthetic probe gains to the engine.
+2. Bisect the reproducible evaluation regression, then reduce the responsible case publicly.
+3. Extend safe signal pruning for retained arrow identity (#13679).
+4. Continue #13662's size work while gating on unchanged evaluation and search speed. The small cold-path saving is valid progress, not completion of the size/performance target.
+
+Raw results, source/binary/archive hashes, build settings and validation logs are retained locally in `benchmarks/perry-reassessment-macos-arm64-2026-11-01.json`; earlier samples and exclusions remain separate. No PR for the slow size preset was opened or promoted.

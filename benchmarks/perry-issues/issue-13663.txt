@@ -1,0 +1,104 @@
+## Objective and status
+
+Track the complete measured Perry performance/size investigation as fixable work. **Preserve steady-state performance while reducing binary size. Do not ship the blanket-Oz size preset as a solution.** This tracker distinguishes reproducible compiler/runtime defects from optimization opportunities and remaining attribution work.
+
+Perry 0.5.1663, configured compiler/runtime source `b384cd7be035899e80908c5013baf8e88f08c892`, macOS 26.5 ARM64, Apple M1 Max, 64 GiB. Findings are pinned; latest-main and cross-platform impact still need verification. Related work may already change some paths.
+
+## Work breakdown — public repros, numbers, and completion conditions
+
+| Work item | Quantified evidence | Tracking |
+| --- | --- | --- |
+| Rejected packed-loop optimization still executes admission | `j++` vs equivalent `j += 1`: **1,001 → 810 instructions/probe**, **320 → 266 ms**; emitted guard result/descriptor unused after fast clone rejection | **#13660**: concrete code-generation bug; remove dead admission safely and add IR regression coverage |
+| Remaining indexed-loop cost after that artifact | Canonical `+= 1`: **784 instr/probe** vs Node **174**. Fixed bound: **667**; arithmetic directions: **410** | **#13661**: bound/value/index representation reductions, full source, raw samples and correctness requirements |
+| Iterator/IteratorClose overhead | Original synthetic for-of **608 → indexed 311 ms**, 8.41 → 5.28 G whole-process instructions; changing three attack loops in the app saves about **12%** search time | Existing **#13645**; #13653 merged, #13655 open when checked. Re-measure app on the final upstream implementation |
+| Size flags degrade hot runtime throughput | Independent public fixture: Oz runtime **1.65–1.78× slower** than O2; **20.24%** sampled self time in outlined fragments vs 0% with O2 | **#13662**: selective hot/cold optimization, full runtime build recipe; not a default-release correctness bug |
+| Unneeded regex/IPC retention | Unrelated method name `.search` adds **673,856 B**; narrower signal-only selection saves **1,365,792 B** using the stock speed runtime | **#13659**: precise feature selection with receiver/escape/callback semantics preserved |
+| Literal-loop expansion explodes generated UI code | Original renderer **904,784 → 56,776 code bytes** when bypassing the pass; public synthetic method **73,592 → 2,236 B** | Existing **#13649**, fixed by merged **#13650**. Verify complete-app behavior and size on the fix rather than treating the source rewrite as the compiler solution |
+
+The rows are **not additive full-app speedups**. They overlap, use different fixtures, and some are profile/code-generation evidence rather than interventions on the full engine. In particular #13660 was isolated in an indexed scan; its fraction of the unmodified engine's search time is not yet measured.
+
+## Baseline: how much extra execution work exists?
+
+Identical engine-only 250,000-node searches (same engine source/budget and matching result fingerprints) retired these median whole-process instruction counts:
+
+| Runtime | Instructions, billions |
+| --- | ---: |
+| Node 26.5.1 | 18.886 |
+| Bun 1.3.14 | 17.898 |
+| Perry 0.5.1663 | 105.936 |
+| ScriptC 0.4.7 | 16.733 |
+
+Perry executes about **5.6–6.3×** the instructions. This is evidence of excess work per operation; it does not prove that all extra instructions are removable. It excludes TUI rendering as the explanation and predates any size-build changes. Application source is private; these application measurements are context, while the child issues provide complete synthetic public reproductions.
+
+## Where the baseline samples go — complete top-level accounting
+
+Optimized-release sample with symbols retained, not debug-call instrumentation: **35,519 main-thread samples**. These are mutually exclusive **self-sample** groups:
+
+| Group | Samples | Share |
+| --- | ---: | ---: |
+| Generated engine (includes inline checks) | 21,968 | 61.85% |
+| Runtime helper self samples | 11,255 | 31.69% |
+| TLS lookup | 1,025 | 2.89% |
+| Other | 1,271 | 3.58% |
+
+Top self-sample symbols, included in those groups (do not add these to the group totals):
+
+| Symbol | Samples | Share |
+| --- | ---: | ---: |
+| `Chess.attacked` | 6,346 | 17.87% |
+| `Chess.evaluate$pshape` | 3,931 | 11.07% |
+| `onBoard$spec_b` | 2,542 | 7.16% |
+| `Chess.make` | 2,459 | 6.92% |
+| `Chess.unmake$pshape` | 2,236 | 6.30% |
+| `Chess.generatePseudo$pshape` | 2,000 | 5.63% |
+| `_tlv_get_addr` | 1,025 | 2.89% |
+| `js_array_record_stack_enter` | 683 | 1.92% |
+| `Chess.orderMoves` | 602 | 1.69% |
+| `gc::barrier::remembered_child_needs_tracking` | 565 | 1.59% |
+| `Chess.quiescence` | 558 | 1.57% |
+| `array::iterator_method::prototype_iterator_method` | 508 | 1.43% |
+| `array::iterator_method::iterator_method_from_slot` | 502 | 1.41% |
+| `Chess.set$generic` | 468 | 1.32% |
+| `array::indexing::js_array_set_f64_extend_strict_impl` | 416 | 1.17% |
+
+Collector frames appeared on **939 / 35,519 stacks = 2.64%**, an **inclusive stack presence**, not another disjoint self-sample category. Inline/root barriers and bookkeeping are not all counted in that collector figure. Calling this a "GC is only 2.6%" proof would be incorrect.
+
+The `onBoard` specialized entry alone has 7.16% self samples and contains numeric-tag tests, exact conversion, stack/TLS checks and comparison fallbacks. That does not establish 7.16% removable cost: a separate bounds-only micro runs near Node, and simply inlining the helper in the engine did not improve search beyond noise. This negative result is recorded in #13645; do not file a generic bitwise-arithmetic bug from the static assembly alone.
+
+Likewise, generated engine samples include both chess work and inline guards. **The 61.85% generated-code share has not been divided into exact avoidable costs.** #13661 supplies concrete instruction-budget reductions; the remaining full-app attribution is an explicit open task below, rather than being presented as already solved.
+
+## Size accounting and accepted/rejected experiments
+
+Original full executable: **10,267,192 bytes (9.79 MiB)**, including **8,807,472 bytes of machine code**. Largest mutually exclusive code-extent groups from a symbol/address census (aliases counted once, alignment included):
+
+| Retained code group | Bytes |
+| --- | ---: |
+| Runtime object implementation | 1,815,292 |
+| Generated terminal code | 1,083,696 |
+| Other libraries/support | 1,021,548 |
+| Runtime C ABI helpers | 857,580 |
+| GC implementation including barriers | 760,856 |
+| Generated engine | 480,020 |
+| Node streams | 285,896 |
+| Arrays | 231,168 |
+
+These are the largest groups, not the complete total. They are code-size attribution, **not** time attribution or a claim all retained support can be removed. Engine plus TUI comprise ~17.8% of machine code; embedded function source/string sections are only ~110 KiB, duplicate-body estimate ~18 KiB. A 512 KiB dense subclass cache is zero-fill RSS/address-space storage, not 512 KiB of shipped bytes.
+
+The smallest complete experimental executable was **4,647,120 B / 4.43 MiB** but search regressed about **3.1×**. It is rejected for the performance requirement.
+
+A conservative control keeps engine/runtime speed settings and removes size elsewhere: **8,434,960 B / 8.04 MiB**, ~18% smaller, essentially unchanged timings/counts across evaluation, legal moves, perft and search. Validation: 875-assertion native/Node fingerprint, nine CLI scenarios including the 1.5-million-node search, 95 text commands/23 whitespace characters and quit/Ctrl-C/SIGTERM terminal restoration. Original source stays unchanged; experiments use generated copies. This is a single-machine measured result, not a formal zero-regression guarantee.
+
+Intermediate minimal-runtime candidates at 7.43 MiB and 6.23 MiB still regress evaluation (~1.8% and ~4.0%). They are not approved performance-preserving replacements. #13662 contains the controls separating app flags, runtime flags, allocator and loop rewrites.
+
+## Remaining attribution and integration work
+
+- [ ] Fix/verify #13660, then rerun the unmodified full search and report its actual marginal effect. Preserve interpreter/JIT comparisons and result fingerprint.
+- [ ] Use #13661 to trace numeric-value/index proof loss through emitted IR and assembly; quantify executed instructions in hot attack/evaluation/make/unmake kernels. Profile symbol percentages alone do not tell us which checks can be removed.
+- [ ] Measure combined #13653/#13655 on the full workload. Do not add a microbenchmark ratio to the prior ~12% application intervention.
+- [ ] Quantify remaining runtime costs with targeted public reductions before opening more narrowly claimed bugs. Start with array writes/barriers, object access and stack/TLS traffic seen above. Preserve negative controls; do not assume #10514 forwarding or #10516 view guards caused these fixtures without testing them.
+- [ ] Recover additional size through #13659 and #13650, then investigate hot/cold policy via #13662. Correct GC-effects metadata for fat-LTO-folded wrappers is also a reproducible build prerequisite documented there.
+- [ ] Validate each change alone and then combined on clean baselines; report startup, steady-state wall time, instructions/cycles, peak RSS and stripped distribution bytes. **No silent performance-for-size trade.**
+
+Related broader architecture: #5497 (specialization), #10777 (read-result representation propagation), #10769 (receiver provenance). They are linked research directions; no assertion that those particular mechanisms account for every remaining sample.
+
+No PR for the slow size configuration was opened. There is no demonstrated 4.43 MiB build with original performance yet. All identified findings and the unallocated remainder are tracked here and in the linked issues.

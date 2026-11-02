@@ -1,0 +1,4983 @@
+{
+  "recordedAt": "2026-11-01T16:57:42.286883+00:00",
+  "conclusion": "Three narrowly scoped fixes verified; runtime size/performance issue remains open. Integrated search is nearly flat and evaluation regresses about 16%.",
+  "provenance": {
+    "baselineSource": "b384cd7be035899e80908c5013baf8e88f08c892",
+    "candidateSource": "2359699bee1ec7b98478a0db44f195a5a086b30d",
+    "prs": {
+      "13669": {
+        "body": "Fixes #13659.\n\nReplace method-name-only regex detection with a conservative HIR receiver proof for isolated user-class methods. A structured process-listener walk distinguishes discarded registrations from observable return values: only known signal/exit events with literal arrow callbacks can omit IPC. Unknown events/callbacks, ordinary listener `this`, namespace escapes, and genuine IPC retain support. Callback bodies and defaults are still scanned.\n\nThe class proof reads existing declarations directly. Stateful, inherited, decorated, or escaping receivers remain conservative, including a constructor exposed through `this` in a static initializer. No runtime changes, side tables, or caches are introduced.\n\nMeasured on macOS 26.5 ARM64 against a clean compiler built from `ee0d9183d4496489dd4532247a64c66b57969230`. Both arms link the same pinned stock speed-optimized runtime/stdlib archives, with app `PERRY_LL_OPT_LEVEL=s`, `PERRY_SPECIALIZED_ABI=1`, `--function-source header`, all three strict flags, and object/build caches disabled. Files are stripped and ad-hoc signed; `__text` is measured separately. No Oz substitution.\n\n| Program | File before | File after | Bytes saved | `__text` before | `__text` after |\n|---|---:|---:|---:|---:|---:|\n| Console control | 51,808 | 51,808 | 0 | 976 | 976 |\n| Signal-only arrow | 7,611,744 | 6,245,968 | 1,365,776 | 6,476,032 | 5,428,928 |\n| User `.search()` | 6,275,360 | 5,601,504 | 673,856 | 5,240,320 | 4,818,304 |\n| User `.match()` | 6,275,360 | 5,601,504 | 673,856 | 5,240,320 | 4,818,304 |\n| Renamed `.findValue()` control | 5,601,504 | 5,601,504 | 0 | 4,818,304 | 4,818,304 |\n\nThe regex installer is absent in the pruned cases and remains present for genuine regex operations, unknown receivers, escaped classes, and IPC. Genuine string/unknown-receiver controls retain identical file and text sizes.\n\nValidation on the final source:\n\n- **44 feature-detection unit tests pass**, including conservative fallback and static-initializer escape cases.\n- **Native regression harness passes**: installer symbol checks, SIGINT/SIGTERM delivery, same-callback listener removal, normal exit, advanced IPC RegExp serialization/deserialization, and receive-only IPC with no `process.send` call.\n- Formatting, whitespace checks, and the 2,000-line cap for every changed Rust file pass.\n\nLocal commands (the compiler host uses the developer profile; generated apps use the speed flags and release runtime above):\n\n```sh\ncargo build -p perry --config 'profile.dev.panic=\"unwind\"'\ncargo test -p perry --bin perry feature_detect --config 'profile.dev.panic=\"unwind\"' -- --test-threads=1\nPERRY_BIN=target/debug/perry PERRY_RUNTIME_DIR=target/release python3 scripts/test-feature-pruning.py --baseline /path/to/clean-baseline-perry\n```\n\nFor performance, 31 alternating baseline/candidate pairs give these medians in milliseconds. CPU time isolates execution from scheduling delays on the shared machine; short wall samples are noisy. The steady-state fixture runs 10 million dependent integer operations with a runtime loop bound.\n\n| Program | CPU before | CPU after | Wall before | Wall after |\n|---|---:|---:|---:|---:|\n| Console control | 2.440 | 2.379 | 7.482 | 6.985 |\n| Signal startup | 4.410 | 3.997 | 9.314 | 8.268 |\n| Class method startup | 5.414 | 5.381 | 10.001 | 10.175 |\n| Steady-state loop | 203.936 | 203.800 | 234.250 | 242.735 |\n\nExisting gate failures: the repository-wide file-size check reports six unchanged baseline files (`perry-hir/src/walker/expr_clone.rs` and five `perry-wpfacts` files). The [CI warnings job](https://github.com/PerryTS/perry/actions/runs/41323952493/job/124900207215) also fails on unchanged `perry-codegen` unused imports/dead code and existing `perry-runtime` warnings. These files are outside this diff; the latest head checks are running.\n\n",
+        "headRefName": "fix/13659-feature-pruning",
+        "headRefOid": "f2f47440913b9e7c58e1a560c8dc703822fc7b01",
+        "mergeCommit": {
+          "oid": "684747e4696062bbaee1f2780a5ae13fcddbbd8d"
+        },
+        "mergedAt": "2026-11-01T16:13:00Z",
+        "number": 13669,
+        "state": "MERGED",
+        "title": "fix: prune regex and IPC for isolated class methods and signal listeners"
+      },
+      "13670": {
+        "body": "Rejected stable-packed fast clones still execute their admission guard before entering the slow loop. Move receiver/bound reloads and admission into a separate block, and connect it only when the existing fast-clone safety decision succeeds. LLVM CFG cleanup then removes the rejected admission and its unused descriptor. Usable clones retain their guard, live receiver, fallback, and capture/nested revalidation behavior. No side tables or caches are added.\n\nAdds source-to-HIR-to-LLVM unit coverage that verifies the IR and runs only `simplifycfg,dce`: the rejected fixture must lose the guard, descriptor, and fast clone while keeping the fallback; the positive control must retain all usable fast-path machinery. The negative test fails on the base and both tests pass with the fix.\n\nMeasured on macOS ARM64 against base `ee0d9183d4496489dd4532247a64c66b57969230`, using the issue's unchanged public repro and single-update control:\n\n| Native program | Before instructions/probe | After instructions/probe |\n| --- | ---: | ---: |\n| `j++` | 1002.50 | 810.37 |\n| `j += 1` | 810.70 | 811.38 |\n\nThree rotating rounds at 5M/10M probes; counts are the slope of median whole-process retired instructions. All 24 runs matched the expected warmup and timed checksums. The fix removes **192.13 instructions/probe (19.2%)**. The repro's machine code has zero guard-call sites instead of five and is 4,544 bytes smaller; the control's entire `__text` section is byte-identical before/after. Both arms use the same freshly built release runtime/stdlib archives and regenerated GC-effects metadata, `PERRY_LL_OPT_LEVEL=s`, and `PERRY_SPECIALIZED_ABI=1`. The patched host compiler uses a no-LTO development build for turnaround. Other host builds were active, so wall-clock timings are not used as speedup evidence.\n\nValidation:\n\n- Both new codegen unit tests pass, including LLVM verification before/after cleanup.\n- 37 existing integration cases pass: mutation/moving-GC and typed-array cases, all capture/revalidation/accessor cases, abrupt exits, error throws, offset reads, and forwarding. The unchanged repository test files ran through an isolated Cargo harness pinned to the freshly built compiler/runtime.\n- Full-engine evaluate (1M), legal moves (10K), perft (depth 4), and search (250K nodes) match Node 26.12.1, including search details and state restoration. All 875 engine/application assertions and the complete fingerprint match Node on both builds. These are correctness checks, not a full-engine speedup claim.\n- Changed-file formatting and `git diff --check` pass.\n\nPre-existing failures verified against the base:\n\n- `read_only_loops_have_preheader_proofs_and_fallback_free_fast_blocks` expects three guard calls but finds one on both baseline and patched builds.\n- `scripts/check_file_size.sh` reports six unchanged files above 2,000 lines in `perry-hir`/`perry-wpfacts`; all changed Rust files are below the limit.\n\nFixes #13660.\n\n",
+        "headRefName": "fix/13660-rejected-packed-admission",
+        "headRefOid": "2a5c30f3976f552ed5a0bafa4ecf20bc354a9038",
+        "mergeCommit": {
+          "oid": "ae004cac45c9abd9a1ec30ddf3c5e32037647c11"
+        },
+        "mergedAt": "2026-11-01T16:07:12Z",
+        "number": 13670,
+        "state": "MERGED",
+        "title": "fix(codegen): skip packed-loop admission for rejected fast clones"
+      },
+      "13675": {
+        "body": "Fixes #13661.\n\nIndexed scans repeatedly loaded a private constant direction array's length/elements and lost numeric facts at the selected value. Fold small numeric literal arrays only after an exhaustive use census proves no mutation, escape, export, or unknown indexed read; bounded own reads become numeric literal selections and lengths become constants. Carry those values through numeric constant bindings and bounded integer index arithmetic. No runtime side tables, caches, header changes, or invalidation machinery.\n\nAn inherited out-of-bounds getter can receive and mutate its array, so any unproven read rejects the entire candidate. Keep TDZ checks, erased-type fallback behavior, side effects, holes/descriptors, NaN, negative zero, fractions, overflow, and captured/mutated loop counters intact.\n\nThree rotating benchmark rounds, both 5M/10M sizes, all ten issue variants, and Node 26.12.1: all 180 samples match. Instruction slopes fall from **785.10 \u2192 495.15** for live-bound (37%), **667.34 \u2192 494.39** for fixed-bound (26%), and **1049.54 \u2192 629.91** for method (40%). The paired live/fixed bound gap disappears. Typed/fixed and arithmetic controls are effectively unchanged. Same locally built runtime archives in both arms; wall-clock times are not used for claims because other builds were running.\n\nValidation:\n- 270 transform unit tests pass.\n- Codegen: 2630 pass, 14 fail, 1 ignored; pristine baseline has 2628 pass and the **same 14 failures**. Both new tests pass; serial candidate run confirms the same failure set.\n- 13 native regression/array/GC fixtures match pinned Node byte-for-byte in both arms.\n- Moving GC: existing byte-view matrix passes with live relocation; new regression matches Node through 180 forced copying collections / 7307 moved objects. Unseeded stress PR arms match output but remain inert on both baseline and candidate; documented as UNVER, not passes.\n- Full chess engine/TUI application: 875 assertions, identical output and search fingerprint in Node, baseline, and candidate.\n\nThe file-size gate flags six unchanged baseline files; every changed Rust file is below 2000 lines. `git diff --check` passes.\n\nThe audit includes raw samples, reproducible commands, emitted IR/assembly accounting, proof boundaries, and remaining generic index/comparison costs: `docs/audits/issue-13661-indexed-numeric-scans.md`. No end-to-end application timing claim or separate #13660 admission fix.\n\n",
+        "headRefName": "fix/13661-indexed-numeric-scans",
+        "headRefOid": "7ed8460969b439f81ed2a0f10f37af72b4fad4da",
+        "mergeCommit": {
+          "oid": "5a69635ceef58c300080d56e1c686b84916406e7"
+        },
+        "mergedAt": "2026-11-01T16:15:39Z",
+        "number": 13675,
+        "state": "MERGED",
+        "title": "perf(codegen): fold private numeric arrays in indexed scans"
+      },
+      "13677": {
+        "body": "Blanket Oz shrinks hot runtime helpers and still makes the current public scan about 1.6\u00d7 slower. Apply `#[optimize(size)]` only to four builtin installers: global setup, constructor statics, prototype methods, and collection prototype installation. Hot helpers retain their surrounding build profile. No side tables, caches, or runtime state are added.\n\nAddresses #13662 with a measured **incremental** size reduction. The 4.43 MiB/original-speed combination remains unachieved; this does not make blanket Oz a performance-preserving preset.\n\n### Measurements\n\nApple M1 Max, current main at `ee0d9183d4`, app O2, specialized ABI, system allocator, fat LTO, matching features and unwind settings. Seven rotated rounds, 5M for-of probes:\n\n| Runtime | Executable bytes | Inner ms | Retired instructions | Cycles |\n| --- | ---: | ---: | ---: | ---: |\n| Baseline O2 | 5,650,896 | 315.348 | 5.389303 G | 0.999551 G |\n| Cold installers / O2 | 5,634,656 | 313.712 | 5.387727 G | 0.992574 G |\n| Blanket Oz | 3,369,792 | 501.502 | 5.976851 G | 1.576008 G |\n\nIndexed: 303.089 \u2192 301.467 ms. Complete application: **16,256 bytes smaller**, search 5.705 \u2192 5.703 s, long evaluation 4.612 \u2192 4.610 s. Checked hot array helpers retain their O2 instruction counts and zero outlined-fragment references. Startup and all raw observations are included in the [report](https://github.com/PerryTS/perry/blob/cf6a6611e29905c68444d33f827f8645899e70a5/benchmarks/runtime_size_perf/RESULTS.md).\n\n### Validation\n\n- All 17 regular benchmark fixtures match Node 26.12.1; 400 timing/counter observations retained.\n- Nine builtin, exception/unwind, and GC-rooting fixtures pass against Node in both arms.\n- Default-feature GC bootstrap unit test passes, single-threaded, with live collection-deferral/service assertions.\n- Full local application's native test fingerprint and nine CLI scenarios pass in both arms; candidate passes 95-command text parity.\n- Both arms restore PTY state after quit, Ctrl-C, SIGINT and SIGTERM.\n- Changed-file formatting, whitespace, file-size limits and measurement/source fingerprints verified.\n\nPerformance coverage is macOS ARM64 with the issue's O2/fat-LTO configuration. Other platforms and the O3 shipping profile are not performance-qualified here. Application source stays private; the public fixture, comparison profiles, measurement runner, raw CSV and archive fingerprints are committed.\n\n",
+        "headRefName": "fix/13662-runtime-size-performance",
+        "headRefOid": "cf6a6611e29905c68444d33f827f8645899e70a5",
+        "mergeCommit": {
+          "oid": "066f4dd1d03b0657341608a423871d62b5f64951"
+        },
+        "mergedAt": "2026-11-01T16:27:39Z",
+        "number": 13677,
+        "state": "MERGED",
+        "title": "runtime: size-optimize cold builtin installation"
+      },
+      "13655": {
+        "body": "Part of #13645 (for-of now equals the indexed loop; both are still several times node, the remaining gap is generic loop typing).\n\nPart 2 of the for-of work (part 1: #13653).\n\n**What was slow.** On main the indexed loop in the repro is not typed either: its packed tiers decline because the body calls `at`. The for-of loop lost on IPC (2.69 vs 3.81): the fused record body re-tested the protocol mode, reloaded the record's volatile fields, compared the cursor against an untyped length, and bound the loop variable from an Any slot, which added a `str_addref`.\n\n**Change.**\n- codegen (`stmt/loops/iterator_record.rs`, `lower_array_arm`): a counted iterator record splits on its entry verdict. The protocol arm keeps the record loop unchanged. The array arm is an ordinary counted loop over the payload, lowered by the regular counted-loop chain (`lower_for_tiers`). When the loop binding is the only reader of the step value, it reads the element directly. The source's declared element type picks the lowering, and the read's own guards prove it. ECMA-262 order is kept: completion state 2 while Get runs (a throwing getter does not close), 0 before the user body, and the cursor, close and release stay the record's. The payload is a stable binding inside the arm: its only other writes are the plan's exit releases.\n- No runtime change: the read-site memo for the per-exit close check moved to a separate branch (not part of this PR).\n\n**Repro** (5M probes, perrymaster, medians of 3):\n\n| | for-of ms | for-of instr | indexed ms | indexed instr |\n|---|---|---|---|---|\n| main 876a940ca | 415 | 5.86 G | 302 | 6.01 G |\n| head | 275 | 5.92 G | 287 | 6.01 G |\n| node | 35-66 | | 48 | |\n\n**Verification.** The perry-wpfacts lib (772), perry-hir (800) and perry-codegen (2645) suites pass with 0 failures. The runtime array_record and iterator_prototypes filters pass (77 tests). The 100-test for-of/iterator/destructure/spread gap subset matches node on both main and head, and includes the new `test_gap_13645_forof_array_arm{,_close}.ts` (holes, a prototype getter that throws, live length push/pop/truncate, labels, closures, destructuring, a mistyped `number[]`, a subclass, an own `@@iterator`, a `return` that observes the cursor). The new codegen test `array_arm_is_an_indexed_loop_beside_the_protocol_record` fails with the array arm disabled (the arm call routed to the protocol loop): it panics at the `record.indexed` label expectation; it passes with the arm. Sabotaging the arm so a break leaves completion state 2 makes `test_gap_13645_forof_array_arm_close.ts` differ from node. tdiff 22: all rows equal main. Outputs: 22/22 same. js-compiled: 22/22. Padded startup irdiff: see below.\n\n**Startup** (qb9, padded irdiff, 3 identical callgrind runs per arm, head c8c559298 vs main f88e162b6; no runtime diff):\n\n| witness | main Ir | head Ir | delta |\n|---|---|---|---|\n| hello | 824,030 | 824,030 | 0 |\n| commander --help | 20,568,948 | 20,568,948 | 0 |\n| commander | 20,766,195 | 20,766,195 | 0 |\n| awfy_richards | 41,844,866 | 41,844,866 | 0 |\n| binary_trees | 14,733,683,192 | 14,733,683,192 | 0 |\n| fastify_inject (unpadded: link layouts differ) | 160,080,845 | 160,078,993 | -1,852 |\n\n\n",
+        "headRefName": "fof-forof-typed",
+        "headRefOid": "9599ef0f5ec62e330498dfb4c94dfbc445be5bbc",
+        "mergeCommit": {
+          "oid": "9f7e71e5f3226a9094b28f995374de33bac38b7c"
+        },
+        "mergedAt": "2026-11-01T14:21:25Z",
+        "number": 13655,
+        "state": "MERGED",
+        "title": "codegen: for-of array arm lowers as the indexed loop (part of #13645)"
+      }
+    },
+    "sourceHashes": {
+      "engine/src/chess.ts": "9f3d4d0d376efba2368e192194f86102aa890e5e93be48fec473075f0065860d",
+      "tui/src/app.ts": "f74a97acd9c208ce9d985f1517fbb42d2882a6d07d0e4817a3ded0794d55737f",
+      "tui/src/main.ts": "cc7eacaa914efac934ba451158bfc9747614bf816e219fb2ef12c62319559345",
+      "scripts/repro-perry-increment.ts": "8d8d33e6032bd21bf7501751b6513fab97d2d5d73291e45bf2df004e84ff42d3",
+      "scripts/repro-perry-access.ts": "dbc0029dda89bace0c818108ba1b4b29ab88f129147c178d95662f31fb8c6321",
+      "scripts/repro-perry-board.ts": "7acbcbf162a3a81b105266408cd71cc46a2a0184a78dd70cd8f61a9284c10ac7"
+    },
+    "constraints": [
+      "No production source or installed toolchain change",
+      "No blanket Oz as an acceptable candidate",
+      "Run timed workloads serially after all builds",
+      "Current main includes changes beyond the four PRs; total gains are not attributed exclusively to them"
+    ],
+    "discardedArm": "New compiler / old runtime was built before discovering FunctionMetadataOwner ABI layout changes. Its artifacts, execution and sizes are not accepted comparison evidence. No timed reassessment measurements had begun. All final current artifacts rebuilt against matching current archives.",
+    "versions": {
+      "node": "v26.5.1",
+      "bun": "1.3.14",
+      "perry-installed": "perry 0.5.1663"
+    },
+    "runtimeAbiChanges": " crates/perry-abi/src/function_metadata.rs | 41 ++++++++++++++++++++++++++-----\n crates/perry-abi/src/lib.rs               |  4 +--\n crates/perry-abi/src/realm_header.rs      | 12 +++------\n 3 files changed, 41 insertions(+), 16 deletions(-)\n",
+    "candidateFeatures": "default runtime/stdlib static-wrapper features, release profile: runtime O3, stdlib Os, ThinLTO; unwind configuration preserved"
+  },
+  "issues": {
+    "13659": {
+      "state": "CLOSED",
+      "url": "https://github.com/PerryTS/perry/issues/13659"
+    },
+    "13660": {
+      "state": "CLOSED",
+      "url": "https://github.com/PerryTS/perry/issues/13660"
+    },
+    "13661": {
+      "state": "CLOSED",
+      "url": "https://github.com/PerryTS/perry/issues/13661"
+    },
+    "13662": {
+      "state": "OPEN",
+      "url": "https://github.com/PerryTS/perry/issues/13662"
+    },
+    "13663": {
+      "state": "OPEN",
+      "url": "https://github.com/PerryTS/perry/issues/13663"
+    },
+    "13679": {
+      "state": "OPEN",
+      "url": "https://github.com/PerryTS/perry/issues/13679"
+    }
+  },
+  "hardware": {
+    "cpu": "Apple M1 Max",
+    "memoryBytes": 68719476736,
+    "os": "26.5",
+    "architecture": "arm64"
+  },
+  "methodology": {
+    "engine": "Sequential child processes, rotating runtime order. Inner wall time excludes startup/setup/warmup/serialization. OS counters and peak RSS include the whole process. Each workload verifies unchanged game state and identical result fingerprints across all runs.",
+    "micro": "Serial rotated fresh processes; 100k warmup; inner wall timer excludes setup/warmup. OS counters cover complete process. Slopes use median I(10M)-I(5M) over 5M. Each compiler links its matching runtime; main includes changes beyond the four issue fixes.",
+    "ui": "25 measured warm-filesystem starts after 3 discarded launches, 5 idle RSS samples, 25 local moves after 3 discarded; serial rotated starts; no UI search scenarios in this run.",
+    "evaluationConfirmation": "Three alternating original/current pairs of 1M evaluations, inner wall time, process-wide counters, identical 10M checksum.",
+    "isolation": "All accepted timing runs ran serially after compilation; each compiler uses its matching runtime. Integrated revisions include other changes, so attribution to individual PRs requires bisect or isolated controls.",
+    "compilerBuild": "LLVM_SYS_221_PREFIX=/opt/homebrew/opt/llvm@22 CARGO_TARGET_DIR=.../target cargo --config profile.release.package.perry.opt-level=0 build --release --locked -j3 -p perry --bin perry --no-default-features --features dev-cli",
+    "runtimeBuild": "cargo build --release --locked -j3 -p perry-runtime-static -p perry-stdlib-static; regenerate matching GC-effects sidecars; preserve repository unwind flags; nightly-2026-10-04",
+    "appBuild": "PERRY_LL_OPT_LEVEL=s PERRY_SPECIALIZED_ABI=1 PERRY_KEEP_SYMBOLS=1 PERRY_DISABLE_BUILD_CACHE=1 PERRY_NO_CACHE=1 PERRY_RUNTIME_DIR=<matching> perry compile SOURCE -o OUTPUT --strict-eval --strict-dynamic-import --strict-unimplemented; strip and codesign app; pruned copy additionally --function-source header",
+    "prunedSource": "Copy prior no-regex-source, reverse all five increment-spelling workarounds using source-changes.json; retain regex-free helpers, method rename, lexical signal wrappers, source header metadata. Production source unchanged.",
+    "commands": [
+      "python3 scripts/reassess-perry.py",
+      "node scripts/compare-runtimes.ts --manifest dist/perry-reassessment/engine-manifest.json",
+      "node scripts/benchmark.ts --manifest dist/perry-reassessment/ui-manifest.json --local-only"
+    ],
+    "excluded": "New compiler with old runtime arm discarded due to ABI change, before timed measurements. First long evaluation attempt excluded after a harness assertion used an incorrect expected checksum; rerun with Node-derived expectation."
+  },
+  "summary": {
+    "engineMedians": {
+      "evaluate": {
+        "Node": {
+          "milliseconds": 109.84616700000001,
+          "instructions": 2957214266,
+          "cycles": 690451699,
+          "peakRssBytes": 97976320
+        },
+        "Bun": {
+          "milliseconds": 90.387708,
+          "instructions": 1985958177,
+          "cycles": 434301848,
+          "peakRssBytes": 64651264
+        },
+        "Perry original": {
+          "milliseconds": 455.72749999999996,
+          "instructions": 8510380240,
+          "cycles": 1452669559,
+          "peakRssBytes": 15745024
+        },
+        "Perry current": {
+          "milliseconds": 529.734916,
+          "instructions": 8821676158,
+          "cycles": 1686442473,
+          "peakRssBytes": 15630336
+        },
+        "Perry current pruned": {
+          "milliseconds": 531.3111670000001,
+          "instructions": 8820453539,
+          "cycles": 1691050802,
+          "peakRssBytes": 15138816
+        },
+        "ScriptC": {
+          "milliseconds": 86.15100002288818,
+          "instructions": 1486260424,
+          "cycles": 279898443,
+          "peakRssBytes": 2342912
+        }
+      },
+      "legal": {
+        "Node": {
+          "milliseconds": 36.91612500000001,
+          "instructions": 1743406686,
+          "cycles": 525209532,
+          "peakRssBytes": 101171200
+        },
+        "Bun": {
+          "milliseconds": 35.573791,
+          "instructions": 1219589594,
+          "cycles": 342141951,
+          "peakRssBytes": 93601792
+        },
+        "Perry original": {
+          "milliseconds": 148.51125,
+          "instructions": 2780977442,
+          "cycles": 484114132,
+          "peakRssBytes": 15810560
+        },
+        "Perry current": {
+          "milliseconds": 138.428666,
+          "instructions": 2760223376,
+          "cycles": 454403720,
+          "peakRssBytes": 15761408
+        },
+        "Perry current pruned": {
+          "milliseconds": 139.72962499999997,
+          "instructions": 2763806015,
+          "cycles": 456690241,
+          "peakRssBytes": 16334848
+        },
+        "ScriptC": {
+          "milliseconds": 43.70900058746338,
+          "instructions": 768509682,
+          "cycles": 145474941,
+          "peakRssBytes": 2359296
+        }
+      },
+      "perft": {
+        "Node": {
+          "milliseconds": 34.551541,
+          "instructions": 1778834922,
+          "cycles": 562354236,
+          "peakRssBytes": 103596032
+        },
+        "Bun": {
+          "milliseconds": 34.778,
+          "instructions": 1393420566,
+          "cycles": 375908750,
+          "peakRssBytes": 90865664
+        },
+        "Perry original": {
+          "milliseconds": 145.478958,
+          "instructions": 2756998828,
+          "cycles": 487168406,
+          "peakRssBytes": 15843328
+        },
+        "Perry current": {
+          "milliseconds": 136.544667,
+          "instructions": 2738135049,
+          "cycles": 458823359,
+          "peakRssBytes": 15794176
+        },
+        "Perry current pruned": {
+          "milliseconds": 136.048625,
+          "instructions": 2732075144,
+          "cycles": 456308268,
+          "peakRssBytes": 15351808
+        },
+        "ScriptC": {
+          "milliseconds": 23.307000160217285,
+          "instructions": 433805158,
+          "cycles": 81933607,
+          "peakRssBytes": 2359296
+        }
+      },
+      "search": {
+        "Node": {
+          "milliseconds": 950.7265,
+          "instructions": 19323782983,
+          "cycles": 4184326324,
+          "peakRssBytes": 148324352
+        },
+        "Bun": {
+          "milliseconds": 908.80225,
+          "instructions": 17662109070,
+          "cycles": 4009577795,
+          "peakRssBytes": 144916480
+        },
+        "Perry original": {
+          "milliseconds": 5876.104666,
+          "instructions": 105946394703,
+          "cycles": 19042509070,
+          "peakRssBytes": 24870912
+        },
+        "Perry current": {
+          "milliseconds": 5808.807292,
+          "instructions": 105665453825,
+          "cycles": 18440308568,
+          "peakRssBytes": 24805376
+        },
+        "Perry current pruned": {
+          "milliseconds": 5771.997291,
+          "instructions": 105673149656,
+          "cycles": 18547736760,
+          "peakRssBytes": 24395776
+        },
+        "ScriptC": {
+          "milliseconds": 1017.1909999847412,
+          "instructions": 16723846139,
+          "cycles": 3275428755,
+          "peakRssBytes": 7274496
+        }
+      }
+    },
+    "micro": [
+      {
+        "group": "access",
+        "runtime": "Perry original",
+        "variant": "method",
+        "milliseconds5M": 305.398916,
+        "instructionsPerProbe": 1028.8221768
+      },
+      {
+        "group": "access",
+        "runtime": "Perry current",
+        "variant": "method",
+        "milliseconds5M": 204.804791,
+        "instructionsPerProbe": 630.2567074
+      },
+      {
+        "group": "access",
+        "runtime": "Node",
+        "variant": "method",
+        "milliseconds5M": 46.310708,
+        "instructionsPerProbe": 174.8157018
+      },
+      {
+        "group": "access",
+        "runtime": "Perry original",
+        "variant": "local",
+        "milliseconds5M": 316.851834,
+        "instructionsPerProbe": 980.2321582
+      },
+      {
+        "group": "access",
+        "runtime": "Perry current",
+        "variant": "local",
+        "milliseconds5M": 173.235292,
+        "instructionsPerProbe": 494.5740434
+      },
+      {
+        "group": "access",
+        "runtime": "Node",
+        "variant": "local",
+        "milliseconds5M": 45.6605,
+        "instructionsPerProbe": 173.073436
+      },
+      {
+        "group": "access",
+        "runtime": "Perry original",
+        "variant": "live-bound",
+        "milliseconds5M": 265.178583,
+        "instructionsPerProbe": 783.8570016
+      },
+      {
+        "group": "access",
+        "runtime": "Perry current",
+        "variant": "live-bound",
+        "milliseconds5M": 170.288875,
+        "instructionsPerProbe": 494.5631292
+      },
+      {
+        "group": "access",
+        "runtime": "Node",
+        "variant": "live-bound",
+        "milliseconds5M": 45.269583,
+        "instructionsPerProbe": 173.776911
+      },
+      {
+        "group": "access",
+        "runtime": "Perry original",
+        "variant": "fixed-bound",
+        "milliseconds5M": 245.311209,
+        "instructionsPerProbe": 667.3300068
+      },
+      {
+        "group": "access",
+        "runtime": "Perry current",
+        "variant": "fixed-bound",
+        "milliseconds5M": 170.008792,
+        "instructionsPerProbe": 494.6824996
+      },
+      {
+        "group": "access",
+        "runtime": "Node",
+        "variant": "fixed-bound",
+        "milliseconds5M": 43.926125,
+        "instructionsPerProbe": 175.8367314
+      },
+      {
+        "group": "access",
+        "runtime": "Perry original",
+        "variant": "directions",
+        "milliseconds5M": 129.675625,
+        "instructionsPerProbe": 409.9379778
+      },
+      {
+        "group": "access",
+        "runtime": "Perry current",
+        "variant": "directions",
+        "milliseconds5M": 130.905958,
+        "instructionsPerProbe": 409.8577548
+      },
+      {
+        "group": "access",
+        "runtime": "Node",
+        "variant": "directions",
+        "milliseconds5M": 52.410667,
+        "instructionsPerProbe": 151.6303536
+      },
+      {
+        "group": "access",
+        "runtime": "Perry original",
+        "variant": "arithmetic",
+        "milliseconds5M": 197.71145800000002,
+        "instructionsPerProbe": 428.4356888
+      },
+      {
+        "group": "access",
+        "runtime": "Perry current",
+        "variant": "arithmetic",
+        "milliseconds5M": 180.863,
+        "instructionsPerProbe": 428.46577
+      },
+      {
+        "group": "access",
+        "runtime": "Node",
+        "variant": "arithmetic",
+        "milliseconds5M": 52.293,
+        "instructionsPerProbe": 141.0640162
+      },
+      {
+        "group": "increment",
+        "runtime": "old postfix",
+        "variant": "increment",
+        "milliseconds5M": 323.1005,
+        "instructionsPerProbe": 1001.6729054
+      },
+      {
+        "group": "increment",
+        "runtime": "new postfix",
+        "variant": "increment",
+        "milliseconds5M": 169.561209,
+        "instructionsPerProbe": 499.46622
+      },
+      {
+        "group": "increment",
+        "runtime": "old plus",
+        "variant": "increment",
+        "milliseconds5M": 266.726292,
+        "instructionsPerProbe": 809.7319212
+      },
+      {
+        "group": "increment",
+        "runtime": "new plus",
+        "variant": "increment",
+        "milliseconds5M": 170.43954100000002,
+        "instructionsPerProbe": 499.5873726
+      },
+      {
+        "group": "iterator",
+        "runtime": "Perry original",
+        "variant": "increment",
+        "milliseconds5M": 447.0678335
+      },
+      {
+        "group": "iterator",
+        "runtime": "Perry current",
+        "variant": "increment",
+        "milliseconds5M": 282.6897295
+      },
+      {
+        "group": "iterator",
+        "runtime": "Node",
+        "variant": "increment",
+        "milliseconds5M": 52.0129795
+      }
+    ],
+    "ui": {
+      "Node": {
+        "startupMs": 173.87024999999994,
+        "idleRssBytes": 96780288,
+        "localMoveMs": 0.08899999999994179
+      },
+      "Bun": {
+        "startupMs": 25.337209000000257,
+        "idleRssBytes": 39501824,
+        "localMoveMs": 0.1134170000004815
+      },
+      "Perry original": {
+        "startupMs": 8.377666999999747,
+        "idleRssBytes": 18874368,
+        "localMoveMs": 0.10608399999910034
+      },
+      "Perry current": {
+        "startupMs": 8.021125000000211,
+        "idleRssBytes": 17874944,
+        "localMoveMs": 0.0852919999997539
+      },
+      "Perry current pruned": {
+        "startupMs": 7.999917000000096,
+        "idleRssBytes": 17661952,
+        "localMoveMs": 0.08337500000016007
+      }
+    },
+    "evaluationConfirmation": {
+      "original": {
+        "milliseconds": 4578.617375,
+        "instructions": 83825843107,
+        "cycles": 14211431242
+      },
+      "current": {
+        "milliseconds": 5308.606167,
+        "instructions": 86911189044,
+        "cycles": 16529032866
+      }
+    }
+  },
+  "acceptedArtifacts": [
+    {
+      "name": "engine-current",
+      "source": "scripts/compare-workload.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": false,
+      "symbolBytes": 9231088,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 9231088,
+      "sha256": "39d068064f6819cdce781d2afc24c1ac8ff89aedd5bef2d2e358744e0c9b9abe",
+      "accepted": true
+    },
+    {
+      "name": "chess-current",
+      "source": "tui/src/main.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": false,
+      "symbolBytes": 11664192,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 9306320,
+      "sha256": "33f7a20d9d20f49a9c4092a14c971626673997a7f43b4244ada313920d94f6fd",
+      "accepted": true
+    },
+    {
+      "name": "tests-current",
+      "source": "tests/run.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": false,
+      "symbolBytes": 9307904,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 9307904,
+      "sha256": "ab591619a2b2a26d7e8a7f5bcd174f37492f6d311a6b0d4d4d0ff9776f8a8202",
+      "accepted": true
+    },
+    {
+      "name": "engine-pruned",
+      "source": "dist/perry-reassessment/app-pruned-source/scripts/compare-workload.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": true,
+      "symbolBytes": 8427760,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 8427760,
+      "sha256": "cf45ad6f2e49a719c5b6b26e8b5eb8e67d3b267944386ad90bea8a62bf89501b",
+      "accepted": true
+    },
+    {
+      "name": "chess-pruned",
+      "source": "dist/perry-reassessment/app-pruned-source/tui/src/main.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": true,
+      "symbolBytes": 11616784,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 9257088,
+      "sha256": "eab9bbde6eff9f7fe70ebf11c2197da97a102062c9bbf570f043a33ad8a249f6",
+      "accepted": true
+    },
+    {
+      "name": "tests-pruned",
+      "source": "dist/perry-reassessment/app-pruned-source/tests/run.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": true,
+      "symbolBytes": 8504720,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 8504720,
+      "sha256": "e62e71f77b95134e87e4cb75021acd2d1dfd4cb3859c5bfcc466dc9864ae21d9",
+      "accepted": true
+    },
+    {
+      "name": "access-current",
+      "source": "scripts/repro-perry-access.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": false,
+      "symbolBytes": 7694128,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 7694128,
+      "sha256": "ba3915659dbb2559f1e89d38f046f50957c7bda3e9caffa3108b863c3aebf36a",
+      "accepted": true
+    },
+    {
+      "name": "increment-current",
+      "source": "scripts/repro-perry-increment.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": false,
+      "symbolBytes": 7524000,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 7524000,
+      "sha256": "27846669e9c1358bb1365ebf1ff6e7a6cd1e15f684f21a8ea4eb4ec76f347879",
+      "accepted": true
+    },
+    {
+      "name": "increment-plus-current",
+      "source": "dist/perry-issues/increment-plus.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": false,
+      "symbolBytes": 7523768,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 7523768,
+      "sha256": "aeb2936514e050e8c7af624a10a886eeb41d208a82ed31f8c7bcfbfd8b426e90",
+      "accepted": true
+    },
+    {
+      "name": "board-current",
+      "source": "scripts/repro-perry-board.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": false,
+      "symbolBytes": 7656368,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 7656368,
+      "sha256": "c0e51cac5b3d5b4ffd6ae00e5f52ec265a2d52422d792ffa978b0a42a540b700",
+      "accepted": true
+    },
+    {
+      "name": "feature-signal-control",
+      "source": "dist/perry-issues/signal-control.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": true,
+      "symbolBytes": 33928,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 51808,
+      "sha256": "f70c523aa916d858fd30091b74848ecf523af53eba7b6204d7b287e550001883",
+      "accepted": true
+    },
+    {
+      "name": "feature-signal",
+      "source": "dist/perry-issues/signal.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": true,
+      "symbolBytes": 7924176,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 6229776,
+      "sha256": "4303364790724f864fc2b1e6ba1c50ab1d4f51b6d919ab387fadde0299c7cc28",
+      "accepted": true
+    },
+    {
+      "name": "feature-name-search",
+      "source": "dist/perry-issues/name-search.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": true,
+      "symbolBytes": 7075216,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 5568912,
+      "sha256": "4b0fad9b35c15aaf15cdad379e766915b4dfd5ae8ce1cdf5713755fe0e4ac849",
+      "accepted": true
+    },
+    {
+      "name": "feature-name-find",
+      "source": "dist/perry-issues/name-find.ts",
+      "runtime": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+      "header": true,
+      "symbolBytes": 7075216,
+      "compiler": "/Users/amlug/projects/chess/dist/perry-reassessment/target/release/perry",
+      "env": {
+        "PERRY_RUNTIME_DIR": "/Users/amlug/projects/chess/dist/perry-reassessment/runtime-current",
+        "PERRY_LL_OPT_LEVEL": "s",
+        "PERRY_SPECIALIZED_ABI": "1",
+        "PERRY_KEEP_SYMBOLS": "1",
+        "PERRY_DISABLE_BUILD_CACHE": "1",
+        "PERRY_NO_CACHE": "1"
+      },
+      "bytes": 5568912,
+      "sha256": "013d6c9e0783b6509fde966dff2c54028e27025490db60ae1021af5bce70ba94",
+      "accepted": true
+    }
+  ],
+  "additionalArtifacts": [
+    {
+      "path": "dist/chess",
+      "bytes": 10267192,
+      "sha256": "028d53291d5935ea30c3263c4223d4c2933c7a0184ce548e0d709c9d6dbe9dc6"
+    },
+    {
+      "path": "dist/comparison/engine-perry-stripped",
+      "bytes": 7557808,
+      "sha256": "df8d815ea323d01d612eaa1507568127d67e4b880211c78c96fff217b0ce1bc7"
+    },
+    {
+      "path": "dist/perry-speed-size/chess-speed-control",
+      "bytes": 8434960,
+      "sha256": "47374290c4fda493d776b09017134a8406112a482cd9f7170bbbbc34053f78d4"
+    },
+    {
+      "path": "dist/perry-reassessment/signal-assigned",
+      "bytes": 7595552,
+      "sha256": "fbd95382891a7c31829caa363562b8fba9143bc628ac1dc8ff5485cfc5a46a59"
+    },
+    {
+      "path": "dist/perry-reassessment/signal-literal-removal",
+      "bytes": 6229776,
+      "sha256": "2677146a2a5e06311e5c89d63588e1209f4f6c1ca770a175b0d882d1b34c6737"
+    },
+    {
+      "path": "dist/perry-reassessment/target/release/perry",
+      "bytes": 139305088,
+      "sha256": "92e76033c6e6ba5efdd468e45705d3aa9412e1955a2792c9e042cb7406b552d8"
+    },
+    {
+      "path": "dist/perry-reassessment/runtime-current/libperry_runtime.a",
+      "bytes": 42752608,
+      "sha256": "1bb3e2bf67f4c0b18aff3ad3555f79020d3fbf71367c645545b14dc6c294811d"
+    },
+    {
+      "path": "dist/perry-reassessment/runtime-current/libperry_stdlib.a",
+      "bytes": 79935664,
+      "sha256": "adbd722b2487294e551aedce3bc78b36142df980e499c30cf6d1872f6cf1cea8"
+    }
+  ],
+  "raw": {
+    "micro": {
+      "methodology": "Serial rotated fresh processes; 100k warmup; inner wall timer excludes setup/warmup. OS counters cover complete process. Slopes use median I(10M)-I(5M) over 5M. Each compiler links its matching runtime; main includes changes beyond the four issue fixes.",
+      "results": [
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 308.12424999999996,
+          "instructions": 5306688368,
+          "cycles": 1006346824,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 608.678125,
+          "instructions": 10428814477,
+          "cycles": 1933799471,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 203.86700000000002,
+          "instructions": 3262198946,
+          "cycles": 674901334,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 410.10062500000004,
+          "instructions": 6401769228,
+          "cycles": 1305002429,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 48.503833,
+          "instructions": 1552174007,
+          "cycles": 398199049,
+          "peakRssBytes": 88522752
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 93.64937500000002,
+          "instructions": 2430230829,
+          "cycles": 541584309,
+          "peakRssBytes": 88866816
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 320.138458,
+          "instructions": 5034700891,
+          "cycles": 1021385496,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 646.458042,
+          "instructions": 9935182968,
+          "cycles": 2018264294,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 173.577458,
+          "instructions": 2558474273,
+          "cycles": 557474012,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 341.725083,
+          "instructions": 5031193275,
+          "cycles": 1081211351,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 46.12779100000001,
+          "instructions": 1544427962,
+          "cycles": 395686795,
+          "peakRssBytes": 88735744
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 91.58524999999999,
+          "instructions": 2407500222,
+          "cycles": 529775208,
+          "peakRssBytes": 88457216
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 265.841917,
+          "instructions": 4034496239,
+          "cycles": 855745382,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 532.0621249999999,
+          "instructions": 7955133914,
+          "cycles": 1673219016,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 170.288875,
+          "instructions": 2557876545,
+          "cycles": 552826445,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 342.415375,
+          "instructions": 5031049142,
+          "cycles": 1084122710,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 46.110291000000004,
+          "instructions": 1534968494,
+          "cycles": 388057915,
+          "peakRssBytes": 88571904
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 91.389084,
+          "instructions": 2410153760,
+          "cycles": 526803996,
+          "peakRssBytes": 88588288
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 246.50279100000003,
+          "instructions": 3438774090,
+          "cycles": 791885883,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 493.656375,
+          "instructions": 6776002377,
+          "cycles": 1561534065,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 170.008792,
+          "instructions": 2557752877,
+          "cycles": 554271202,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 341.474667,
+          "instructions": 5030980557,
+          "cycles": 1085594884,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 43.769125,
+          "instructions": 1542780397,
+          "cycles": 377573853,
+          "peakRssBytes": 88571904
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 87.89737499999998,
+          "instructions": 2421964054,
+          "cycles": 513053059,
+          "peakRssBytes": 88981504
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 129.82875,
+          "instructions": 2126153143,
+          "cycles": 426570702,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 257.90425,
+          "instructions": 4175725527,
+          "cycles": 828348766,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 131.362792,
+          "instructions": 2126824179,
+          "cycles": 428833174,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 256.884791,
+          "instructions": 4175800798,
+          "cycles": 827468854,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 52.869542,
+          "instructions": 1416623029,
+          "cycles": 401559799,
+          "peakRssBytes": 88752128
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 104.45083300000002,
+          "instructions": 2174774797,
+          "cycles": 566271158,
+          "peakRssBytes": 88752128
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 195.862209,
+          "instructions": 2220545307,
+          "cycles": 640171790,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 392.169333,
+          "instructions": 4362511851,
+          "cycles": 1250637765,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 180.86112500000002,
+          "instructions": 2220481266,
+          "cycles": 591743918,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 364.324833,
+          "instructions": 4362810116,
+          "cycles": 1159303097,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 52.293,
+          "instructions": 1361684449,
+          "cycles": 404512635,
+          "peakRssBytes": 88326144
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 106.30950000000001,
+          "instructions": 2067004530,
+          "cycles": 566914636,
+          "peakRssBytes": 88784896
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 337.260542,
+          "instructions": 5030359330,
+          "cycles": 1079019231,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 170.19654200000002,
+          "instructions": 2557593931,
+          "cycles": 554222682,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 91.418292,
+          "instructions": 2403599146,
+          "cycles": 524434234,
+          "peakRssBytes": 88571904
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 45.247499999999995,
+          "instructions": 1536250956,
+          "cycles": 385451559,
+          "peakRssBytes": 88702976
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 633.951167,
+          "instructions": 9933571830,
+          "cycles": 2015475406,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 313.924042,
+          "instructions": 5033509300,
+          "cycles": 1015202528,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 337.595666,
+          "instructions": 5030405617,
+          "cycles": 1079533878,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 168.85716699999998,
+          "instructions": 2557743571,
+          "cycles": 553316181,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 91.01050000000001,
+          "instructions": 2405192081,
+          "cycles": 524759544,
+          "peakRssBytes": 88457216
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 45.114667,
+          "instructions": 1536307526,
+          "cycles": 378868592,
+          "peakRssBytes": 88326144
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 523.683875,
+          "instructions": 7952954525,
+          "cycles": 1666369613,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 265.178583,
+          "instructions": 4034592890,
+          "cycles": 854672613,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 340.2105,
+          "instructions": 5031165375,
+          "cycles": 1081930819,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 168.144625,
+          "instructions": 2557572988,
+          "cycles": 551048468,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 87.35475000000001,
+          "instructions": 2420971295,
+          "cycles": 512336025,
+          "peakRssBytes": 88408064
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 43.926125,
+          "instructions": 1542734091,
+          "cycles": 376700704,
+          "peakRssBytes": 88391680
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 489.6855,
+          "instructions": 6774091562,
+          "cycles": 1564095888,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 244.32320800000002,
+          "instructions": 3438095175,
+          "cycles": 796468683,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 257.742292,
+          "instructions": 4175466046,
+          "cycles": 828345114,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 128.25020800000001,
+          "instructions": 2125910117,
+          "cycles": 424344556,
+          "peakRssBytes": 8962048
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 105.18983300000001,
+          "instructions": 2169896750,
+          "cycles": 563214901,
+          "peakRssBytes": 88506368
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 52.028417,
+          "instructions": 1416943591,
+          "cycles": 401752496,
+          "peakRssBytes": 88489984
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 258.14975,
+          "instructions": 4175843032,
+          "cycles": 827532601,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 129.591833,
+          "instructions": 2126063772,
+          "cycles": 424411141,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 360.791583,
+          "instructions": 4362187928,
+          "cycles": 1155101289,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 180.863,
+          "instructions": 2220246937,
+          "cycles": 590771023,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 104.13975,
+          "instructions": 2066405399,
+          "cycles": 563770764,
+          "peakRssBytes": 88752128
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 52.048125,
+          "instructions": 1360230561,
+          "cycles": 400871615,
+          "peakRssBytes": 88375296
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 395.444792,
+          "instructions": 4362679937,
+          "cycles": 1262675033,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 197.71145800000002,
+          "instructions": 2220494020,
+          "cycles": 643273738,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 406.881458,
+          "instructions": 6401195553,
+          "cycles": 1302429041,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 204.804791,
+          "instructions": 3249831288,
+          "cycles": 664911047,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 91.760666,
+          "instructions": 2421134550,
+          "cycles": 526146973,
+          "peakRssBytes": 88702976
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 45.58091699999999,
+          "instructions": 1544056789,
+          "cycles": 383623889,
+          "peakRssBytes": 88276992
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 607.916583,
+          "instructions": 10426831637,
+          "cycles": 1935417237,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 303.68487500000003,
+          "instructions": 5282608871,
+          "cycles": 984744823,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 45.269583,
+          "instructions": 1539452774,
+          "cycles": 389095440,
+          "peakRssBytes": 88555520
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 91.003375,
+          "instructions": 2403293191,
+          "cycles": 521875101,
+          "peakRssBytes": 88440832
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 264.699416,
+          "instructions": 4033931674,
+          "cycles": 852379780,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 531.6879590000001,
+          "instructions": 7953781247,
+          "cycles": 1672919659,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "live-bound",
+            "5000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 170.95470799999998,
+          "instructions": 2557625824,
+          "cycles": 553299169,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "live-bound",
+            "10000000"
+          ],
+          "variant": "live-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 339.603708,
+          "instructions": 5030559217,
+          "cycles": 1083805059,
+          "peakRssBytes": 8962048
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 44.141082999999995,
+          "instructions": 1544449020,
+          "cycles": 383336908,
+          "peakRssBytes": 88653824
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 87.96083300000001,
+          "instructions": 2425383314,
+          "cycles": 522756632,
+          "peakRssBytes": 88883200
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 245.311209,
+          "instructions": 3438731031,
+          "cycles": 790343314,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 493.76729100000006,
+          "instructions": 6775381065,
+          "cycles": 1559348387,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "fixed-bound",
+            "5000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 170.85666700000002,
+          "instructions": 2557856842,
+          "cycles": 553662789,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "fixed-bound",
+            "10000000"
+          ],
+          "variant": "fixed-bound",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 342.19720799999993,
+          "instructions": 5031246336,
+          "cycles": 1082404580,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 52.410667,
+          "instructions": 1416534330,
+          "cycles": 404090112,
+          "peakRssBytes": 88342528
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 105.40008399999999,
+          "instructions": 2175282748,
+          "cycles": 568711142,
+          "peakRssBytes": 88195072
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 129.675625,
+          "instructions": 2126762887,
+          "cycles": 425536893,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 261.33575,
+          "instructions": 4175986686,
+          "cycles": 829736532,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "directions",
+            "5000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 130.905958,
+          "instructions": 2126512024,
+          "cycles": 426182278,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "directions",
+            "10000000"
+          ],
+          "variant": "directions",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 258.230667,
+          "instructions": 4176213179,
+          "cycles": 827711619,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 52.845292,
+          "instructions": 1364575609,
+          "cycles": 403739240,
+          "peakRssBytes": 88702976
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 106.01675,
+          "instructions": 2070794009,
+          "cycles": 575764153,
+          "peakRssBytes": 88522752
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 199.531667,
+          "instructions": 2220501493,
+          "cycles": 639521504,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 399.37833300000005,
+          "instructions": 4363165718,
+          "cycles": 1257555744,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "arithmetic",
+            "5000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 183.335125,
+          "instructions": 2220556891,
+          "cycles": 591750139,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "arithmetic",
+            "10000000"
+          ],
+          "variant": "arithmetic",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 367.178042,
+          "instructions": 4363236507,
+          "cycles": 1160543687,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 46.310708,
+          "instructions": 1548235219,
+          "cycles": 392084924,
+          "peakRssBytes": 88702976
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 92.49699999999999,
+          "instructions": 2422313728,
+          "cycles": 531649016,
+          "peakRssBytes": 88522752
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 305.398916,
+          "instructions": 5283688046,
+          "cycles": 988254524,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 614.772209,
+          "instructions": 10427798930,
+          "cycles": 1935259987,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "method",
+            "5000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 206.61516699999999,
+          "instructions": 3250485691,
+          "cycles": 667665524,
+          "peakRssBytes": 8962048
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "method",
+            "10000000"
+          ],
+          "variant": "method",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 410.283125,
+          "instructions": 6402040536,
+          "cycles": 1300460008,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 45.6605,
+          "instructions": 1541054856,
+          "cycles": 384048131,
+          "peakRssBytes": 88768512
+        },
+        {
+          "group": "access",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 91.43224999999998,
+          "instructions": 2406422036,
+          "cycles": 523342343,
+          "peakRssBytes": 88719360
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 316.851834,
+          "instructions": 5034022177,
+          "cycles": 1017413269,
+          "peakRssBytes": 8929280
+        },
+        {
+          "group": "access",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 643.552209,
+          "instructions": 9935585641,
+          "cycles": 2028784558,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "local",
+            "5000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 173.235292,
+          "instructions": 2558189705,
+          "cycles": 561128309,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "access",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "local",
+            "10000000"
+          ],
+          "variant": "local",
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 346.43404200000003,
+          "instructions": 5031059922,
+          "cycles": 1097035669,
+          "peakRssBytes": 8945664
+        },
+        {
+          "group": "increment",
+          "runtime": "old postfix",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 328.17974999999996,
+          "instructions": 5162767686,
+          "cycles": 1066405402,
+          "peakRssBytes": 8683520
+        },
+        {
+          "group": "increment",
+          "runtime": "old postfix",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 657.3496670000001,
+          "instructions": 10147763549,
+          "cycles": 2068104028,
+          "peakRssBytes": 8683520
+        },
+        {
+          "group": "increment",
+          "runtime": "new postfix",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 168.271833,
+          "instructions": 2593938392,
+          "cycles": 562323345,
+          "peakRssBytes": 8798208
+        },
+        {
+          "group": "increment",
+          "runtime": "new postfix",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 338.296084,
+          "instructions": 5081040910,
+          "cycles": 1081295851,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "old plus",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 266.726292,
+          "instructions": 4185474805,
+          "cycles": 877249308,
+          "peakRssBytes": 8699904
+        },
+        {
+          "group": "increment",
+          "runtime": "old plus",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 532.3860409999999,
+          "instructions": 8212439192,
+          "cycles": 1689467456,
+          "peakRssBytes": 8699904
+        },
+        {
+          "group": "increment",
+          "runtime": "new plus",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 171.184458,
+          "instructions": 2594082448,
+          "cycles": 562524185,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "new plus",
+          "round": 0,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 342.935916,
+          "instructions": 5081546904,
+          "cycles": 1082492471,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "new postfix",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 344.791666,
+          "instructions": 5082508522,
+          "cycles": 1086084026,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "new postfix",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 172.6065,
+          "instructions": 2583992543,
+          "cycles": 555706070,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "old plus",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 537.414125,
+          "instructions": 8213380099,
+          "cycles": 1693856100,
+          "peakRssBytes": 8699904
+        },
+        {
+          "group": "increment",
+          "runtime": "old plus",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 268.001917,
+          "instructions": 4163779586,
+          "cycles": 864633882,
+          "peakRssBytes": 8716288
+        },
+        {
+          "group": "increment",
+          "runtime": "new plus",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 341.222625,
+          "instructions": 5082281917,
+          "cycles": 1083234680,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "new plus",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 170.43954100000002,
+          "instructions": 2583610041,
+          "cycles": 554515957,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "old postfix",
+          "round": 1,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 647.017708,
+          "instructions": 10149611268,
+          "cycles": 2040040121,
+          "peakRssBytes": 8699904
+        },
+        {
+          "group": "increment",
+          "runtime": "old postfix",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 323.1005,
+          "instructions": 5141059793,
+          "cycles": 1040599631,
+          "peakRssBytes": 8699904
+        },
+        {
+          "group": "increment",
+          "runtime": "old plus",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 266.583084,
+          "instructions": 4163241994,
+          "cycles": 864311704,
+          "peakRssBytes": 8699904
+        },
+        {
+          "group": "increment",
+          "runtime": "old plus",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 528.9594999999999,
+          "instructions": 8212096673,
+          "cycles": 1686053899,
+          "peakRssBytes": 8699904
+        },
+        {
+          "group": "increment",
+          "runtime": "new plus",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 168.59466700000002,
+          "instructions": 2583138231,
+          "cycles": 552942762,
+          "peakRssBytes": 8798208
+        },
+        {
+          "group": "increment",
+          "runtime": "new plus",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 337.535708,
+          "instructions": 5081005884,
+          "cycles": 1081443896,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "old postfix",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 322.50275000000005,
+          "instructions": 5141074366,
+          "cycles": 1037172754,
+          "peakRssBytes": 8683520
+        },
+        {
+          "group": "increment",
+          "runtime": "old postfix",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 646.402083,
+          "instructions": 10149438893,
+          "cycles": 2046819265,
+          "peakRssBytes": 8699904
+        },
+        {
+          "group": "increment",
+          "runtime": "new postfix",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "5000000"
+          ],
+          "n": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 169.561209,
+          "instructions": 2584084081,
+          "cycles": 553357734,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "increment",
+          "runtime": "new postfix",
+          "round": 2,
+          "amount": 10000000,
+          "args": [
+            "10000000"
+          ],
+          "n": 10000000,
+          "warmup": 42188,
+          "checksum": 4218750,
+          "milliseconds": 336.935875,
+          "instructions": 5081415181,
+          "cycles": 1079605650,
+          "peakRssBytes": 8781824
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 614.1090829999999,
+          "instructions": 8432547393,
+          "cycles": 1927953389,
+          "peakRssBytes": 9109504
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 315.43287499999997,
+          "instructions": 5352250069,
+          "cycles": 1023429320,
+          "peakRssBytes": 8978432
+        },
+        {
+          "group": "iterator",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 57.599374999999995,
+          "instructions": 1710783699,
+          "cycles": 431617325,
+          "peakRssBytes": 88752128
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry original",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 302.66920799999997,
+          "instructions": 5278117162,
+          "cycles": 980682644,
+          "peakRssBytes": 9125888
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry current",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 250.19874999999996,
+          "instructions": 4283023529,
+          "cycles": 814646894,
+          "peakRssBytes": 8978432
+        },
+        {
+          "group": "iterator",
+          "runtime": "Node",
+          "round": 0,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 45.68625,
+          "instructions": 1524275512,
+          "cycles": 378633529,
+          "peakRssBytes": 86851584
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 314.25575,
+          "instructions": 5341458451,
+          "cycles": 1017134943,
+          "peakRssBytes": 8978432
+        },
+        {
+          "group": "iterator",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 57.67516599999999,
+          "instructions": 1706358524,
+          "cycles": 429259268,
+          "peakRssBytes": 88784896
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 589.034,
+          "instructions": 8407291728,
+          "cycles": 1892566633,
+          "peakRssBytes": 9109504
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry current",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 250.95825,
+          "instructions": 4283374431,
+          "cycles": 813791658,
+          "peakRssBytes": 8994816
+        },
+        {
+          "group": "iterator",
+          "runtime": "Node",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 46.5125,
+          "instructions": 1525263867,
+          "cycles": 379982372,
+          "peakRssBytes": 86851584
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry original",
+          "round": 1,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 305.10166699999996,
+          "instructions": 5278684591,
+          "cycles": 983981086,
+          "peakRssBytes": 9125888
+        },
+        {
+          "group": "iterator",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 57.513459,
+          "instructions": 1700874145,
+          "cycles": 429437557,
+          "peakRssBytes": 89178112
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 590.3292499999999,
+          "instructions": 8408031314,
+          "cycles": 1894214354,
+          "peakRssBytes": 9125888
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "forof",
+            "5000000"
+          ],
+          "mode": "forof",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 315.331917,
+          "instructions": 5340495478,
+          "cycles": 1018370606,
+          "peakRssBytes": 8978432
+        },
+        {
+          "group": "iterator",
+          "runtime": "Node",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 45.655083000000005,
+          "instructions": 1521869781,
+          "cycles": 373764418,
+          "peakRssBytes": 86573056
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry original",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 304.834958,
+          "instructions": 5277619662,
+          "cycles": 985810841,
+          "peakRssBytes": 9125888
+        },
+        {
+          "group": "iterator",
+          "runtime": "Perry current",
+          "round": 2,
+          "amount": 5000000,
+          "args": [
+            "indexed",
+            "5000000"
+          ],
+          "mode": "indexed",
+          "iterations": 5000000,
+          "warmup": 42188,
+          "checksum": 2109378,
+          "milliseconds": 251.123709,
+          "instructions": 4283400883,
+          "cycles": 814033335,
+          "peakRssBytes": 8978432
+        }
+      ]
+    },
+    "engine": {
+      "recordedAt": "2026-11-01T16:48:57.229Z",
+      "targets": [
+        {
+          "name": "Node",
+          "command": [
+            "node",
+            "scripts/compare-workload.ts"
+          ]
+        },
+        {
+          "name": "Bun",
+          "command": [
+            "bun",
+            "scripts/compare-workload.ts"
+          ]
+        },
+        {
+          "name": "Perry original",
+          "command": [
+            "dist/comparison/engine-perry-stripped"
+          ]
+        },
+        {
+          "name": "Perry current",
+          "command": [
+            "dist/perry-reassessment/engine-current"
+          ]
+        },
+        {
+          "name": "Perry current pruned",
+          "command": [
+            "dist/perry-reassessment/engine-pruned"
+          ]
+        },
+        {
+          "name": "ScriptC",
+          "command": [
+            "dist/comparison/engine-scriptc-stripped"
+          ]
+        }
+      ],
+      "workloads": [
+        {
+          "mode": "evaluate",
+          "amount": 100000
+        },
+        {
+          "mode": "legal",
+          "amount": 10000
+        },
+        {
+          "mode": "perft",
+          "amount": 4
+        },
+        {
+          "mode": "search",
+          "amount": 250000
+        }
+      ],
+      "rounds": 3,
+      "methodology": "Sequential child processes, rotating runtime order. Inner wall time excludes startup/setup/warmup/serialization. OS counters and peak RSS include the whole process. Each workload verifies unchanged game state and identical result fingerprints across all runs.",
+      "results": [
+        {
+          "runtime": "Node",
+          "round": 0,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 110.07908300000001,
+          "processWallMs": 194.83975,
+          "instructions": 2957214266,
+          "cycles": 699185509,
+          "peakRssBytes": 99287040
+        },
+        {
+          "runtime": "Bun",
+          "round": 0,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 91.072416,
+          "processWallMs": 197.88174999999998,
+          "instructions": 2267814632,
+          "cycles": 538262074,
+          "peakRssBytes": 66519040
+        },
+        {
+          "runtime": "Perry original",
+          "round": 0,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 458.000542,
+          "processWallMs": 500.83962499999996,
+          "instructions": 8539189827,
+          "cycles": 1471218678,
+          "peakRssBytes": 15745024
+        },
+        {
+          "runtime": "Perry current",
+          "round": 0,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 530.3856249999999,
+          "processWallMs": 889.887542,
+          "instructions": 8836787999,
+          "cycles": 1696224761,
+          "peakRssBytes": 15630336
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 0,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 526.878709,
+          "processWallMs": 880.357125,
+          "instructions": 8834099184,
+          "cycles": 1691364752,
+          "peakRssBytes": 15138816
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 0,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 86.15100002288818,
+          "processWallMs": 101.09937499999978,
+          "instructions": 1488446132,
+          "cycles": 281631910,
+          "peakRssBytes": 2342912
+        },
+        {
+          "runtime": "Bun",
+          "round": 1,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 90.387708,
+          "processWallMs": 117.65729099999999,
+          "instructions": 1985958177,
+          "cycles": 434301848,
+          "peakRssBytes": 64536576
+        },
+        {
+          "runtime": "Perry original",
+          "round": 1,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 454.504209,
+          "processWallMs": 467.8824159999999,
+          "instructions": 8510203538,
+          "cycles": 1449122318,
+          "peakRssBytes": 15745024
+        },
+        {
+          "runtime": "Perry current",
+          "round": 1,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 529.734916,
+          "processWallMs": 543.672916,
+          "instructions": 8821146953,
+          "cycles": 1686442473,
+          "peakRssBytes": 15630336
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 1,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 531.614792,
+          "processWallMs": 546.4792079999997,
+          "instructions": 8820311004,
+          "cycles": 1691050802,
+          "peakRssBytes": 15138816
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 1,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 86.625,
+          "processWallMs": 94.7353749999993,
+          "instructions": 1486260424,
+          "cycles": 279898443,
+          "peakRssBytes": 2342912
+        },
+        {
+          "runtime": "Node",
+          "round": 1,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 109.039917,
+          "processWallMs": 189.51595799999996,
+          "instructions": 2952457513,
+          "cycles": 685625560,
+          "peakRssBytes": 97976320
+        },
+        {
+          "runtime": "Perry original",
+          "round": 2,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 455.72749999999996,
+          "processWallMs": 469.32570899999973,
+          "instructions": 8510380240,
+          "cycles": 1452669559,
+          "peakRssBytes": 15728640
+        },
+        {
+          "runtime": "Perry current",
+          "round": 2,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 528.32925,
+          "processWallMs": 543.0333339999997,
+          "instructions": 8821676158,
+          "cycles": 1682915249,
+          "peakRssBytes": 15630336
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 2,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 531.3111670000001,
+          "processWallMs": 544.9875830000001,
+          "instructions": 8820453539,
+          "cycles": 1690978188,
+          "peakRssBytes": 15138816
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 2,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 85.71399974822998,
+          "processWallMs": 92.38474999999926,
+          "instructions": 1485768649,
+          "cycles": 277955206,
+          "peakRssBytes": 2342912
+        },
+        {
+          "runtime": "Node",
+          "round": 2,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 109.84616700000001,
+          "processWallMs": 192.5340409999999,
+          "instructions": 2961907172,
+          "cycles": 690451699,
+          "peakRssBytes": 97894400
+        },
+        {
+          "runtime": "Bun",
+          "round": 2,
+          "mode": "evaluate",
+          "amount": 100000,
+          "checksum": 1000000,
+          "detail": "",
+          "milliseconds": 89.497167,
+          "processWallMs": 115.55324999999993,
+          "instructions": 1984100932,
+          "cycles": 432696184,
+          "peakRssBytes": 64651264
+        },
+        {
+          "runtime": "Node",
+          "round": 0,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 35.38616699999999,
+          "processWallMs": 119.26708299999973,
+          "instructions": 1743406686,
+          "cycles": 520917424,
+          "peakRssBytes": 101662720
+        },
+        {
+          "runtime": "Bun",
+          "round": 0,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 35.573791,
+          "processWallMs": 59.11216700000023,
+          "instructions": 1219589594,
+          "cycles": 342141951,
+          "peakRssBytes": 93487104
+        },
+        {
+          "runtime": "Perry original",
+          "round": 0,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 148.51125,
+          "processWallMs": 159.09399999999914,
+          "instructions": 2780977442,
+          "cycles": 482701453,
+          "peakRssBytes": 15810560
+        },
+        {
+          "runtime": "Perry current",
+          "round": 0,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 139.010583,
+          "processWallMs": 149.5292500000005,
+          "instructions": 2760223376,
+          "cycles": 455688021,
+          "peakRssBytes": 15728640
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 0,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 139.3155,
+          "processWallMs": 149.88937499999975,
+          "instructions": 2765071924,
+          "cycles": 458504022,
+          "peakRssBytes": 16334848
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 0,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 43.70900058746338,
+          "processWallMs": 49.90691699999934,
+          "instructions": 768444116,
+          "cycles": 144624925,
+          "peakRssBytes": 2359296
+        },
+        {
+          "runtime": "Bun",
+          "round": 1,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 36.484375,
+          "processWallMs": 61.10304199999973,
+          "instructions": 1229495302,
+          "cycles": 344613203,
+          "peakRssBytes": 93601792
+        },
+        {
+          "runtime": "Perry original",
+          "round": 1,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 148.91629100000003,
+          "processWallMs": 159.19725000000017,
+          "instructions": 2780969983,
+          "cycles": 484878745,
+          "peakRssBytes": 15810560
+        },
+        {
+          "runtime": "Perry current",
+          "round": 1,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 138.428666,
+          "processWallMs": 148.54550000000017,
+          "instructions": 2760074712,
+          "cycles": 454403720,
+          "peakRssBytes": 15761408
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 1,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 140.07804199999998,
+          "processWallMs": 150.00320899999952,
+          "instructions": 2760615757,
+          "cycles": 455784917,
+          "peakRssBytes": 16351232
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 1,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 43.632999420166016,
+          "processWallMs": 50.47587500000009,
+          "instructions": 768509682,
+          "cycles": 146019232,
+          "peakRssBytes": 2359296
+        },
+        {
+          "runtime": "Node",
+          "round": 1,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 37.049875,
+          "processWallMs": 119.66575000000012,
+          "instructions": 1756942337,
+          "cycles": 525209532,
+          "peakRssBytes": 101171200
+        },
+        {
+          "runtime": "Perry original",
+          "round": 2,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 148.315458,
+          "processWallMs": 158.62124999999924,
+          "instructions": 2782113487,
+          "cycles": 484114132,
+          "peakRssBytes": 15810560
+        },
+        {
+          "runtime": "Perry current",
+          "round": 2,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 138.30625000000003,
+          "processWallMs": 148.52737499999967,
+          "instructions": 2760834883,
+          "cycles": 454063160,
+          "peakRssBytes": 15761408
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 2,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 139.72962499999997,
+          "processWallMs": 150.08037500000137,
+          "instructions": 2763806015,
+          "cycles": 456690241,
+          "peakRssBytes": 16334848
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 2,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 44.671000480651855,
+          "processWallMs": 50.741541999999754,
+          "instructions": 768603362,
+          "cycles": 145474941,
+          "peakRssBytes": 2359296
+        },
+        {
+          "runtime": "Node",
+          "round": 2,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 36.91612500000001,
+          "processWallMs": 120.18704199999956,
+          "instructions": 1732947232,
+          "cycles": 525510125,
+          "peakRssBytes": 101154816
+        },
+        {
+          "runtime": "Bun",
+          "round": 2,
+          "mode": "legal",
+          "amount": 10000,
+          "checksum": 200000,
+          "detail": "",
+          "milliseconds": 34.539458,
+          "processWallMs": 57.57641599999988,
+          "instructions": 1216351689,
+          "cycles": 336152601,
+          "peakRssBytes": 93667328
+        },
+        {
+          "runtime": "Node",
+          "round": 0,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 34.551541,
+          "processWallMs": 124.56033399999978,
+          "instructions": 1778530268,
+          "cycles": 562611518,
+          "peakRssBytes": 102383616
+        },
+        {
+          "runtime": "Bun",
+          "round": 0,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 34.929666,
+          "processWallMs": 61.90366699999868,
+          "instructions": 1391970857,
+          "cycles": 377722903,
+          "peakRssBytes": 90865664
+        },
+        {
+          "runtime": "Perry original",
+          "round": 0,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 145.88358399999998,
+          "processWallMs": 160.033875000001,
+          "instructions": 2757735814,
+          "cycles": 487542897,
+          "peakRssBytes": 15843328
+        },
+        {
+          "runtime": "Perry current",
+          "round": 0,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 135.665125,
+          "processWallMs": 149.88683300000048,
+          "instructions": 2738986005,
+          "cycles": 458668975,
+          "peakRssBytes": 15777792
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 0,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 134.969666,
+          "processWallMs": 148.294249999999,
+          "instructions": 2731975686,
+          "cycles": 453858376,
+          "peakRssBytes": 15351808
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 0,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 23.11900043487549,
+          "processWallMs": 29.59741699999904,
+          "instructions": 433778610,
+          "cycles": 81768611,
+          "peakRssBytes": 2359296
+        },
+        {
+          "runtime": "Bun",
+          "round": 1,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 34.778,
+          "processWallMs": 60.38470899999993,
+          "instructions": 1400519215,
+          "cycles": 375908750,
+          "peakRssBytes": 91258880
+        },
+        {
+          "runtime": "Perry original",
+          "round": 1,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 144.212625,
+          "processWallMs": 158.85008400000152,
+          "instructions": 2756998828,
+          "cycles": 486039084,
+          "peakRssBytes": 15843328
+        },
+        {
+          "runtime": "Perry current",
+          "round": 1,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 137.168958,
+          "processWallMs": 151.2359579999993,
+          "instructions": 2738135049,
+          "cycles": 460484799,
+          "peakRssBytes": 15794176
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 1,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 136.048625,
+          "processWallMs": 149.6325829999987,
+          "instructions": 2732267985,
+          "cycles": 456308268,
+          "peakRssBytes": 15368192
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 1,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 23.307000160217285,
+          "processWallMs": 29.732958000000508,
+          "instructions": 433859529,
+          "cycles": 81933607,
+          "peakRssBytes": 2359296
+        },
+        {
+          "runtime": "Node",
+          "round": 1,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 34.195083999999994,
+          "processWallMs": 120.68000000000029,
+          "instructions": 1778834922,
+          "cycles": 560957332,
+          "peakRssBytes": 104103936
+        },
+        {
+          "runtime": "Perry original",
+          "round": 2,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 145.478958,
+          "processWallMs": 160.05945799999972,
+          "instructions": 2756261504,
+          "cycles": 487168406,
+          "peakRssBytes": 15843328
+        },
+        {
+          "runtime": "Perry current",
+          "round": 2,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 136.544667,
+          "processWallMs": 150.2798329999987,
+          "instructions": 2733830841,
+          "cycles": 458823359,
+          "peakRssBytes": 15794176
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 2,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 136.12479199999999,
+          "processWallMs": 149.85387499999888,
+          "instructions": 2732075144,
+          "cycles": 456829730,
+          "peakRssBytes": 15351808
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 2,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 24.0939998626709,
+          "processWallMs": 30.949624999999287,
+          "instructions": 433805158,
+          "cycles": 85487628,
+          "peakRssBytes": 2359296
+        },
+        {
+          "runtime": "Node",
+          "round": 2,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 34.91612500000001,
+          "processWallMs": 121.42895800000042,
+          "instructions": 1780049962,
+          "cycles": 562354236,
+          "peakRssBytes": 103596032
+        },
+        {
+          "runtime": "Bun",
+          "round": 2,
+          "mode": "perft",
+          "amount": 4,
+          "checksum": 197281,
+          "detail": "",
+          "milliseconds": 34.594916,
+          "processWallMs": 60.73841600000014,
+          "instructions": 1393420566,
+          "cycles": 375676330,
+          "peakRssBytes": 90619904
+        },
+        {
+          "runtime": "Node",
+          "round": 0,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 944.190125,
+          "processWallMs": 1095.0477499999997,
+          "instructions": 19327045898,
+          "cycles": 4155791021,
+          "peakRssBytes": 148504576
+        },
+        {
+          "runtime": "Bun",
+          "round": 0,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 909.79775,
+          "processWallMs": 1001.2129160000004,
+          "instructions": 17662109070,
+          "cycles": 4009577795,
+          "peakRssBytes": 144916480
+        },
+        {
+          "runtime": "Perry original",
+          "round": 0,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 5876.104666,
+          "processWallMs": 6109.098667,
+          "instructions": 105875419813,
+          "cycles": 19042509070,
+          "peakRssBytes": 24870912
+        },
+        {
+          "runtime": "Perry current",
+          "round": 0,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 5842.039250000001,
+          "processWallMs": 6081.542416,
+          "instructions": 105765648666,
+          "cycles": 18440308568,
+          "peakRssBytes": 24805376
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 0,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 6277.372792,
+          "processWallMs": 6583.261624999999,
+          "instructions": 105675865058,
+          "cycles": 18638081543,
+          "peakRssBytes": 24395776
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 0,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 1017.1909999847412,
+          "processWallMs": 1063.7656249999964,
+          "instructions": 16723846139,
+          "cycles": 3274617302,
+          "peakRssBytes": 7241728
+        },
+        {
+          "runtime": "Bun",
+          "round": 1,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 908.80225,
+          "processWallMs": 1007.8780000000042,
+          "instructions": 17675079819,
+          "cycles": 4018784110,
+          "peakRssBytes": 145997824
+        },
+        {
+          "runtime": "Perry original",
+          "round": 1,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 5879.7115,
+          "processWallMs": 6116.908167000001,
+          "instructions": 105946394703,
+          "cycles": 19043248278,
+          "peakRssBytes": 24870912
+        },
+        {
+          "runtime": "Perry current",
+          "round": 1,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 5808.807292,
+          "processWallMs": 6039.897792000003,
+          "instructions": 105665453825,
+          "cycles": 18641183226,
+          "peakRssBytes": 24805376
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 1,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 5771.997291,
+          "processWallMs": 6004.915000000001,
+          "instructions": 105673149656,
+          "cycles": 18547736760,
+          "peakRssBytes": 24412160
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 1,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 1019.2329998016357,
+          "processWallMs": 1065.2277499999982,
+          "instructions": 16724697128,
+          "cycles": 3309691910,
+          "peakRssBytes": 7307264
+        },
+        {
+          "runtime": "Node",
+          "round": 1,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 950.7265,
+          "processWallMs": 1106.4374580000003,
+          "instructions": 19323782983,
+          "cycles": 4184326324,
+          "peakRssBytes": 148160512
+        },
+        {
+          "runtime": "Perry original",
+          "round": 2,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 5858.206791999999,
+          "processWallMs": 6092.164124999996,
+          "instructions": 106007429624,
+          "cycles": 19010921250,
+          "peakRssBytes": 24887296
+        },
+        {
+          "runtime": "Perry current",
+          "round": 2,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 5634.938458999999,
+          "processWallMs": 5861.711374999999,
+          "instructions": 105658078339,
+          "cycles": 18309303377,
+          "peakRssBytes": 24821760
+        },
+        {
+          "runtime": "Perry current pruned",
+          "round": 2,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 5637.4695,
+          "processWallMs": 5863.4074580000015,
+          "instructions": 105632729445,
+          "cycles": 18320433051,
+          "peakRssBytes": 24395776
+        },
+        {
+          "runtime": "ScriptC",
+          "round": 2,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 1006.3150005340576,
+          "processWallMs": 1052.4639999999927,
+          "instructions": 16723259468,
+          "cycles": 3275428755,
+          "peakRssBytes": 7274496
+        },
+        {
+          "runtime": "Node",
+          "round": 2,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 973.84025,
+          "processWallMs": 1127.5702500000043,
+          "instructions": 19258661529,
+          "cycles": 4236412312,
+          "peakRssBytes": 148324352
+        },
+        {
+          "runtime": "Bun",
+          "round": 2,
+          "mode": "search",
+          "amount": 250000,
+          "checksum": 250000,
+          "detail": "b1c3:14:7:b1c3 b8c6 g1f3 g8f6 a2a4 a7a5 h2h4:false:false",
+          "milliseconds": 898.156917,
+          "processWallMs": 987.5598339999997,
+          "instructions": 17647564480,
+          "cycles": 3970262137,
+          "peakRssBytes": 140279808
+        }
+      ]
+    },
+    "ui": {
+      "metadata": {
+        "measuredAt": "2026-11-01T16:48:57.307Z",
+        "commit": "f348a206852c982aedef0d252fd7d67659e0ee32",
+        "cpu": "Apple M1 Max",
+        "memoryBytes": 68719476736,
+        "os": "26.5",
+        "architecture": "arm64",
+        "node": "v26.5.1",
+        "bun": "1.3.14",
+        "perry": "perry 0.5.1663",
+        "scriptc": null,
+        "scriptcAdaptation": null,
+        "startupRuns": 25,
+        "searchRuns": 5,
+        "quick": false,
+        "cases": [
+          {
+            "name": "opening-L1",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 1
+          },
+          {
+            "name": "opening-L5",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 5
+          },
+          {
+            "name": "opening-L7",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 7
+          },
+          {
+            "name": "opening-L10",
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "level": 10
+          },
+          {
+            "name": "middlegame-L5",
+            "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+            "level": 5
+          },
+          {
+            "name": "endgame-L5",
+            "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+            "level": 5
+          }
+        ],
+        "targets": [
+          {
+            "name": "Node",
+            "command": [
+              "node",
+              "tui/src/main.ts"
+            ]
+          },
+          {
+            "name": "Bun",
+            "command": [
+              "bun",
+              "tui/src/main.ts"
+            ]
+          },
+          {
+            "name": "Perry original",
+            "command": [
+              "./dist/chess"
+            ]
+          },
+          {
+            "name": "Perry current",
+            "command": [
+              "dist/perry-reassessment/chess-current"
+            ]
+          },
+          {
+            "name": "Perry current pruned",
+            "command": [
+              "dist/perry-reassessment/chess-pruned"
+            ]
+          }
+        ],
+        "methodology": "Serial CLI sessions over pipes; parent monotonic wall clock. Startup: spawn to complete first board, 3 discarded launches per target, rotated target order. Idle RSS: ps after first board in 5 separate launches after startup timing. Search: first hint in fresh session, then repeated hints in that session with cleared engine search table; first repeat discarded except L10. L10: first search plus 2 repeats. Peak RSS: macOS /usr/bin/time -l across each entire search session. These are warm-filesystem process starts, not cold boot starts. All search result frames must match across runtimes and repeats. Local move: play e2e4 from a reset board, including validation and render, 3 discarded then 25 measured (5 in quick mode). No console output inside timed regions."
+      },
+      "startup": {
+        "Node": {
+          "milliseconds": [
+            164.40195900000003,
+            165.16791699999976,
+            166.75866700000006,
+            174.03258400000004,
+            174.1486249999998,
+            167.54812500000025,
+            171.68270900000016,
+            164.85808399999996,
+            168.48637499999995,
+            170.08550000000014,
+            167.72775000000001,
+            166.76800000000003,
+            166.74341600000025,
+            181.72508299999936,
+            181.50395800000024,
+            173.87024999999994,
+            176.02616599999965,
+            178.12783300000046,
+            181.77570900000046,
+            175.9735840000003,
+            185.8305419999997,
+            183.38054199999988,
+            177.16966700000012,
+            172.64416700000038,
+            175.1708749999998
+          ],
+          "idleRssBytes": [
+            96747520,
+            95338496,
+            96780288,
+            97779712,
+            97091584
+          ]
+        },
+        "Bun": {
+          "milliseconds": [
+            26.11733299999969,
+            25.250084000000243,
+            24.88050000000021,
+            25.070999999999913,
+            25.437834000000294,
+            25.259624999999687,
+            24.97112500000003,
+            25.156916999999794,
+            23.714707999999973,
+            25.448624999999993,
+            25.44933300000048,
+            26.091042000000016,
+            24.947540999999546,
+            26.032666999999492,
+            25.62091700000019,
+            26.97674999999981,
+            24.365249999999833,
+            26.210124999999607,
+            26.376124999999774,
+            25.337209000000257,
+            25.244417000000794,
+            26.539708999999675,
+            25.435999999999694,
+            24.589332999999897,
+            24.23924999999963
+          ],
+          "idleRssBytes": [
+            39616512,
+            39370752,
+            39501824,
+            39354368,
+            39600128
+          ]
+        },
+        "Perry original": {
+          "milliseconds": [
+            8.524792000000161,
+            8.133791000000201,
+            8.188249999999698,
+            8.724333000000115,
+            8.244666999999936,
+            8.502542000000176,
+            7.876709000000119,
+            8.094250000000102,
+            8.312582999999904,
+            8.82916699999987,
+            8.17491599999994,
+            8.253584000000046,
+            8.710957999999664,
+            8.349750000000313,
+            8.336500000000342,
+            8.74370799999997,
+            7.999500000000808,
+            8.451917000000321,
+            8.860666999999921,
+            8.974624999999833,
+            8.644749999999476,
+            8.80999999999949,
+            8.377666999999747,
+            8.83508300000085,
+            8.031041000000187
+          ],
+          "idleRssBytes": [
+            18874368,
+            18907136,
+            18857984,
+            18857984,
+            18874368
+          ]
+        },
+        "Perry current": {
+          "milliseconds": [
+            8.523500000000013,
+            7.271042000000307,
+            7.296917000000121,
+            7.83541600000035,
+            8.021125000000211,
+            8.596874999999727,
+            8.01449999999977,
+            8.136915999999928,
+            7.756000000000313,
+            8.035249999999905,
+            7.9840839999997115,
+            7.104583999999704,
+            8.799791999999798,
+            8.360625000000255,
+            7.8333330000004935,
+            8.24737499999992,
+            7.598583000000872,
+            8.455583999999362,
+            7.853374999999687,
+            8.244040999999925,
+            8.197791999999936,
+            7.791334000000461,
+            7.904958000000079,
+            8.910792000000583,
+            8.222209000000475
+          ],
+          "idleRssBytes": [
+            17874944,
+            17874944,
+            17891328,
+            17874944,
+            17874944
+          ]
+        },
+        "Perry current pruned": {
+          "milliseconds": [
+            7.815333999999893,
+            7.646874999999909,
+            8.070292000000336,
+            7.881832999999915,
+            7.422666999999819,
+            7.94137499999988,
+            8.123833000000104,
+            7.95975000000044,
+            7.932624999999916,
+            8.186416999999892,
+            7.069749999999658,
+            7.906499999999141,
+            7.999917000000096,
+            8.360125000000153,
+            8.331208000000515,
+            8.063874999999825,
+            8.619166000000405,
+            8.579250000000684,
+            8.244459000000461,
+            8.046166999999514,
+            7.827416000000085,
+            7.9551669999991645,
+            8.08416600000055,
+            8.101791000000048,
+            7.696792000000642
+          ],
+          "idleRssBytes": [
+            17661952,
+            17661952,
+            17645568,
+            17678336,
+            17661952
+          ]
+        }
+      },
+      "searches": {
+        "Node": {},
+        "Bun": {},
+        "Perry original": {},
+        "Perry current": {},
+        "Perry current pruned": {}
+      },
+      "localMoves": {
+        "Node": [
+          0.22066600000107428,
+          0.18012500000077125,
+          0.18904099999963364,
+          0.19633299999986775,
+          0.2486669999998412,
+          0.12012500000128057,
+          0.09479099999953178,
+          0.0727919999990263,
+          0.07725000000027649,
+          0.09191599999940081,
+          0.11220800000046438,
+          0.13875000000007276,
+          0.08899999999994179,
+          0.05962499999986903,
+          0.0727919999990263,
+          0.07062500000029104,
+          0.06979099999989558,
+          0.11441699999886623,
+          0.15283300000010058,
+          0.05666699999892444,
+          0.055625000000873115,
+          0.0790419999993901,
+          0.08137499999975262,
+          0.08341699999982666,
+          0.07849999999962165
+        ],
+        "Bun": [
+          0.18091700000150013,
+          0.9630410000008851,
+          0.11533400000007532,
+          0.15574999999989814,
+          0.12554200000158744,
+          0.10558400000081747,
+          0.08687499999905413,
+          0.20425000000068394,
+          0.12195900000006077,
+          0.1134170000004815,
+          0.167250000000422,
+          0.5153750000008586,
+          0.08866699999998673,
+          0.20154199999888078,
+          0.15958400000090478,
+          0.08537500000056752,
+          0.082749999999578,
+          0.0787079999990965,
+          0.07699999999931606,
+          0.10062500000094587,
+          0.078125,
+          0.07983299999978044,
+          0.11429100000168546,
+          0.07349999999860302,
+          0.09891599999900791
+        ],
+        "Perry original": [
+          0.16424999999981083,
+          0.20287499999903957,
+          0.12550000000010186,
+          0.11104100000011385,
+          0.10029199999917182,
+          0.13920900000084657,
+          0.134541999999783,
+          0.10224999999991269,
+          0.12045800000123563,
+          0.10779200000069977,
+          0.1095420000001468,
+          0.10608399999910034,
+          0.12791699999979755,
+          0.10162499999933061,
+          0.1443330000001879,
+          0.12600000000020373,
+          0.0946669999993901,
+          0.09150000000045111,
+          0.08770900000126858,
+          0.10279199999968114,
+          0.09766700000000128,
+          0.09495799999967858,
+          0.09287500000027649,
+          0.08599999999933061,
+          0.10541699999885168
+        ],
+        "Perry current": [
+          0.16758299999855808,
+          0.10320800000044983,
+          0.09383300000081363,
+          0.0852919999997539,
+          0.07974999999896681,
+          0.09533300000111922,
+          0.08595799999966403,
+          0.1023750000003929,
+          0.08558399999856192,
+          0.09100000000034925,
+          0.08679200000005949,
+          0.07954200000131095,
+          0.1013329999987036,
+          0.07454200000029232,
+          0.07029200000033597,
+          0.07999999999992724,
+          0.07391699999971024,
+          0.07670800000050804,
+          0.08799999999973807,
+          0.07837500000096043,
+          0.08904199999960838,
+          0.07479200000125275,
+          0.07429199999933189,
+          0.08220900000014808,
+          0.08145899999908579
+        ],
+        "Perry current pruned": [
+          0.08225000000129512,
+          0.10579200000029232,
+          0.08983299999999872,
+          0.09804100000110338,
+          0.08699999999953434,
+          0.08837499999935972,
+          0.09641700000065612,
+          0.0865830000002461,
+          0.0814169999994192,
+          0.08912499999860302,
+          0.08337500000016007,
+          0.08087499999965075,
+          0.09454200000072888,
+          0.08112499999879219,
+          0.07783399999971152,
+          0.07720899999912945,
+          0.08458299999983865,
+          0.07099999999991269,
+          0.07945800000015879,
+          0.07945800000015879,
+          0.07883299999957671,
+          0.07349999999860302,
+          0.07970900000145775,
+          0.1273750000000291,
+          0.08920799999941664
+        ]
+      }
+    },
+    "evaluationConfirmation": [
+      {
+        "mode": "evaluate",
+        "amount": 1000000,
+        "checksum": 10000000,
+        "detail": "",
+        "milliseconds": 4578.617375,
+        "runtime": "original",
+        "round": 0,
+        "instructions": 83832482851,
+        "cycles": 14207552934
+      },
+      {
+        "mode": "evaluate",
+        "amount": 1000000,
+        "checksum": 10000000,
+        "detail": "",
+        "milliseconds": 5297.345541999999,
+        "runtime": "current",
+        "round": 0,
+        "instructions": 86911708810,
+        "cycles": 16529032866
+      },
+      {
+        "mode": "evaluate",
+        "amount": 1000000,
+        "checksum": 10000000,
+        "detail": "",
+        "milliseconds": 5308.606167,
+        "runtime": "current",
+        "round": 1,
+        "instructions": 86911189044,
+        "cycles": 16512783429
+      },
+      {
+        "mode": "evaluate",
+        "amount": 1000000,
+        "checksum": 10000000,
+        "detail": "",
+        "milliseconds": 4579.670875000001,
+        "runtime": "original",
+        "round": 1,
+        "instructions": 83822486229,
+        "cycles": 14211431242
+      },
+      {
+        "mode": "evaluate",
+        "amount": 1000000,
+        "checksum": 10000000,
+        "detail": "",
+        "milliseconds": 4558.181917,
+        "runtime": "original",
+        "round": 2,
+        "instructions": 83825843107,
+        "cycles": 14235311319
+      },
+      {
+        "mode": "evaluate",
+        "amount": 1000000,
+        "checksum": 10000000,
+        "detail": "",
+        "milliseconds": 5448.772708,
+        "runtime": "current",
+        "round": 2,
+        "instructions": 86910594593,
+        "cycles": 16689791829
+      }
+    ],
+    "featureRetention": [
+      {
+        "name": "feature-signal",
+        "bytes": 6229776,
+        "regexInstaller": false,
+        "stdout": "ok"
+      },
+      {
+        "name": "signal-literal-removal",
+        "bytes": 6229776,
+        "regexInstaller": false,
+        "stdout": "ok"
+      },
+      {
+        "name": "signal-assigned",
+        "bytes": 7595552,
+        "regexInstaller": true,
+        "stdout": "ok"
+      },
+      {
+        "name": "feature-name-search",
+        "bytes": 5568912,
+        "regexInstaller": false,
+        "stdout": "1"
+      },
+      {
+        "name": "feature-name-find",
+        "bytes": 5568912,
+        "regexInstaller": false,
+        "stdout": "1"
+      }
+    ]
+  },
+  "manifests": {
+    "engine": {
+      "directory": "dist/perry-reassessment/engine-results",
+      "rounds": 3,
+      "targets": [
+        {
+          "name": "Node",
+          "command": [
+            "node",
+            "scripts/compare-workload.ts"
+          ]
+        },
+        {
+          "name": "Bun",
+          "command": [
+            "bun",
+            "scripts/compare-workload.ts"
+          ]
+        },
+        {
+          "name": "Perry original",
+          "command": [
+            "dist/comparison/engine-perry-stripped"
+          ]
+        },
+        {
+          "name": "Perry current",
+          "command": [
+            "dist/perry-reassessment/engine-current"
+          ]
+        },
+        {
+          "name": "Perry current pruned",
+          "command": [
+            "dist/perry-reassessment/engine-pruned"
+          ]
+        },
+        {
+          "name": "ScriptC",
+          "command": [
+            "dist/comparison/engine-scriptc-stripped"
+          ]
+        }
+      ]
+    },
+    "ui": {
+      "directory": "dist/perry-reassessment/ui-results",
+      "targets": [
+        {
+          "name": "Node",
+          "command": [
+            "node",
+            "tui/src/main.ts"
+          ]
+        },
+        {
+          "name": "Bun",
+          "command": [
+            "bun",
+            "tui/src/main.ts"
+          ]
+        },
+        {
+          "name": "Perry original",
+          "command": [
+            "./dist/chess"
+          ]
+        },
+        {
+          "name": "Perry current",
+          "command": [
+            "dist/perry-reassessment/chess-current"
+          ]
+        },
+        {
+          "name": "Perry current pruned",
+          "command": [
+            "dist/perry-reassessment/chess-pruned"
+          ]
+        }
+      ]
+    }
+  },
+  "validation": {
+    "validation-current.log": "ok \u00b7 identical output on all 2 targets: help\nok \u00b7 identical output on all 2 targets: bad level\nok \u00b7 identical output on all 2 targets: bad FEN\nok \u00b7 identical output on all 2 targets: local play\nok \u00b7 identical output on all 2 targets: EOF without newline\nok \u00b7 identical output on all 2 targets: promotion\nok \u00b7 identical output on all 2 targets: kids reply\nok \u00b7 identical output on all 2 targets: club opening\nok \u00b7 identical output on all 2 targets: master opening\nPASS \u00b7 runtime parity, full-strength search, CLI, pipes and native test fingerprint\n{\"commands\":95,\"whitespaceCharacters\":23,\"bytes\":134915,\"sha256\":\"b6a41decbd73ed082a549aeb34df69338f26dc4d874f5f88472ac652882b0bdd\",\"matched\":true}\n{\n  \"command\": [\n    \"./dist/perry-reassessment/chess-current\"\n  ],\n  \"results\": [\n    {\n      \"exit\": \"quit\",\n      \"bytes\": 39844,\n      \"passed\": true,\n      \"pendinChanged\": false\n    },\n    {\n      \"exit\": \"ctrl-c\",\n      \"bytes\": 29962,\n      \"passed\": true,\n      \"pendinChanged\": false\n    },\n    {\n      \"exit\": \"sigterm\",\n      \"bytes\": 29962,\n      \"passed\": true,\n      \"pendinChanged\": false\n    }\n  ]\n}\n",
+    "validation-pruned.log": "ok \u00b7 identical output on all 2 targets: help\nok \u00b7 identical output on all 2 targets: bad level\nok \u00b7 identical output on all 2 targets: bad FEN\nok \u00b7 identical output on all 2 targets: local play\nok \u00b7 identical output on all 2 targets: EOF without newline\nok \u00b7 identical output on all 2 targets: promotion\nok \u00b7 identical output on all 2 targets: kids reply\nok \u00b7 identical output on all 2 targets: club opening\nok \u00b7 identical output on all 2 targets: master opening\nPASS \u00b7 runtime parity, full-strength search, CLI, pipes and native test fingerprint\n{\"commands\":95,\"whitespaceCharacters\":23,\"bytes\":134915,\"sha256\":\"b6a41decbd73ed082a549aeb34df69338f26dc4d874f5f88472ac652882b0bdd\",\"matched\":true}\n{\n  \"command\": [\n    \"./dist/perry-reassessment/chess-pruned\"\n  ],\n  \"results\": [\n    {\n      \"exit\": \"quit\",\n      \"bytes\": 39844,\n      \"passed\": true,\n      \"pendinChanged\": false\n    },\n    {\n      \"exit\": \"ctrl-c\",\n      \"bytes\": 29962,\n      \"passed\": true,\n      \"pendinChanged\": false\n    },\n    {\n      \"exit\": \"sigterm\",\n      \"bytes\": 29962,\n      \"passed\": true,\n      \"pendinChanged\": false\n    }\n  ]\n}\n",
+    "typecheck.log": "\n> check\n> tsc --noEmit && tsc -p engine/tsconfig.json --noEmit\n\n"
+  },
+  "followup": {
+    "issue": "https://github.com/PerryTS/perry/issues/13679",
+    "body": "Follow-up to #13659 / #13669, found while reassessing #13663 on integrated main `2359699bee1ec7b98478a0db44f195a5a086b30d`.\n\nThe merged pruning correctly handles a literal signal arrow. Retaining the same arrow's identity for `removeListener` prevents the proof and retains IPC/regex again. This is a missed-pruning extension, not a correctness regression or a request to reopen the already-fixed literal case.\n\n## Standalone repro\n\n```typescript\n// assigned.ts\nlet callback: () => void;\nprocess.on(\"SIGINT\", callback = () => {});\nprocess.removeListener(\"SIGINT\", callback);\nconsole.log(\"ok\");\n```\n\nControl including the same listener/removal APIs:\n\n```typescript\n// literal.ts\nprocess.on(\"SIGINT\", () => {});\nprocess.removeListener(\"SIGINT\", () => {});\nconsole.log(\"ok\");\n```\n\nThe control intentionally removes a different arrow, so it is an API-retention control, **not** a semantically equivalent replacement for identity-preserving removal. Both programs print `ok`; no signal is delivered in this size probe. Rewriting away callback identity is not the requested solution.\n\n```sh\nfor fixture in assigned literal; do\n  PERRY_RUNTIME_DIR=/path/to/matching/current/runtime   PERRY_LL_OPT_LEVEL=s PERRY_SPECIALIZED_ABI=1 PERRY_KEEP_SYMBOLS=1   PERRY_DISABLE_BUILD_CACHE=1 PERRY_NO_CACHE=1     /path/to/matching/current/perry compile \"$fixture.ts\" -o \"$fixture\"       --function-source header --strict-eval --strict-dynamic-import --strict-unimplemented\n  nm \"$fixture\" | rg 'js_runtime_install_regex_engine'\n  strip \"$fixture\"\n  codesign --force --sign - \"$fixture\"\n  stat -f '%z %N' \"$fixture\"\n  \"./$fixture\"\ndone\n```\n\nThe `nm` no-match exit for the literal control is expected. Use a compiler and runtime built from the **same** source revision; the ABI changed since the original issue's baseline.\n\n| Pattern | Stripped/signed bytes | Regex installer |\n| --- | ---: | --- |\n| Direct literal arrow | 6,229,776 | absent |\n| Direct literal + removal API control | 6,229,776 | absent |\n| Assignment of arrow to local + same-identity removal | 7,595,552 | present |\n\nDifference: **1,365,776 bytes**, with unchanged app Os and stock release runtime optimization. The source worktree was clean at the pinned revision. Static runtime/stdlib wrapper archives and GC-effects sidecars were freshly built; runtime O3, stdlib Os, ThinLTO, default features/allocator and repository unwind configuration. macOS 26.5 ARM64 / Apple M1 Max. Basename/signature metadata can differ by a few bytes and does not explain this delta.\n\n## Implementation and requested proof\n\n[`feature_detect/process_ipc.rs`](https://github.com/PerryTS/perry/blob/2359699bee1ec7b98478a0db44f195a5a086b30d/crates/perry/src/commands/compile/collect_modules/feature_detect/process_ipc.rs#L21) accepts only `[event, Expr::Closure { is_arrow: true, .. }]`; the `ProcessOn`/`ProcessOnce` arm has the same direct-closure condition. An assignment expression around the known arrow fails it.\n\nRecognize a discarded direct registration with a known signal and a proven lexical-arrow value through a local assignment, while continuing to visit the assignment and closure body for actual IPC/namespace escapes. The same improvement may be useful for a local `const` arrow binding, but that variant is not measured here.\n\nDo not relax unknown callbacks, ordinary functions (`this` exposes process), dynamic events, observable/chained registration returns, namespace escapes, or property assignments with arbitrary setters. Preserve exact callback identity and signal listener removal.\n\n## Acceptance and application context\n\n- Both controls stop retaining the regex installer when there is no other regex/IPC use.\n- Add negative tests for ordinary callbacks, unknown events/callbacks, escapes and real IPC in callback bodies.\n- Verify actual SIGINT/SIGTERM delivery and same-identity removal in native tests, not just `ok` output.\n- Keep startup and search performance unchanged; no Oz substitution.\n\nThe complete generated no-regex chess variant uses this assignment pattern so its shutdown path can remove the same signal callbacks. On current main it is **9,257,088 bytes**, versus **8,434,960 bytes** for the earlier locally patched speed build. Other compiler/runtime/source-copy differences exist between those builds, so the entire **822,128-byte** app gap is not attributed to this one cause without an isolated patch test. The standalone table is the controlled retention reproduction.\n\nOriginal production app source remains unchanged. Parent tracking: #13663.\n"
+  },
+  "limitations": [
+    "macOS ARM64 only; three engine rounds are insufficient to claim a ~1% search gain as statistically significant.",
+    "No acceptance of blanket Oz or size/performance sacrifice. No production source, installed compiler, PR or upstream source changes by this reassessment.",
+    "Microbenchmark instruction reductions are not additive full-engine time attribution.",
+    "The callback controls differ in listener identity and are API-retention controls, not equivalent runtime rewrites.",
+    "Normal binary size is uncompressed stripped/signed bytes; prior package/archive sizes were not rerun."
+  ],
+  "trackerComment": "https://github.com/PerryTS/perry/issues/13663#issuecomment-6561029848"
+}

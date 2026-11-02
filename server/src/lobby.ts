@@ -1,0 +1,367 @@
+/**
+ * The online chess server's state: usernames, presence, the play-anyone queue, challenges, games and the
+ * high-score table. Pure: imports only the engine; the host passes in time and fresh tokens and ids.
+ */
+import { Chess } from "../../engine/src/chess.ts";
+import type { Color } from "../../engine/src/chess.ts";
+
+/** A player counts as online while they polled within this window. */
+export const ONLINE_MS = 60_000;
+/** A player gone this long from a game in progress loses it. */
+export const ABANDON_MS = 10 * 60_000;
+/** Only games of at least this many half-moves count for the high-score table. */
+export const RATED_PLIES = 10;
+const LEADERBOARD_SIZE = 20;
+const NAME = /^[A-Za-z0-9_-]{3,20}$/;
+const RESERVED = new Set(["admin", "administrator", "engine", "perry", "server", "system", "anonymous", "moderator"]);
+const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+export type Result = "white" | "black" | "draw";
+export type Reason = "checkmate" | "resignation" | "abandoned" | "stalemate" | "insufficient-material" |
+  "fivefold-repetition" | "seventy-five-move" | "threefold-repetition" | "fifty-move";
+
+export interface User {
+  name: string;
+  token: string;
+  created: number;
+  seen: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  game: string | null;
+}
+export interface Game {
+  id: string;
+  white: string;
+  black: string;
+  start: string;
+  moves: string[];
+  result: Result | null;
+  reason: Reason | null;
+  rated: boolean;
+  created: number;
+  updated: number;
+}
+export interface Saved {
+  readonly users: readonly User[];
+  readonly games: readonly Game[];
+}
+
+export interface Standing { readonly name: string; readonly wins: number; readonly losses: number; readonly draws: number }
+export interface GameView {
+  readonly id: string;
+  readonly white: string;
+  readonly black: string;
+  readonly you: Color;
+  readonly start: string;
+  readonly moves: readonly string[];
+  readonly result: Result | null;
+  readonly reason: Reason | null;
+  readonly rated: boolean;
+  readonly opponentOnline: boolean;
+}
+export interface StateView {
+  readonly version: number;
+  readonly me: Standing;
+  readonly online: readonly { readonly name: string; readonly status: "idle" | "queued" | "playing" }[];
+  readonly queued: boolean;
+  readonly incoming: readonly string[];
+  readonly outgoing: string | null;
+  readonly game: GameView | null;
+  readonly leaderboard: readonly Standing[];
+}
+
+export type Action =
+  | { readonly type: "queue" | "unqueue" | "cancel" | "resign" | "draw" | "leave" }
+  | { readonly type: "challenge" | "accept" | "decline"; readonly name: string }
+  | { readonly type: "move"; readonly uci: string };
+
+/** An answer the host turns into a response: a value, or an error with its HTTP status. */
+export type Outcome<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly status: number; readonly error: string };
+function ok<T>(value: T): Outcome<T> { return { ok: true, value }; }
+function no<T>(status: number, error: string): Outcome<T> { return { ok: false, status, error }; }
+
+function key(name: string): string { return name.toLowerCase(); }
+
+export class Lobby {
+  private readonly users = new Map<string, User>();
+  private readonly tokens = new Map<string, User>();
+  private readonly games = new Map<string, Game>();
+  private readonly boards = new Map<string, Chess>();
+  private readonly queue: string[] = [];
+  /** Challenges by challenger key: one open challenge each. */
+  private readonly challenges = new Map<string, string>();
+  private changes = 0;
+
+  constructor(saved: Saved | null = null) {
+    if (saved === null) return;
+    for (const user of saved.users) this.addUser({ ...user });
+    for (const game of saved.games) this.games.set(game.id, { ...game, moves: [...game.moves] });
+  }
+
+  /** Increases whenever any player's view may have changed; long polls wait on it. */
+  get version(): number { return this.changes; }
+
+  save(): Saved {
+    return { users: [...this.users.values()], games: [...this.games.values()].filter((game) => this.isReferenced(game)) };
+  }
+
+  register(name: string, token: string, now: number): Outcome<{ name: string; token: string }> {
+    const trimmed = name.trim();
+    if (!NAME.test(trimmed)) return no(400, "Usernames are 3 to 20 letters, digits, _ or -.");
+    if (RESERVED.has(key(trimmed))) return no(409, "That username is reserved.");
+    if (this.users.has(key(trimmed))) return no(409, "That username is taken.");
+    this.addUser({ name: trimmed, token, created: now, seen: now, wins: 0, losses: 0, draws: 0, game: null });
+    this.bump();
+    return ok({ name: trimmed, token });
+  }
+
+  /** The player a token belongs to, marked present now. */
+  authenticate(token: string, now: number): User | null {
+    const user = this.tokens.get(token) ?? null;
+    if (user === null) return null;
+    const wasOnline = this.isOnline(user, now);
+    user.seen = now;
+    if (!wasOnline) this.bump();
+    return user;
+  }
+
+  act(user: User, action: Action, now: number): Outcome<null> {
+    const result = this.dispatch(user, action, now);
+    if (result.ok) this.bump();
+    return result;
+  }
+
+  /** Expires presence and abandoned games; true when anything changed. */
+  sweep(now: number): boolean {
+    let changed = false;
+    for (let i = this.queue.length - 1; i >= 0; i--) {
+      const user = this.users.get(this.queue[i] ?? "");
+      if (user === undefined || !this.isOnline(user, now)) { this.queue.splice(i, 1); changed = true; }
+    }
+    for (const [from, to] of [...this.challenges]) {
+      const a = this.users.get(from);
+      const b = this.users.get(to);
+      if (a === undefined || b === undefined || !this.isOnline(a, now) || !this.isOnline(b, now)) { this.challenges.delete(from); changed = true; }
+    }
+    for (const game of this.games.values()) {
+      if (game.result !== null) continue;
+      const white = this.users.get(key(game.white));
+      const black = this.users.get(key(game.black));
+      const whiteGone = white === undefined || now - white.seen > ABANDON_MS;
+      const blackGone = black === undefined || now - black.seen > ABANDON_MS;
+      if (whiteGone || blackGone) {
+        this.finish(game, whiteGone && blackGone ? "draw" : whiteGone ? "black" : "white", "abandoned", now);
+        changed = true;
+      }
+    }
+    for (const game of [...this.games.values()]) if (!this.isReferenced(game)) this.games.delete(game.id);
+    // Presence itself expires silently; the next change or poll timeout refreshes everyone's list.
+    if (changed) this.bump();
+    return changed;
+  }
+
+  view(user: User, now: number): StateView {
+    const online = [...this.users.values()]
+      .filter((other) => other !== user && this.isOnline(other, now))
+      .sort((a, b) => key(a.name) < key(b.name) ? -1 : 1)
+      .map((other) => ({ name: other.name, status: this.activeGame(other) !== null ? "playing" as const : this.queue.includes(key(other.name)) ? "queued" as const : "idle" as const }));
+    const incoming: string[] = [];
+    for (const [from, to] of this.challenges) if (to === key(user.name)) incoming.push(this.users.get(from)?.name ?? from);
+    const outgoing = this.challenges.get(key(user.name));
+    const game = user.game === null ? undefined : this.games.get(user.game);
+    return {
+      version: this.changes,
+      me: standing(user),
+      online,
+      queued: this.queue.includes(key(user.name)),
+      incoming,
+      outgoing: outgoing === undefined ? null : this.users.get(outgoing)?.name ?? outgoing,
+      game: game === undefined ? null : this.gameView(game, user, now),
+      leaderboard: this.leaderboard(),
+    };
+  }
+
+  leaderboard(): Standing[] {
+    return [...this.users.values()]
+      .filter((user) => user.wins + user.losses + user.draws > 0)
+      .sort((a, b) => b.wins - a.wins || a.losses - b.losses || b.draws - a.draws || (key(a.name) < key(b.name) ? -1 : 1))
+      .slice(0, LEADERBOARD_SIZE)
+      .map(standing);
+  }
+
+  /** The id generator is the host's; the lobby only asks for one when a game starts. */
+  newGameId: () => string = () => "g" + String(this.games.size + 1) + "-" + String(this.changes);
+
+  private dispatch(user: User, action: Action, now: number): Outcome<null> {
+    const me = key(user.name);
+    switch (action.type) {
+      case "queue": {
+        if (this.activeGame(user) !== null) return no(409, "Finish your game first.");
+        if (this.queue.includes(me)) return ok(null);
+        this.challenges.delete(me);
+        const partner = this.queue.find((other) => other !== me);
+        if (partner === undefined) { this.queue.push(me); return ok(null); }
+        this.queue.splice(this.queue.indexOf(partner), 1);
+        const other = this.users.get(partner);
+        if (other === undefined) { this.queue.push(me); return ok(null); }
+        // Whoever waited longer plays White.
+        this.startGame(other, user, now);
+        return ok(null);
+      }
+      case "unqueue": {
+        const at = this.queue.indexOf(me);
+        if (at >= 0) this.queue.splice(at, 1);
+        return ok(null);
+      }
+      case "challenge": {
+        const target = this.users.get(key(action.name));
+        if (target === undefined) return no(404, "No player named " + action.name + ".");
+        if (target === user) return no(400, "You can't challenge yourself.");
+        if (!this.isOnline(target, now)) return no(409, target.name + " is not online.");
+        if (this.activeGame(user) !== null) return no(409, "Finish your game first.");
+        if (this.activeGame(target) !== null) return no(409, target.name + " is playing.");
+        if (this.challenges.get(key(target.name)) === me) return this.dispatch(user, { type: "accept", name: target.name }, now);
+        this.challenges.set(me, key(target.name));
+        return ok(null);
+      }
+      case "accept": {
+        const from = key(action.name);
+        if (this.challenges.get(from) !== me) return no(404, "No challenge from " + action.name + ".");
+        const challenger = this.users.get(from);
+        if (challenger === undefined || !this.isOnline(challenger, now)) { this.challenges.delete(from); return no(409, action.name + " left."); }
+        if (this.activeGame(user) !== null || this.activeGame(challenger) !== null) return no(409, "One of you is in a game.");
+        this.challenges.delete(from);
+        this.startGame(challenger, user, now);
+        return ok(null);
+      }
+      case "decline": {
+        const from = key(action.name);
+        if (this.challenges.get(from) !== me) return no(404, "No challenge from " + action.name + ".");
+        this.challenges.delete(from);
+        return ok(null);
+      }
+      case "cancel": {
+        this.challenges.delete(me);
+        return ok(null);
+      }
+      case "move": {
+        const game = this.activeGame(user);
+        if (game === null) return no(409, "You are not in a game.");
+        const board = this.board(game);
+        const color: Color = key(game.white) === me ? "white" : "black";
+        if (board.turn() !== color) return no(409, "It is not your turn.");
+        const played = board.play(action.uci.toLowerCase());
+        if (played === null) return no(400, "Illegal move: " + action.uci + ".");
+        game.moves.push(played.uci);
+        game.updated = now;
+        const status = board.status();
+        if (status.state === "checkmate") this.finish(game, color, "checkmate", now);
+        else if (status.state === "draw") this.finish(game, "draw", status.drawReason ?? "stalemate", now);
+        return ok(null);
+      }
+      case "draw": {
+        const game = this.activeGame(user);
+        if (game === null) return no(409, "You are not in a game.");
+        const board = this.board(game);
+        if (!board.claimDraw()) return no(409, "No draw can be claimed here.");
+        this.finish(game, "draw", board.status().drawReason ?? "threefold-repetition", now);
+        return ok(null);
+      }
+      case "resign": {
+        const game = this.activeGame(user);
+        if (game === null) return no(409, "You are not in a game.");
+        this.finish(game, key(game.white) === me ? "black" : "white", "resignation", now);
+        return ok(null);
+      }
+      case "leave": {
+        if (this.activeGame(user) !== null) return no(409, "Resign first to leave a game in progress.");
+        user.game = null;
+        return ok(null);
+      }
+    }
+  }
+
+  private startGame(white: User, black: User, now: number): void {
+    const id = this.newGameId();
+    const game: Game = { id, white: white.name, black: black.name, start: START, moves: [], result: null, reason: null, rated: false, created: now, updated: now };
+    this.games.set(id, game);
+    white.game = id;
+    black.game = id;
+    for (const player of [white, black]) {
+      const at = this.queue.indexOf(key(player.name));
+      if (at >= 0) this.queue.splice(at, 1);
+      this.challenges.delete(key(player.name));
+    }
+  }
+
+  private finish(game: Game, result: Result, reason: Reason, now: number): void {
+    game.result = result;
+    game.reason = reason;
+    game.updated = now;
+    game.rated = game.moves.length >= RATED_PLIES;
+    this.boards.delete(game.id);
+    if (!game.rated) return;
+    const white = this.users.get(key(game.white));
+    const black = this.users.get(key(game.black));
+    if (white === undefined || black === undefined) return;
+    if (result === "draw") { white.draws++; black.draws++; }
+    else if (result === "white") { white.wins++; black.losses++; }
+    else { black.wins++; white.losses++; }
+  }
+
+  private board(game: Game): Chess {
+    let board = this.boards.get(game.id);
+    if (board === undefined) {
+      board = new Chess(game.start);
+      for (const move of game.moves) board.play(move);
+      this.boards.set(game.id, board);
+    }
+    return board;
+  }
+
+  private gameView(game: Game, user: User, now: number): GameView {
+    const you: Color = key(game.white) === key(user.name) ? "white" : "black";
+    const opponent = this.users.get(key(you === "white" ? game.black : game.white));
+    return {
+      id: game.id, white: game.white, black: game.black, you, start: game.start, moves: [...game.moves],
+      result: game.result, reason: game.reason, rated: game.rated,
+      opponentOnline: opponent !== undefined && this.isOnline(opponent, now),
+    };
+  }
+
+  private activeGame(user: User): Game | null {
+    const game = user.game === null ? undefined : this.games.get(user.game);
+    return game !== undefined && game.result === null ? game : null;
+  }
+
+  private isReferenced(game: Game): boolean {
+    if (game.result === null) return true;
+    for (const user of this.users.values()) if (user.game === game.id) return true;
+    return false;
+  }
+
+  private isOnline(user: User, now: number): boolean { return now - user.seen <= ONLINE_MS; }
+
+  private addUser(user: User): void {
+    this.users.set(key(user.name), user);
+    this.tokens.set(user.token, user);
+  }
+
+  private bump(): void { this.changes++; }
+}
+
+function standing(user: User): Standing {
+  return { name: user.name, wins: user.wins, losses: user.losses, draws: user.draws };
+}
+
+/** Reads an action from untrusted JSON. */
+export function parseAction(value: unknown): Action | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  const record = value as Readonly<Record<string, unknown>>;
+  const type = record["type"];
+  if (type === "queue" || type === "unqueue" || type === "cancel" || type === "resign" || type === "draw" || type === "leave") return { type };
+  if ((type === "challenge" || type === "accept" || type === "decline") && typeof record["name"] === "string") return { type, name: record["name"] };
+  if (type === "move" && typeof record["uci"] === "string") return { type, uci: record["uci"] };
+  return null;
+}

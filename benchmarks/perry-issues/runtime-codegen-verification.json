@@ -1,0 +1,12 @@
+{
+  "z": {
+    "testedMachineCode": "701045705272aecfc7a89460c424940d5440078301df1294bddaff88dd7fefe5",
+    "stockCompilerMachineCode": "701045705272aecfc7a89460c424940d5440078301df1294bddaff88dd7fefe5",
+    "identical": true
+  },
+  "2": {
+    "testedMachineCode": "6cf5c148d12f677612c6c54eea7e95d6d1608e68bf337d3293f8a3f19a1d7acc",
+    "stockCompilerMachineCode": "6cf5c148d12f677612c6c54eea7e95d6d1608e68bf337d3293f8a3f19a1d7acc",
+    "identical": true
+  }
+}

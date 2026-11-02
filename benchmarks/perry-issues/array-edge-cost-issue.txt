@@ -1,0 +1,80 @@
+Profiling follow-up to #13663, separate from the active #13659/#13662 size work. Tested on `2359699bee1ec7b98478a0db44f195a5a086b30d`, with matching compiler/runtime archives and the default speed runtime.
+
+A numeric scratch-array scan repeatedly crosses the left edge. A negative integer key routes through floating-point formatting, a newly allocated property-key string, GC rooting and generic property/prototype lookup. The behavior is semantically necessary in the general case, but the current path is expensive enough to dominate a meaningful part of numeric evaluation.
+
+## Public reproduction
+
+Save as `edges.ts`:
+
+```typescript
+// Synthetic mutable numeric-array probe. Run plain/bounded at 1M and 2M.
+// The bounded control assumes untouched array prototypes; it is not a valid
+// general rewrite when negative/index properties or prototype getters exist.
+function scanPlain(iterations: number): number {
+  const bins = new Array<number>(8).fill(0);
+  let checksum = 0;
+  for (let i = 0; i < iterations; i++) {
+    const file = i & 7;
+    bins[file] = ((i >>> 3) & 7) + 1;
+    checksum += (bins[file - 1] ?? 0) + (bins[file + 1] ?? 0);
+  }
+  return checksum;
+}
+function scanBounded(iterations: number): number {
+  const bins = new Array<number>(8).fill(0);
+  let checksum = 0;
+  for (let i = 0; i < iterations; i++) {
+    const file = i & 7;
+    bins[file] = ((i >>> 3) & 7) + 1;
+    checksum += (file === 0 ? 0 : (bins[file - 1] ?? 0)) +
+      (file === 7 ? 0 : (bins[file + 1] ?? 0));
+  }
+  return checksum;
+}
+const mode = process.argv[2] ?? "plain";
+const amount = Number(process.argv[3] ?? "1000000");
+if ((mode !== "plain" && mode !== "bounded") || !Number.isSafeInteger(amount) || amount <= 0) {
+  throw new Error("Expected plain|bounded and a positive iteration count");
+}
+const warmup = mode === "plain" ? scanPlain(10000) : scanBounded(10000);
+const started = performance.now();
+const checksum = mode === "plain" ? scanPlain(amount) : scanBounded(amount);
+const milliseconds = performance.now() - started;
+console.log(JSON.stringify({ mode, amount, warmup, checksum, milliseconds }));
+
+```
+
+```sh
+PERRY_RUNTIME_DIR=/path/to/matching/runtime PERRY_LL_OPT_LEVEL=s PERRY_SPECIALIZED_ABI=1 PERRY_KEEP_SYMBOLS=1 PERRY_DISABLE_BUILD_CACHE=1 PERRY_NO_CACHE=1 perry compile edges.ts -o edges --strict-eval --strict-dynamic-import --strict-unimplemented
+/usr/bin/time -l ./edges plain 1000000
+/usr/bin/time -l ./edges plain 2000000
+/usr/bin/time -l ./edges bounded 1000000
+/usr/bin/time -l ./edges bounded 2000000
+# Repeat with node edges.ts, rotating runtime/mode order for three rounds.
+```
+
+Apple M1 Max / macOS 26.5 ARM64. Runtime O3, stdlib Os, ThinLTO, default features/allocator and repository unwind flags preserved. Node 26.5.1. Each checksum and warmup checksum matches across modes and runtimes.
+
+| Retired instructions per iteration | Plain reads | Explicitly bounded control |
+| --- | ---: | ---: |
+| Perry | 1,381.05 | 148.29 |
+| Node | 200.14 | 44.54 |
+
+Calculated as `(median I(2M) - median I(1M)) / 1M` over three rounds. **9.3×** as many Perry instructions in the plain case. These controls change two boundaries plus the proof opportunities; their difference is not a cost-per-single-read measurement. The machine had other builds running, so wall time/cycles are not used as improvement evidence.
+
+## Confirmed mechanism and application impact
+
+[`array/indexing_keyed.rs:143`](https://github.com/PerryTS/perry/blob/2359699bee1ec7b98478a0db44f195a5a086b30d/crates/perry-runtime/src/array/indexing_keyed.rs#L143): `js_array_get_index_or_string` handles finite negative integers with `format!("{:.0}", n)`, creates a JS string and roots the receiver across that allocation before `array_get_property_by_key`. Nonnegative OOB indices follow their own prototype-aware path.
+
+A 12-second main-thread sample of the unchanged private chess evaluator attributes **25.37% inclusive** to `js_array_get_index_or_string`, including **4.62%** in `alloc::fmt::format::format_inner`. These are nested shares, not additive. The same path existed before the recent PRs: the old evaluator sample gives 24.67%, so this is **not** presented as the explanation of the newly observed 16% evaluation regression.
+
+A diagnostic source copy only adds explicit `file === 0` / `file === 7` guards around the evaluator's two neighboring pawn-count reads. Two rotated full-workload pairs reduce evaluation instructions **8.840 → 6.867 G (22.3%)**, and 250K-node search **105.751 → 101.613 G (3.9%)**. Node fingerprints and unchanged game state match for evaluation, legal moves, perft and search. This is workload-specific diagnostic evidence, not a generally valid source rewrite or a production patch. The bounded copy does not have the complete original app acceptance suite run, and no wall-time performance claim is made.
+
+## Desired work / acceptance
+
+- Avoid general floating-point formatting and repeated property-string allocation where an integer key or constant negative key is proven; consider a dedicated integer/known-key path.
+- Preserve numeric-array and key-range facts into the access. A guarded proof that a key is absent may avoid generic lookup, but erased TypeScript types or local array ownership alone are insufficient.
+- Preserve own negative properties, inherited negative/index getters, prototype mutation, holes, fractional keys, `-0`, symbols, key coercion side effects and moving-GC correctness. Do **not** simply return undefined for every negative/OOB access.
+- Require unchanged native/Node results with positive and negative semantic controls, plus lower retired instructions on the public probe. Measure full search/evaluation and binary size; do not trade the cost for a large duplicated dispatch tree.
+
+The evaluator still performs substantial work elsewhere. This isolates one concrete remaining cost; it does not account for the whole sixfold search gap. Raw samples and the source hash are retained in the local blockers profile record alongside #13663.

@@ -1,0 +1,93 @@
+[
+  {
+    "name": "signal-control",
+    "bytes": 51824,
+    "stdout": "ok",
+    "regexInstaller": false,
+    "regexMatchingSymbols": []
+  },
+  {
+    "name": "signal",
+    "bytes": 7611776,
+    "stdout": "ok",
+    "regexInstaller": true,
+    "regexMatchingSymbols": [
+      "__RNCINvMs0_NtNtCsOI96fOWkqn_3std4sync4onceNtB8_4Once9call_onceNCNvNtCs9D7NrJNbPej_13perry_runtime13feature_hooks31js_runtime_install_regex_engine0E0B13_",
+      "__RNSNvYNCINvMs0_NtNtCsOI96fOWkqn_3std4sync4onceNtBd_4Once9call_onceNCNvNtCs9D7NrJNbPej_13perry_runtime13feature_hooks31js_runtime_install_regex_engine0E0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTRNtBd_9OnceStateEE9call_once6vtableB18_",
+      "__RNvNtNtCs9D7NrJNbPej_13perry_runtime5regex11perex_owner13install_cache",
+      "__RNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks14install_getter",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks27install_regex_proto_methods5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks27install_regex_proto_methodss0_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks27install_regex_proto_methodss1_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks27install_regex_proto_methodss_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methods5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methodss0_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methodss1_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methodss2_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methodss_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessors5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss0_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss1_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss2_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss3_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss4_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss5_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss6_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss7_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss_5OWNER",
+      "__RNvYNCNvNtNtCs9D7NrJNbPej_13perry_runtime5regex6hooked7install0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTONtNtBa_6object12ObjectHeaderEE9call_onceBa_",
+      "__RNvYNCNvNtNtCs9D7NrJNbPej_13perry_runtime5regex6hooked7installs0_0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTPNtNtBa_6object12ObjectHeaderEE9call_onceBa_",
+      "__RNvYNCNvNtNtCs9D7NrJNbPej_13perry_runtime5regex6hooked7installs1_0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTPNtNtBa_6object12ObjectHeaderEE9call_onceBa_",
+      "__RNvYNCNvNtNtCs9D7NrJNbPej_13perry_runtime5regex6hooked7installs_0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTPNtNtBa_6object12ObjectHeaderEE9call_onceBa_",
+      "_js_runtime_install_regex_engine"
+    ]
+  },
+  {
+    "name": "name-search",
+    "bytes": 6275376,
+    "stdout": "1",
+    "regexInstaller": true,
+    "regexMatchingSymbols": [
+      "__RNCINvMs0_NtNtCsOI96fOWkqn_3std4sync4onceNtB8_4Once9call_onceNCNvNtCs9D7NrJNbPej_13perry_runtime13feature_hooks31js_runtime_install_regex_engine0E0B13_",
+      "__RNSNvYNCINvMs0_NtNtCsOI96fOWkqn_3std4sync4onceNtBd_4Once9call_onceNCNvNtCs9D7NrJNbPej_13perry_runtime13feature_hooks31js_runtime_install_regex_engine0E0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTRNtBd_9OnceStateEE9call_once6vtableB18_",
+      "__RNvNtNtCs9D7NrJNbPej_13perry_runtime5regex11perex_owner13install_cache",
+      "__RNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks14install_getter",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks27install_regex_proto_methods5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks27install_regex_proto_methodss0_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks27install_regex_proto_methodss1_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks27install_regex_proto_methodss_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methods5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methodss0_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methodss1_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methodss2_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks28install_regex_symbol_methodss_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessors5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss0_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss1_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss2_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss3_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss4_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss5_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss6_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss7_5OWNER",
+      "__RNvNvNtNtCs9D7NrJNbPej_13perry_runtime6object18regex_proto_thunks29install_regex_proto_accessorss_5OWNER",
+      "__RNvYNCNvNtNtCs9D7NrJNbPej_13perry_runtime5regex6hooked7install0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTONtNtBa_6object12ObjectHeaderEE9call_onceBa_",
+      "__RNvYNCNvNtNtCs9D7NrJNbPej_13perry_runtime5regex6hooked7installs0_0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTPNtNtBa_6object12ObjectHeaderEE9call_onceBa_",
+      "__RNvYNCNvNtNtCs9D7NrJNbPej_13perry_runtime5regex6hooked7installs1_0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTPNtNtBa_6object12ObjectHeaderEE9call_onceBa_",
+      "__RNvYNCNvNtNtCs9D7NrJNbPej_13perry_runtime5regex6hooked7installs_0INtNtNtCsbuT5dCMLKzJ_4core3ops8function6FnOnceTPNtNtBa_6object12ObjectHeaderEE9call_onceBa_",
+      "_js_runtime_install_regex_engine"
+    ]
+  },
+  {
+    "name": "name-find",
+    "bytes": 5601520,
+    "stdout": "1",
+    "regexInstaller": false,
+    "regexMatchingSymbols": []
+  },
+  {
+    "name": "signal-patched",
+    "bytes": 6245984,
+    "stdout": "ok"
+  }
+]
