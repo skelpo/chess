@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tuichess 3D</title>
+<meta name="description" content="Play the tuichess engine on a 3D board, in your browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='8' height='8' fill='%23ad8e62'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23ad8e62'/%3E%3Crect x='8' width='8' height='8' fill='%238a6a43'/%3E%3Crect y='8' width='8' height='8' fill='%238a6a43'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #0f1012; --panel: rgba(23, 24, 27, .86); --line: #2a2c31; --text: #e6e3dc; --dim: #9a968d;
+  --accent: #6fbf73; --link: #8ab4f8;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.5 var(--mono); overflow: hidden; }
+#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.hud { position: fixed; left: 16px; right: 16px; top: 12px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.logo { font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: .02em; }
+.logo span { color: var(--accent); }
+.controls { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+button, select { font: inherit; font-size: 13px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover, select:hover { border-color: #444851; }
+#status { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
+#promo { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; text-align: center; }
+#promo p { margin: 0 0 10px; color: var(--dim); }
+#promo button { font-size: 22px; padding: 6px 14px; }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; color: var(--dim); pointer-events: none; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="hud">
+  <a class="logo" href="https://tuichess.dev/">tui<span>chess</span> 3D</a>
+  <div class="controls">
+    <button id="new-white" title="New game, you play white">New · white</button>
+    <button id="new-black" title="New game, you play black">New · black</button>
+    <select id="level" title="Engine level"></select>
+    <button id="undo" title="Take back your last move">Undo</button>
+    <button id="flip" title="Turn the camera to the other side">Flip</button>
+  </div>
+</div>
+<div id="status">Loading…</div>
+<div id="promo" hidden>
+  <p>Promote to</p>
+  <button data-p="q" title="Queen">♛</button>
+  <button data-p="r" title="Rook">♜</button>
+  <button data-p="b" title="Bishop">♝</button>
+  <button data-p="n" title="Knight">♞</button>
+</div>
+<div id="loading"></div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -3,9 +3,9 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "workspaces": ["engine", "tui"],
+  "workspaces": ["engine", "tui", "web3d"],
   "scripts": {
-    "check": "tsc --noEmit && tsc -p engine/tsconfig.json --noEmit",
+    "check": "tsc --noEmit && tsc -p engine/tsconfig.json --noEmit && tsc -p web3d/tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.build.json",
     "start": "node tui/src/main.ts",
     "start:bun": "bun tui/src/main.ts",
