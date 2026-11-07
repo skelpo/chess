@@ -9,3 +9,10 @@ dist/
 plugin/bin/
 opencode/plugin/node_modules/
 opencode/plugin/dist/
+__pycache__/
+
+# secrets
+.env
+
+# macOS Finder metadata
+.DS_Store
