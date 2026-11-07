@@ -75,14 +75,8 @@ APP="$OUT/$NAME.app"
 # App icon and launch screen color as an asset catalog (Assets.car): `perry compile` adds no icon,
 # and App Store Connect wants a catalog with a 1024 px icon. iOS scales the one image to every size.
 CAT="$OUT/Assets.xcassets"
-rm -rf "$CAT" && mkdir -p "$CAT/AppIcon.appiconset" "$CAT/LaunchBackground.colorset" "$CAT/LaunchLogo.imageset"
+rm -rf "$CAT" && mkdir -p "$CAT/AppIcon.appiconset" "$CAT/LaunchBackground.colorset"
 if [ "$OS" = iOS ]; then cp icon.png "$CAT/AppIcon.appiconset/icon.png"; fi
-# the launch screen's knight: 480 px at 3x = 160 points, where the loading screen draws it too
-cp ../public/splash.png "$CAT/LaunchLogo.imageset/splash.png"
-cat > "$CAT/LaunchLogo.imageset/Contents.json" <<'EOF'
-{ "images": [ { "filename": "splash.png", "idiom": "universal", "scale": "3x" } ],
-  "info": { "author": "xcode", "version": 1 } }
-EOF
 cat > "$CAT/Contents.json" <<'EOF'
 { "info": { "author": "xcode", "version": 1 } }
 EOF
@@ -153,7 +147,7 @@ xcrun actool "$CAT" --compile "$APP" --platform "$PLATFORM" --minimum-deployment
 /usr/libexec/PlistBuddy -c "Merge $OUT/assets-info.plist" "$APP/Info.plist"
 /usr/libexec/PlistBuddy -c "Delete :UILaunchScreen" "$APP/Info.plist" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :UILaunchScreen dict" -c "Add :UILaunchScreen:UIColorName string LaunchBackground" \
-  -c "Add :UILaunchScreen:UIImageName string LaunchLogo" -c "Add :UILaunchScreen:UIImageRespectsSafeAreaInsets bool false" "$APP/Info.plist"
+  "$APP/Info.plist"
 # identity and export compliance from perry.toml's [project], whatever Perry's per-target defaults are
 /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" "$APP/Info.plist"
 /usr/libexec/PlistBuddy -c "Delete :ITSAppUsesNonExemptEncryption" "$APP/Info.plist" 2>/dev/null || true

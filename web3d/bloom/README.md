@@ -20,9 +20,9 @@ The generic parts are packages; this folder holds only what is about this app.
 
 | | |
 |---|---|
-| `@bloomengine/web` | A browser over Bloom: the DOM (index.html parsed into it), input as DOM events, `fetch` for the app's files, `localStorage` saved to a file, the 2D canvas for the board texture, and Web Audio and `<audio>` over Bloom's mixer, so `../src/audio.ts` plays music and effects unchanged |
+| `@bloomengine/web` | A browser over Bloom: the DOM (index.html parsed into it), input as DOM events, `fetch` for the app's files, `localStorage` saved to a file, the 2D canvas for the board texture |
 | `@bloomengine/three` | The real three.js with a renderer that mirrors the scene into Bloom, and a GLTFLoader that marks skinned models for Bloom's GPU skinning. three's own OrbitControls runs on the DOM as in the browser |
-| `config.ts` | The app's settings (window, where index.html is, storage file) and three hooks: three.js parses the low-poly pieces (`../models/lod`), Bloom draws the full ones, themed pieces from their baked copies (`tinted.ts`), tinted by the Body material |
+| `config.ts` | The app's settings (window, where index.html is, storage file) and three hooks: three.js parses the low-poly pieces (`../models/lod`), Bloom draws the full ones, tinted by the Body material |
 | `hooks.ts`, `tv.ts` | Apple TV (the board cursor and focus in menus) and the `BLOOM_SCRIPT` commands that drive the game |
 | `overlay.ts` | The Apple TV board cursor, over the page |
 
@@ -68,7 +68,7 @@ sh web3d/bloom/build-ios.sh appstore   # App Store: build, sign for distribution
 What differs on a phone, all in this folder (`../src` is unchanged):
 
 - **Files:** an iOS app can't read the build machine's disk. The script copies
-  `index.html`, the models and the sounds into `assets/web3d/`, Perry bundles
+  `index.html` and the models into `assets/web3d/`, Perry bundles
   `assets/` into the `.app`, and @bloomengine/web reads them next to the executable.
   `localStorage` goes to the app's `Library/Application Support`.
 - **Screen:** Bloom reports device pixels on iOS. The page is laid out in CSS
@@ -123,7 +123,6 @@ libraries instead (or set `PERRY_IOS_LIBS`).
 | `BLOOM_LOD=1` | Draw the low-poly pieces on the GPU too |
 | `BLOOM_PROFILE=1` | Bloom's frame profiler: per-pass CPU and GPU times, printed by the `profile` script command. It waits for the GPU every frame, so frames run slower while it is on, and the per-pass GPU times on Apple GPUs overlap (one pass can show more time than the whole frame) |
 | `BLOOM_SCRIPT="120 clicksq e2; 140 clicksq e4; 300 shot /tmp/a.png; 300 fps; 310 quit"` | Scripted checks at frame numbers. @bloomengine/web's commands (`shot`, `click <selector>`, `clickat`, `key`, `type`, `focus`, `log`, `audio`, `fps`, `profile`, `quit`) and this app's (`hooks.ts`): `clicksq <square>` (a click through the app's own raycast), `move <uci>`, `select <square>`, `load <fen>`, `new white\|black`, `state` |
-| `BLOOM_QUERY=theme=dino` | `location.search` (picks a theme) |
 
 ## Limits
 
