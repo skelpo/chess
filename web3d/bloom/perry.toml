@@ -2,9 +2,9 @@
 name = "tuichess3d"
 entry = "main.ts"
 bundle_id = "com.skelpo.tuichess"
-display_name = "tuichess 3D"
+display_name = "tuichess"
 version = "1.0"
-build_number = 1
+build_number = 2
 features = ["ios-game-loop"]
 
 [ios]
@@ -17,5 +17,5 @@ source = "icon.png"
 
 [tvos]
 bundle_id = "com.skelpo.tuichess"
-display_name = "tuichess 3D"
+display_name = "tuichess"
 encryption_exempt = true
