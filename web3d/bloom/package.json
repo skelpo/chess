@@ -1,0 +1,19 @@
+{
+  "name": "@plain-chess/web3d-bloom",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runs the unchanged web3d app natively on Bloom (@bloomengine/web and @bloomengine/three).",
+  "perry": {
+    "allow": {
+      "nativeLibrary": [
+        "@bloomengine/*"
+      ]
+    }
+  },
+  "dependencies": {
+    "@bloomengine/engine": "file:../../../bloom/engine",
+    "@bloomengine/web": "file:../../../bloom/web",
+    "@bloomengine/three": "file:../../../bloom/three"
+  }
+}

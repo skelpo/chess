@@ -1,0 +1,21 @@
+[project]
+name = "tuichess3d"
+entry = "main.ts"
+bundle_id = "com.skelpo.tuichess"
+display_name = "tuichess 3D"
+version = "1.0"
+build_number = 1
+features = ["ios-game-loop"]
+
+[ios]
+encryption_exempt = true
+device_family = ["iphone", "ipad"]
+orientations = ["portrait", "landscape"]
+
+[project.icons]
+source = "icon.png"
+
+[tvos]
+bundle_id = "com.skelpo.tuichess"
+display_name = "tuichess 3D"
+encryption_exempt = true
