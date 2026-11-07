@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
-"""Publish tuichess 3D's App Store listing from listing.json, step by step. Every step can be re-run.
+"""Publish tuichess's App Store listing from listing.json, step by step. Every step can be re-run.
 
     python3 web3d/bloom/store/publish.py listing              # names, texts, URLs, categories, age rating, review info
     python3 web3d/bloom/store/publish.py price                # free, every territory
     python3 web3d/bloom/store/publish.py screenshots <dir>    # <dir>/iphone/*.png (1290x2796), <dir>/ipad/*.png (2732x2048)
     python3 web3d/bloom/store/publish.py build <version> <build-number>   # attach a processed build to the version
+    python3 web3d/bloom/store/publish.py review-video <file>  # the screen recording for App Review (.mov/.mp4)
     python3 web3d/bloom/store/publish.py submit               # submit the iOS version for review
     python3 web3d/bloom/store/publish.py status
 
 The build itself is uploaded with `xcrun altool --upload-app` (see README.md).
+
+App Review rejected the first submission (2026-11-05) under Guideline 2.1, Information Needed: it
+wants a screen recording from a physical device, starting at launch, plus the app's purpose,
+audience, how to use it, external services, regional differences and regulated material. The
+reviewNotes in listing.json answer those, and say a recording is attached, so `submit` refuses to
+run until `review-video` has uploaded one.
 """
 import glob
 import hashlib
@@ -130,19 +137,56 @@ def price():
         print("availability:", len(territories), "territories")
 
 
-def upload_screenshot(set_id, path):
+def upload_asset(type_, rel, rel_type, rel_id, path):
+    """Reserve an asset (screenshot, review attachment), upload its parts, and commit it."""
     data = open(path, "rb").read()
-    r = api("POST", "/v1/appScreenshots", {"data": {"type": "appScreenshots",
+    r = api("POST", f"/v1/{type_}", {"data": {"type": type_,
         "attributes": {"fileName": os.path.basename(path), "fileSize": len(data)},
-        "relationships": {"appScreenshotSet": {"data": {"type": "appScreenshotSets", "id": set_id}}}}})["data"]
+        "relationships": {rel: {"data": {"type": rel_type, "id": rel_id}}}}})["data"]
     for op in r["attributes"]["uploadOperations"]:
         chunk = data[op["offset"]:op["offset"] + op["length"]]
         req = urllib.request.Request(op["url"], data=chunk, method=op["method"],
                                      headers={h["name"]: h["value"] for h in op["requestHeaders"]})
         urllib.request.urlopen(req, timeout=300).read()
-    api("PATCH", f"/v1/appScreenshots/{r['id']}", {"data": {"type": "appScreenshots", "id": r["id"], "attributes": {
+    api("PATCH", f"/v1/{type_}/{r['id']}", {"data": {"type": type_, "id": r["id"], "attributes": {
         "uploaded": True, "sourceFileChecksum": hashlib.md5(data).hexdigest()}}})
     return r["id"]
+
+
+def upload_screenshot(set_id, path):
+    return upload_asset("appScreenshots", "appScreenshotSet", "appScreenshotSets", set_id, path)
+
+
+def review_detail():
+    v = ios_version()
+    d = (api("GET", f"/v1/appStoreVersions/{v['id']}/appStoreReviewDetail") or {}).get("data")
+    if d is None:
+        sys.exit("no App Review info on the version yet: run `publish.py listing` first")
+    return d
+
+
+def review_attachments(detail_id):
+    return api("GET", f"/v1/appStoreReviewDetails/{detail_id}/appStoreReviewAttachments")["data"]
+
+
+def review_video(path):
+    """Replace the App Review attachments with this screen recording, and wait until Apple has it."""
+    if not os.path.isfile(path):
+        sys.exit("no such file: " + path)
+    d = review_detail()
+    for old in review_attachments(d["id"]):
+        api("DELETE", f"/v1/appStoreReviewAttachments/{old['id']}")
+    upload_asset("appStoreReviewAttachments", "appStoreReviewDetail", "appStoreReviewDetails", d["id"], path)
+    print("review attachment:", os.path.basename(path), f"({os.path.getsize(path) // 1_000_000} MB)")
+    for _ in range(60):
+        states = [a["attributes"]["assetDeliveryState"]["state"] for a in review_attachments(d["id"])]
+        if states and all(st == "COMPLETE" for st in states):
+            print("review attachment processed")
+            return
+        if any(st == "FAILED" for st in states):
+            sys.exit("the review attachment failed processing: " + str(states))
+        time.sleep(5)
+    print("review attachment still processing:", states)
 
 
 def screenshots(folder):
@@ -195,6 +239,13 @@ def build(version, number):
 
 def submit():
     v = ios_version()
+    # the reviewNotes promise a screen recording: never submit without one (Guideline 2.1)
+    d = review_detail()
+    if d["attributes"].get("notes") != L["reviewNotes"]:
+        sys.exit("App Review notes differ from listing.json: run `publish.py listing` first")
+    done = [a for a in review_attachments(d["id"]) if a["attributes"]["assetDeliveryState"]["state"] == "COMPLETE"]
+    if not done:
+        sys.exit("no screen recording attached for App Review: run `publish.py review-video <file>` first")
     sub = api("POST", "/v1/reviewSubmissions", {"data": {"type": "reviewSubmissions", "attributes": {"platform": "IOS"},
         "relationships": {"app": {"data": {"type": "apps", "id": APP}}}}})["data"]
     api("POST", "/v1/reviewSubmissionItems", {"data": {"type": "reviewSubmissionItems", "relationships": {
@@ -210,9 +261,17 @@ def status():
     print("version", v["attributes"]["versionString"], v["attributes"]["appStoreState"])
     b = (api("GET", f"/v1/appStoreVersions/{v['id']}/build") or {}).get("data")
     print("build:", b and (b["attributes"]["version"], b["attributes"]["processingState"]))
+    d = (api("GET", f"/v1/appStoreVersions/{v['id']}/appStoreReviewDetail") or {}).get("data")
+    if d is None:
+        print("review info: none (run listing)")
+    else:
+        print("review notes:", "current" if d["attributes"].get("notes") == L["reviewNotes"] else "differ from listing.json")
+        print("review attachments:", [(a["attributes"]["fileName"], a["attributes"]["assetDeliveryState"]["state"])
+                                      for a in review_attachments(d["id"])] or "none")
 
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
     {"listing": listing, "price": price, "submit": submit, "status": status,
-     "screenshots": lambda: screenshots(sys.argv[2]), "build": lambda: build(sys.argv[2], sys.argv[3])}[cmd]()
+     "screenshots": lambda: screenshots(sys.argv[2]), "build": lambda: build(sys.argv[2], sys.argv[3]),
+     "review-video": lambda: review_video(sys.argv[2])}[cmd]()

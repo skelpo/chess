@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A small App Store Connect API client for publishing tuichess 3D.
+"""A small App Store Connect API client for publishing tuichess.
 
 Credentials come from Perry's config (~/.perry/config.toml, [apple]: key_id, issuer_id,
 p8_key_path), the same API key `perry publish` uses.
