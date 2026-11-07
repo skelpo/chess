@@ -2,6 +2,8 @@ import { Chess, START_FEN, levelSettings, parseLevel } from "../../engine/src/ch
 import type { Color, Level, Move, Piece, SearchResult } from "../../engine/src/chess.ts";
 import { NAME, clockNow, formatClock, record, timeControl, verdict } from "./online.ts";
 import type { GameView, OnlineClient } from "./online.ts";
+import { View3D } from "./view3d/view3d.ts";
+import type { Graphics } from "./view3d/view3d.ts";
 
 export interface AppOptions {
   readonly level: Level;
@@ -9,6 +11,10 @@ export interface AppOptions {
   readonly fen: string;
   readonly color: boolean;
   readonly unicode: boolean;
+  /** Start with the 3D board (needs color). */
+  readonly threeD?: boolean;
+  /** How the 3D board reaches the terminal (default: half-block characters). */
+  readonly graphics?: Graphics;
 }
 
 export const ONLINE_HELP = [
@@ -22,7 +28,7 @@ export const ONLINE_HELP = [
   "lobby                    leave a finished game",
   "retry                    reconnect",
   "offline                  back to the engine game",
-  "flip / help / quit",
+  "flip / 3d / help / quit",
 ];
 
 export const HELP = [
@@ -33,7 +39,9 @@ export const HELP = [
   "level 1..10              change difficulty",
   "side white|black|both    choose side or local two-player",
   "new                      restart the initial position",
-  "flip                     rotate the board",
+"flip                     rotate the board",
+  "3d                       3D board on/off (needs a truecolor terminal)",
+  "[ ] + - 0                3D: turn, zoom, reset view (or drag and scroll with the mouse)",
   "fen                      show the current FEN",
   "load <FEN>               start from a position",
   "moves [e2]               list legal moves",
@@ -79,6 +87,13 @@ export class ChessApp {
   cursorFile = 4;
   cursorRank = 1;
   lastSearch: SearchResult | null = null;
+  /** The 3D board, when it is on. */
+  view3d: View3D | null = null;
+  private graphics: Graphics;
+  /** Where the 3D viewport starts on screen (1-based cell), for mouse input and the pixel image. */
+  private viewTop = 0;
+  private viewLeft = 0;
+  private drag: { x: number; y: number; moved: boolean } | null = null;
   private initialFen: string;
   private color: boolean;
   private unicode: boolean;
@@ -92,6 +107,18 @@ export class ChessApp {
     this.color = options.color;
     this.unicode = options.unicode;
     if (this.flipped) this.cursorRank = 6;
+    this.graphics = options.graphics ?? "blocks";
+    if (options.threeD === true && this.color) this.view3d = new View3D(this.graphics);
+  }
+
+  /** True while 3D pieces are moving: the terminal should keep redrawing. */
+  animating(): boolean { return this.view3d !== null && this.view3d.animating(); }
+
+  /** True while a move is still landing on the 3D board; the engine waits for it. */
+  waiting(): boolean {
+    if (this.view3d === null) return false;
+    this.view3d.sync(this.game);
+    return this.view3d.busy();
   }
 
   computerTurn(): boolean {
@@ -123,6 +150,12 @@ export class ChessApp {
       if (verb === "quit" || verb === "exit" || verb === "q") { this.running = false; return; }
       if (verb === "help" || verb === "?") { this.showHelp = !this.showHelp; return; }
       if (verb === "flip") { this.flipped = !this.flipped; return; }
+      if (verb === "3d") {
+        if (!this.color) { this.message = "The 3D board needs a color terminal."; return; }
+        this.view3d = this.view3d === null ? new View3D(this.graphics) : null;
+        this.message = this.view3d === null ? "Classic board." : "3D board. Arrows and Space work as before; type 3d for the classic board.";
+        return;
+      }
       if (verb === "online") { this.goOnline(); return; }
       if (this.mode === "online") { this.onlineCommand(command, verb, words.slice(1).join(" ")); return; }
       if (verb === "fen") { this.message = this.game.fen(); return; }
@@ -180,6 +213,22 @@ export class ChessApp {
   }
 
   key(key: string): void {
+    if (key.startsWith("mouse:")) { this.mouse(key); return; }
+    if (key.startsWith("cell:")) {
+      // the terminal's answer to "how many pixels is a cell" (CSI 16 t)
+      const parts = key.split(":");
+      const h = Number(parts[1]), w = Number(parts[2]);
+      if (this.view3d !== null && w > 0 && h > 0) { this.view3d.cellWidth = w; this.view3d.cellHeight = h; }
+      return;
+    }
+    if (this.view3d !== null && this.input === "" && this.promotion === "") {
+      const view = this.view3d;
+      if (key === "[") { view.orbit(-0.2, 0); return; }
+      if (key === "]") { view.orbit(0.2, 0); return; }
+      if (key === "+" || key === "=") { view.zoom(0.9); return; }
+      if (key === "-" || key === "_") { view.zoom(1 / 0.9); return; }
+      if (key === "0") { view.resetCamera(); return; }
+    }
     this.syncOnline();
     if (key === "\u0003" || key === "\u0004") { this.running = false; return; }
     if (key === "escape") { this.input = ""; this.selected = ""; this.promotion = ""; return; }
@@ -201,6 +250,46 @@ export class ChessApp {
       else this.select();
     } else if (key === " " && this.input === "") this.select();
     else if (key.length === 1 && key >= " " && key <= "~" && this.input.length < 512) this.input += key;
+  }
+
+  /**
+   * Mouse on the 3D board: click a square to select or move, drag to turn
+   * the view, scroll to zoom. Keys look like "mouse:<button>:<x>:<y>:<down|up>"
+   * (1-based cells, xterm SGR button codes).
+   */
+  private mouse(key: string): void {
+    const view = this.view3d;
+    if (view === null) return;
+    const parts = key.split(":");
+    const button = Number(parts[1]), x = Number(parts[2]), y = Number(parts[3]), down = parts[4] === "down";
+    if ((button & 64) !== 0) { if (down) view.zoom((button & 1) === 0 ? 0.92 : 1 / 0.92); return; }
+    if ((button & 32) !== 0) {
+      const d = this.drag;
+      if (d === null) return;
+      if (x !== d.x || y !== d.y) {
+        view.orbit((x - d.x) * -0.06, (y - d.y) * 0.05);
+        d.x = x; d.y = y; d.moved = true;
+      }
+      return;
+    }
+    if ((button & 3) !== 0) return;
+    if (down) { this.drag = { x, y, moved: false }; return; }
+    const d = this.drag;
+    this.drag = null;
+    if (d !== null && d.moved) return;
+    const sq = view.pick(x - this.viewLeft, y - this.viewTop);
+    if (sq === null || this.promotion !== "") return;
+    this.syncOnline();
+    this.cursorFile = sq.charCodeAt(0) - 97;
+    this.cursorRank = sq.charCodeAt(1) - 49;
+    this.select();
+  }
+
+  /** Graphics for the 3D board (pixel output): positioned at the viewport, written after the text frame. */
+  overlay(): string {
+    const view = this.view3d;
+    if (view === null || view.overlay() === "") return "";
+    return "\u001b[" + String(this.viewTop) + ";" + String(this.viewLeft) + "H" + view.overlay();
   }
 
   /** Switches to online play; the engine game waits until `offline`. */
@@ -395,7 +484,7 @@ export class ChessApp {
     return panel;
   }
 
-  render(width: number = 80): string {
+  render(width: number = 80, height: number = 24): string {
     this.syncOnline();
     const lines: string[] = [];
     const status = this.game.status();
@@ -422,6 +511,7 @@ export class ChessApp {
     if (this.selected !== "") for (const move of this.game.legalMoves()) if (move.from === this.selected) destinations.push(move.to);
     const history = this.game.history();
     const last = history[history.length - 1] ?? "";
+    if (this.view3d !== null) return this.render3d(lines, panel, destinations, history, status, width, height);
     const wide = width >= 78;
     const files = this.flipped ? "h  g  f  e  d  c  b  a" : "a  b  c  d  e  f  g  h";
     lines.push("      " + files + (wide ? "       " + (panel[0] ?? "") : ""));
@@ -453,6 +543,12 @@ export class ChessApp {
     lines.push("      " + files + (wide ? "       " + (panel[9] ?? "") : ""));
     if (wide) for (let i = 10; i < panel.length; i++) lines.push("                                     " + (panel[i] ?? ""));
     else { lines.push(""); for (const line of panel) if (line !== "") lines.push("  " + line); }
+    lines.push(...this.footer(history, status, width));
+    return lines.join("\n") + "\n";
+  }
+
+  private footer(history: readonly string[], status: ReturnType<Chess["status"]>, width: number): string[] {
+    const lines: string[] = [];
     lines.push("", "  " + this.paint("RECENT MOVES", "38;5;245") + "  " + (history.length === 0 ? "—" : history.slice(-8).join("  ")));
     if (status.canClaimFiftyMove || status.canClaimThreefold) lines.push("  A draw is available. Type draw to claim it.");
     lines.push("");
@@ -460,6 +556,30 @@ export class ChessApp {
     if (this.showHelp) { lines.push(""); for (const line of this.mode === "online" ? ONLINE_HELP : HELP) lines.push("  " + line); }
     if (this.promotion !== "") lines.push("", "  PROMOTE: press q (queen), r (rook), b (bishop), or n (knight).");
     lines.push("", "  " + this.paint("> ", "38;5;151") + this.input);
+    return lines;
+  }
+
+  /** The 3D board fills the space the terminal has; the panel stays on the right when it fits. */
+  private render3d(head: string[], panel: string[], destinations: string[], history: readonly string[],
+    status: ReturnType<Chess["status"]>, width: number, height: number): string {
+    const view = this.view3d;
+    if (view === null) return "";
+    const footer = this.footer(history, status, width);
+    const cursor = square(this.cursorFile, this.cursorRank);
+    const side = [...panel, "", this.paint("CURSOR " + cursor.toUpperCase(), "38;5;245") + (this.selected === "" ? "" : this.paint("  ·  " + this.selected + " selected", "38;5;178")),
+      this.paint("[ ] + - 0 view · mouse: drag, scroll", "38;5;240")];
+    const wide = width >= 100;
+    const rows = Math.max(10, height - head.length - footer.length - (wide ? 0 : side.length + 1) - 1);
+    let cols = wide ? width - 44 : width - 2;
+    cols = Math.max(20, Math.min(cols, Math.round(rows * 2 * 1.6)));
+    const board = view.render(this.game, { cursor, selected: this.selected, targets: destinations, flipped: this.flipped }, cols, rows);
+    this.viewTop = head.length + 1;
+    this.viewLeft = 2;
+    const lines = head.slice();
+    for (let i = 0; i < board.length; i++) lines.push(" " + (board[i] ?? "") + (wide ? "   " + (side[i] ?? "") : ""));
+    if (wide) for (let i = board.length; i < side.length; i++) lines.push(" ".repeat(cols + 4) + (side[i] ?? ""));
+    else { lines.push(""); for (const line of side) if (line !== "") lines.push("  " + line); }
+    lines.push(...footer);
     return lines.join("\n") + "\n";
   }
 
@@ -500,28 +620,51 @@ function wrap(text: string, width: number): string[] {
   return result;
 }
 
-/** Streaming decoder: escape sequences can arrive split across input chunks. */
+/**
+ * Streaming decoder: escape sequences can arrive split across input chunks.
+ * Produces characters, "up"/"down"/"left"/"right", "escape", mouse reports
+ * as "mouse:<button>:<x>:<y>:<down|up>" (SGR 1006 and classic X10), and the
+ * terminal's cell size answer as "cell:<height>:<width>".
+ */
 export class KeyDecoder {
   private escape = "";
+  private x10 = "";
   feed(chunk: string): string[] {
     const keys: string[] = [];
     for (let i = 0; i < chunk.length; i++) {
       const c = chunk.charAt(i);
+      if (this.x10 !== "") {
+        // classic mouse report: ESC [ M then three bytes (button, x, y), each offset by 32
+        this.x10 += c;
+        if (this.x10.length === 4) {
+          const b = this.x10.charCodeAt(1) - 32, x = this.x10.charCodeAt(2) - 32, y = this.x10.charCodeAt(3) - 32;
+          keys.push("mouse:" + String((b & 3) === 3 ? 0 : b) + ":" + String(x) + ":" + String(y) + ":" + ((b & 3) === 3 ? "up" : "down"));
+          this.x10 = "";
+        }
+        continue;
+      }
       if (this.escape !== "") {
         this.escape += c;
         if (this.escape === "\u001b[" || this.escape === "\u001bO") continue;
-        if (this.escape.length === 3 && (this.escape.charAt(1) === "[" || this.escape.charAt(1) === "O")) {
-          if (c === "A") keys.push("up");
-          else if (c === "B") keys.push("down");
-          else if (c === "C") keys.push("right");
-          else if (c === "D") keys.push("left");
-          else if (c >= "0" && c <= "9") continue;
-          this.escape = ""; continue;
+        if (this.escape.charAt(1) === "O") {
+          const arrow = ARROWS[c];
+          if (arrow !== undefined) keys.push(arrow);
+          this.escape = "";
+          continue;
         }
-        if (this.escape.length > 3 && c >= "0" && c <= "9") continue;
-        if (c === ";" && this.escape.length < 20) continue;
+        if (this.escape.charAt(1) === "[") {
+          if (this.escape === "\u001b[M") { this.x10 = "M"; this.escape = ""; continue; }
+          const code = c.charCodeAt(0);
+          if (code >= 0x40 && code <= 0x7e) {
+            const key = csi(this.escape.slice(2, -1), c);
+            if (key !== "") keys.push(key);
+            this.escape = "";
+          } else if (this.escape.length > 40) this.escape = "";
+          continue;
+        }
         this.escape = "";
-        if (c !== "~") { keys.push("escape"); if (c !== "\u001b") keys.push(c); }
+        keys.push("escape");
+        if (c !== "\u001b") keys.push(c);
       } else if (c === "\u001b") this.escape = c;
       else keys.push(c);
     }
@@ -531,6 +674,23 @@ export class KeyDecoder {
     if (this.escape === "\u001b") { this.escape = ""; return ["escape"]; }
     return [];
   }
+}
+
+const ARROWS: Record<string, string> = { A: "up", B: "down", C: "right", D: "left" };
+
+/** A complete CSI sequence (parameters and final character) as a key, or "" to ignore it. */
+function csi(params: string, final: string): string {
+  const arrow = ARROWS[final];
+  if (arrow !== undefined) return arrow;
+  if (params.startsWith("<") && (final === "M" || final === "m")) {
+    const p = params.slice(1).split(";");
+    if (p.length === 3) return "mouse:" + (p[0] ?? "0") + ":" + (p[1] ?? "0") + ":" + (p[2] ?? "0") + ":" + (final === "M" ? "down" : "up");
+  }
+  if (final === "t" && params.startsWith("6;")) {
+    const p = params.split(";");
+    return "cell:" + (p[1] ?? "0") + ":" + (p[2] ?? "0");
+  }
+  return "";
 }
 
 export function defaultOptions(): AppOptions {

@@ -103,6 +103,7 @@ Options:
 | `--plain` | Line input, no screen control or colors |
 | `--no-color` | Keep interactive controls with uncolored output |
 | `--unicode` | Use chess glyphs; ASCII pieces are the portable default |
+| `--3d` | Start with the 3D board (see below); type `3d` in the game to switch |
 | `--help` | Print command-line help |
 
 Pipes and `TERM=dumb` automatically select plain mode. `NO_COLOR` disables colors. Interactive mode uses the alternate screen, restores terminal settings on exit, and handles resize events. A terminal of at least 40 columns and 26 rows is recommended; the side panel moves below the board below 78 columns. White pieces are uppercase, black pieces lowercase.
@@ -121,8 +122,33 @@ Use arrows to move the cursor and Space or Enter to select a piece and destinati
 | `load <FEN>` | Load a validated position and clear history |
 | `moves`, `moves e2` | List all legal moves, or moves from one square |
 | `draw`, `draw f6g8` | Claim an eligible draw, optionally announcing a move |
+| `3d` | Switch between the 3D board and the classic board |
 | `help` | Toggle in-game help |
 | `quit` | Exit; Ctrl-C and Ctrl-D also exit |
+
+### 3D board
+
+`--3d` (or `3d` during a game) draws the board in 3D. It needs a truecolor
+terminal. The pieces are low-poly versions of [web3d](web3d/README.md)'s
+models, and they animate: moves hop, captured pieces topple, castling moves
+both pieces, promotions pop in, and checkmate gets a finale. A small software
+rasterizer (`tui/src/view3d/`) draws them with per-pixel lighting, glossy
+highlights, cast shadows and wood-grain squares, so no GPU or graphics library
+is involved.
+
+- Most terminals, including Apple Terminal, show truecolor half-block
+  characters (`▀`): each character cell is two pixels. A larger window or a
+  smaller font gives a sharper board.
+- kitty, Ghostty, WezTerm and Konsole get real pixels through the kitty
+  graphics protocol, and iTerm2 through inline images. Reflections in the
+  board show here too. The resolution adapts to hold about 25 frames a second.
+  Set `TUICHESS_GRAPHICS=blocks`, `kitty` or `iterm` to override the choice.
+  Inside tmux the board uses half-blocks.
+
+The arrows, Space and typed moves work as usual. With the mouse, click a piece
+and then its destination, drag to turn the view, and scroll to zoom. On the
+keyboard, `[` and `]` turn the view, `+` and `-` zoom, and `0` resets it,
+while the input line is empty. Frames are only drawn while something moves.
 
 Moves use UCI **coordinate notation**, including `e1g1` for castling. This is not a UCI protocol server or a SAN/PGN parser.
 

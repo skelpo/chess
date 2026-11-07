@@ -1,4 +1,5 @@
 import { ChessApp, KeyDecoder, defaultOptions } from "./app.ts";
+import { detectGraphics } from "./view3d/view3d.ts";
 import { DEFAULT_SERVER, OnlineClient } from "./online.ts";
 import { VERSION } from "./version.ts";
 import type { Network } from "./online.ts";
@@ -17,6 +18,9 @@ const USAGE = `Usage: tuichess [options]
   --plain               Line-based terminal mode, also selected for pipes
   --no-color            Disable ANSI colors
   --unicode             Use chess symbols instead of ASCII letters
+  --3d                  3D board (truecolor terminal; also: type 3d in the game).
+                        Real pixels in kitty, Ghostty, WezTerm and iTerm2; set
+                        TUICHESS_GRAPHICS=blocks|kitty|iterm to choose
   --online              Start in online play (also: type online in the game)
   --server <url>        Online server (default: ${DEFAULT_SERVER}, or $TUICHESS_SERVER)
   --help                Show this help
@@ -66,6 +70,7 @@ function run(): void {
   let plain = !process.stdin.isTTY || !process.stdout.isTTY || process.env["TERM"] === "dumb";
   let color = process.env["NO_COLOR"] === undefined;
   let unicode = false;
+  let threeD = false;
   let startOnline = false;
   let server = process.env["TUICHESS_SERVER"] ?? DEFAULT_SERVER;
   for (let i = 2; i < process.argv.length; i++) {
@@ -74,6 +79,7 @@ function run(): void {
     if (argument === "--plain") { plain = true; continue; }
     if (argument === "--no-color") { color = false; continue; }
     if (argument === "--unicode") { unicode = true; continue; }
+    if (argument === "--3d") { threeD = true; continue; }
     if (argument === "--online") { startOnline = true; continue; }
     if (argument === "--version" || argument === "-v") { process.stdout.write("tuichess " + VERSION + "\n"); return; }
     if (argument === "--server") {
@@ -95,7 +101,7 @@ function run(): void {
     }
     throw new Error("Unknown option: " + argument);
   }
-  const app = new ChessApp({ level, human, fen, color: color && !plain, unicode });
+  const app = new ChessApp({ level, human, fen, color: color && !plain, unicode, threeD, graphics: detectGraphics(process.env) });
   const client = new OnlineClient(server, network, fileStore());
   app.online = client;
   let usedNetwork = false;
@@ -114,8 +120,38 @@ function run(): void {
     const key = app.clockKey();
     if (key === shownClock) return;
     shownClock = key;
-    const frame = app.render(process.stdout.columns || 80);
-    process.stdout.write("\u001b[H" + frame.replace(/\n/g, "\u001b[K\r\n") + "\u001b[J");
+    redraw();
+  }
+  /** Repaint in place (no clear, so no flicker): clocks and 3D animation frames. */
+  function redraw(): void {
+    const frame = app.render(process.stdout.columns || 80, process.stdout.rows || 24);
+    process.stdout.write("\u001b[H" + frame.replace(/\n/g, "\u001b[K\r\n") + "\u001b[J" + app.overlay() + terminalModes());
+  }
+  // The 3D board wants mouse reports (click, drag, scroll) and, for pixel
+  // output, the size of a cell in pixels; the classic board wants neither.
+  let modes3d = false;
+  let shownImage = "";
+  function terminalModes(): string {
+    const on = !closed && app.view3d !== null;
+    let out = "";
+    if (on !== modes3d) {
+      modes3d = on;
+      out += on ? "\u001b[?1000h\u001b[?1002h\u001b[?1006h\u001b[16t" : "\u001b[?1000l\u001b[?1002l\u001b[?1006l";
+    }
+    const clear = app.view3d !== null ? app.view3d.clearImage() : "";
+    if (!on && shownImage !== "") out += shownImage;
+    shownImage = on ? clear : "";
+    return out;
+  }
+  // 3D board: about 30 frames a second while pieces move, nothing otherwise.
+  let animation: ReturnType<typeof setInterval> | null = null;
+  function animate(): void {
+    if (animation !== null || closed || plain || !app.animating()) return;
+    animation = setInterval(() => {
+      if (closed) return;
+      redraw();
+      if (!app.animating() && animation !== null) { clearInterval(animation); animation = null; }
+    }, 33);
   }
   function drawSoon(): void {
     usedNetwork = true;
@@ -128,17 +164,20 @@ function run(): void {
   app.onAsync = drawSoon;
   function draw(): void {
     if (closed) return;
-    const frame = app.render(process.stdout.columns || 80);
+    if (!plain && app.view3d !== null) { redraw(); animate(); return; }
+    const frame = app.render(process.stdout.columns || 80, process.stdout.rows || 24);
     // Raw mode can disable the terminal's LF -> CRLF translation (Perry does).
     // Return to column one explicitly rather than relying on host TTY settings.
-    process.stdout.write(plain ? frame : "\u001b[H\u001b[2J" + frame.replace(/\n/g, "\r\n"));
+    process.stdout.write(plain ? frame : terminalModes() + "\u001b[H\u001b[2J" + frame.replace(/\n/g, "\r\n"));
   }
   function restore(): void {
     if (closed) return;
     closed = true;
     if (escapeTimer !== null) clearTimeout(escapeTimer);
     if (ticker !== null) clearInterval(ticker);
+    if (animation !== null) clearInterval(animation);
     if (!plain) {
+      process.stdout.write((modes3d ? "\u001b[?1000l\u001b[?1002l\u001b[?1006l" : "") + shownImage);
       setTerminalRawMode(false);
       process.stdout.write("\u001b[0m\u001b[?25h\u001b[?1049l");
     }
@@ -156,8 +195,15 @@ function run(): void {
     // A held long poll would keep the process alive for up to 25 s.
     if (usedNetwork) setTimeout(() => process.exit(process.exitCode ?? 0), 50);
   }
+  // The engine answers once the player's move has landed on the 3D board.
+  let advanceQueued = false;
   function advance(): void {
     if (!app.running) { finish(); return; }
+    if (app.computerTurn() && app.waiting()) {
+      if (animation === null) draw();      // otherwise the animation timer is already painting
+      if (!advanceQueued) { advanceQueued = true; setTimeout(() => { advanceQueued = false; if (!closed) advance(); }, 40); }
+      return;
+    }
     if (app.computerTurn()) {
       app.message = "Thinking at level " + String(app.level) + "…";
       draw();
@@ -184,7 +230,7 @@ function run(): void {
         app.key(key);
         if (!app.running) break;
         // Process each completed command before a pasted subsequent command.
-        if (app.computerTurn()) {
+        if (app.computerTurn() && !app.waiting()) {
           app.message = "Thinking at level " + String(app.level) + "…";
           draw();
           app.advanceComputer();

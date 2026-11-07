@@ -239,7 +239,86 @@ equal(decoder.feed("[").length, 0, "split escape bracket");
 equal(decoder.feed("A")[0] ?? "", "up", "split arrow decoded");
 equal(decoder.feed("e2e4\r").join(""), "e2e4\r", "typed move decoded");
 decoder.feed("\u001b"); equal(decoder.flushEscape()[0] ?? "", "escape", "lone escape");
+equal(decoder.feed("\u001b[<0;12;7M\u001b[<32;13;7M").join(" "), "mouse:0:12:7:down mouse:32:13:7:down", "SGR mouse press and drag");
+equal(decoder.feed("\u001b[<0;13;").length, 0, "split mouse report");
+equal(decoder.feed("7m").join(""), "mouse:0:13:7:up", "SGR mouse release");
+equal(decoder.feed("\u001b[M !\"").join(""), "mouse:0:1:2:down", "X10 mouse press");
+equal(decoder.feed("\u001b[6;18;9t").join(""), "cell:18:9", "cell size report");
+equal(decoder.feed("\u001b[1;2C\u001b[3~x").join(" "), "right x", "modified arrow, ignored delete");
 app.command("quit"); assert(!app.running, "quit");
 console.log("ok · TUI commands, selection, promotion and streaming keyboard decoder");
+
+// 3D board: renders half-block cells, animates moves on its own clock, and holds the engine until a move lands.
+const plain3d = new ChessApp({ level: 1, human: "white", fen: START_FEN, color: false, unicode: false });
+plain3d.command("3d");
+assert(plain3d.view3d === null && plain3d.message.includes("color"), "3d needs color");
+const app3d = new ChessApp({ level: 1, human: "white", fen: START_FEN, color: true, unicode: false, threeD: true });
+const view = app3d.view3d;
+assert(view !== null, "--3d starts the 3D board");
+if (view !== null) {
+  let clock = 1000;
+  view.now = () => clock;
+  view.supersample = 1;
+  const frame = app3d.render(120, 40);
+  assert(frame.includes("▀") && frame.includes("CURSOR E2"), "3D frame has half-block cells and the panel");
+  equal(frame.split("\n").length, app3d.render(120, 40).split("\n").length, "3D frame height is stable");
+  assert(!app3d.animating() && !app3d.waiting(), "3D board at rest");
+  app3d.command("e2e4");
+  assert(app3d.waiting() && app3d.animating(), "a move animates and holds the engine");
+  clock += 400; app3d.render(120, 40);
+  assert(app3d.waiting(), "still landing");
+  clock += 2000; app3d.render(120, 40);
+  assert(!app3d.waiting() && !app3d.animating(), "landed");
+  app3d.advanceComputer();
+  equal(app3d.game.history().length, 2, "engine answered");
+  assert(app3d.waiting(), "engine move animates");
+  clock += 2500; app3d.render(120, 40);
+  app3d.command("undo");
+  app3d.render(120, 40);
+  assert(!app3d.animating(), "undo redraws the position without animation");
+  app3d.command("load 6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1");
+  app3d.render(120, 40);
+  app3d.command("d1d8");
+  app3d.render(120, 40);
+  clock += 1500; app3d.render(120, 40);
+  assert(app3d.animating(), "checkmate finale plays");
+  // mouse: click a piece, click its target (cells found through the view's own picking)
+  app3d.command("load " + START_FEN);
+  app3d.render(120, 40);
+  let from: [number, number] | null = null, to: [number, number] | null = null;
+  for (let row = 0; row < 40 && (from === null || to === null); row++) {
+    for (let col = 0; col < 120; col++) {
+      const sq = view.pick(col, row);
+      if (sq === "g1" && from === null) from = [col + 2, row + 5];
+      if (sq === "f3" && to === null) to = [col + 2, row + 5];
+    }
+  }
+  assert(from !== null && to !== null, "squares can be picked on the 3D board");
+  if (from !== null && to !== null) {
+    app3d.key("mouse:0:" + String(from[0]) + ":" + String(from[1]) + ":down");
+    app3d.key("mouse:0:" + String(from[0]) + ":" + String(from[1]) + ":up");
+    equal(app3d.selected, "g1", "click selects a piece");
+    app3d.key("mouse:0:" + String(to[0]) + ":" + String(to[1]) + ":down");
+    app3d.key("mouse:0:" + String(to[0]) + ":" + String(to[1]) + ":up");
+    equal(app3d.game.history().join(), "g1f3", "click on a target moves");
+  }
+  const yaw = view.camera.yaw;
+  app3d.key("mouse:0:10:10:down"); app3d.key("mouse:32:14:10:down"); app3d.key("mouse:0:14:10:up");
+  assert(view.camera.yaw !== yaw && app3d.game.history().length === 1, "drag turns the view without moving");
+  app3d.key("0"); equal(view.camera.yaw, 0, "0 resets the view");
+  app3d.key("]"); assert(view.camera.yaw > 0 && app3d.input === "", "] turns the view");
+  app3d.key("cell:20:10");
+  equal(view.cellWidth * 100 + view.cellHeight, 1020, "terminal cell size is used for pixel output");
+  // pixel output: blank text cells plus a graphics escape at the viewport
+  const pixels = new ChessApp({ level: 1, human: "white", fen: START_FEN, color: true, unicode: false, threeD: true, graphics: "kitty" });
+  const kittyFrame = pixels.render(120, 40);
+  assert(!kittyFrame.includes("▀") && pixels.overlay().includes("\u001b_Ga=T,f=24,o=z"), "kitty frame");
+  const iterm = new ChessApp({ level: 1, human: "white", fen: START_FEN, color: true, unicode: false, threeD: true, graphics: "iterm" });
+  iterm.render(120, 40);
+  assert(iterm.overlay().includes("1337;File=inline=1") && iterm.overlay().includes(":iVBORw0KGgo"), "iTerm2 frame is a PNG");
+  app3d.command("3d");
+  assert(app3d.view3d === null && !app3d.render(80).includes("▀"), "3d toggles back to the classic board");
+}
+console.log("ok · 3D board rendering, move animation timing and engine hold");
 console.log("fingerprint · " + fingerprint);
 console.log("PASS · " + String(passed) + " assertions");
