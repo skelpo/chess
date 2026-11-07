@@ -24,10 +24,13 @@ interface PieceAsset {
 
 const assets = new Map<PieceType, PieceAsset>();
 
-export async function loadPieces(baseUrl: string): Promise<void> {
+/** Load the six piece models; `progress(done, total)` after each one (for the loading screen). */
+export async function loadPieces(baseUrl: string, progress?: (done: number, total: number) => void): Promise<void> {
   const loader = new GLTFLoader();
+  let done = 0;
   await Promise.all(PIECE_TYPES.map(async (type) => {
     const gltf = await loader.loadAsync(`${baseUrl}${type}.glb`);
+    progress?.(++done, PIECE_TYPES.length);
     let timing: PieceTiming | null = null;
     gltf.scene.traverse((o) => {
       const raw = o.userData.tuichess;

@@ -10,7 +10,9 @@ import type { Object3D, Mesh, MeshStandardMaterial } from "three";
 const home = process.env["TUICHESS_HOME"];
 configure({
   app: "tuichess",
-  title: "tuichess 3D — Bloom",
+  // a native app starts its music with the app, not with the first tap
+  autoplay: true,
+  title: "tuichess",
   width: 1280,
   height: 800,
   root: new URL("../", import.meta.url).pathname,   // web3d/

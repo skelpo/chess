@@ -4,8 +4,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { Chess, START_FEN, levelSettings, type Color, type Level, type Move, type PieceType, type Promotion } from "@plain-chess/engine";
+import { Chess, START_FEN, type Color, type Level, type Move, type PieceType, type Promotion } from "@plain-chess/engine";
 import { Actor, Tweens, liveActors, loadPieces } from "./pieces.ts";
+import { Menu, levelLabel } from "./menu.ts";
+import { Sound } from "./audio.ts";
+import { SPEED_SCALE, loadGame, loadSettings, saveGame, type SavedGame } from "./settings.ts";
 
 const FILES = "abcdefgh";
 const LIGHT_SQ = "#c9a878", DARK_SQ = "#8a6a43", FRAME = "#241b15", LABEL = "#b6a283";
@@ -13,6 +16,9 @@ const LIGHT_SQ = "#c9a878", DARK_SQ = "#8a6a43", FRAME = "#241b15", LABEL = "#b6
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const canvas = $<HTMLCanvasElement>("view");
 const statusEl = $("status");
+const hudEl = $("hud");
+const settings = loadSettings();
+const sound = new Sound(new URL("./audio/", location.href).href);
 
 // ---------------------------------------------------------------- scene
 
@@ -42,7 +48,7 @@ controls.target.set(0, 0, 0);
 scene.add(new THREE.HemisphereLight(0xfff4e0, 0x1a1410, 0.45));
 const key = new THREE.DirectionalLight(0xfff1dc, 1.9);
 key.position.set(4.5, 10, 5.5);
-key.castShadow = true;
+key.castShadow = settings.shadows;
 key.shadow.mapSize.set(2048, 2048);
 key.shadow.camera.left = key.shadow.camera.bottom = -7.5;
 key.shadow.camera.right = key.shadow.camera.top = 7.5;
@@ -152,7 +158,9 @@ const tweens = new Tweens();
 const chess = new Chess();
 let moves: string[] = [];
 let human: Color = "white";
-let level: Level = 4;
+let level: Level = settings.level;
+/** "title": the board turns slowly behind the main menu; "game": you are playing. */
+let mode: "title" | "game" = "title";
 let busy = false;
 let selected: string | null = null;
 let gameOver = false;
@@ -215,7 +223,7 @@ function rebuild(animate: boolean): void {
 
 function refreshMarks(): void {
   const last = chess.history().at(-1);
-  if (last) { place(lastMoveMarks[0], last.slice(0, 2), 0.003); place(lastMoveMarks[1], last.slice(2, 4), 0.003); }
+  if (last && settings.lastMove) { place(lastMoveMarks[0], last.slice(0, 2), 0.003); place(lastMoveMarks[1], last.slice(2, 4), 0.003); }
   else for (const m of lastMoveMarks) m.visible = false;
   checkMark.visible = false;
   if (chess.inCheck()) {
@@ -247,6 +255,7 @@ function select(sq: string): void {
   selected = sq;
   actors.get(sq)?.setSelected(true);
   place(selectMark, sq, 0.004);
+  if (!settings.hints) return;
   for (const mv of chess.legalMoves()) {
     if (mv.from !== sq || (mv.promotion && mv.promotion !== "q")) continue;
     const m = mv.capture ? marker(0x6fbf73, 0.75, ringGeo) : marker(0x101010, 0.38, dotGeo);
@@ -257,7 +266,7 @@ function select(sq: string): void {
 }
 
 function onSquare(sq: string): void {
-  if (busy || gameOver || chess.turn() !== human) return;
+  if (mode !== "game" || menu.isOpen() || busy || gameOver || chess.turn() !== human) return;
   const piece = chess.pieceAt(sq);
   if (selected) {
     const options = chess.legalMoves().filter((m) => m.from === selected && m.to === sq);
@@ -268,7 +277,9 @@ function onSquare(sq: string): void {
     }
     if (sq === selected) { clearSelection(); return; }
   }
-  if (piece && piece.color === human) select(sq); else clearSelection();
+  if (piece && piece.color === human) { select(sq); sound.play("select"); return; }
+  if (selected) sound.play("illegal");
+  clearSelection();
 }
 
 function choosePromotion(): Promise<Promotion> {
@@ -332,7 +343,7 @@ async function animateMove(mv: Move): Promise<void> {
   actors.set(mv.to, actor);
   const jobs: Promise<void>[] = [];
   if (victim) jobs.push(knockOut(victim, 0.1));
-  jobs.push(actor.hopTo(squarePos(mv.to), { high: actor.type === "knight" }));
+  jobs.push(actor.hopTo(squarePos(mv.to), { high: actor.type === "knight" }).then(() => sound.play(victim ? "capture" : "move")));
   if (mv.castle) {
     const rank = mv.from[1];
     const [rf, rt] = mv.to[0] === "g" ? ["h" + rank, "f" + rank] : ["a" + rank, "d" + rank];
@@ -340,7 +351,7 @@ async function animateMove(mv: Move): Promise<void> {
     if (rook) {
       actors.delete(rf);
       actors.set(rt, rook);
-      jobs.push(tweens.wait(0.18).then(() => rook.hopTo(squarePos(rt))));
+      jobs.push(tweens.wait(0.18).then(() => rook.hopTo(squarePos(rt))).then(() => sound.play("move", { gain: 0.8 })));
     }
   }
   await Promise.all(jobs);
@@ -349,6 +360,7 @@ async function animateMove(mv: Move): Promise<void> {
     await actor.fade(0, 0.2);
     actor.dispose();
     const promoted = spawn(type, actor.color, mv.to);
+    sound.play("promote");
     await promoted.pop(0.4);
     void promoted.play("celebrate");
   }
@@ -357,8 +369,10 @@ async function animateMove(mv: Move): Promise<void> {
 async function commit(mv: Move): Promise<void> {
   chess.play(mv.uci);
   moves.push(mv.uci);
+  persist();
   await animateMove(mv);
   refreshMarks();
+  if (chess.inCheck() && chess.status().state === "playing") sound.play("check");
   await afterMove();
 }
 
@@ -402,9 +416,10 @@ async function engineMove(): Promise<void> {
   if (minThink > 0) await tweens.wait(minThink / 1000);
   if (gen !== generation) return;
   if (reply.claimDraw && chess.claimDraw(reply.uci ?? "")) {
-    gameOver = true;
     busy = false;
     setStatus("The engine claims a draw.");
+    sound.play("draw");
+    endGame("Draw", "The engine claims a draw.", 0.6);
     return;
   }
   const mv = chess.legalMoves().find((m) => m.uci === reply.uci);
@@ -416,14 +431,37 @@ async function engineMove(): Promise<void> {
 }
 
 async function finale(): Promise<void> {
-  gameOver = true;
   const st = chess.status();
-  if (st.state !== "checkmate") return;
-  for (const a of actors.values()) {
-    if (a.type !== "king") continue;
-    if (a.color === st.winner) void a.play("celebrate").then(() => a.play("celebrate"));
-    else void a.play("captured", { hold: true });
+  const count = Math.ceil(moves.length / 2);
+  if (st.state === "checkmate") {
+    for (const a of actors.values()) {
+      if (a.type !== "king") continue;
+      if (a.color === st.winner) void a.play("celebrate").then(() => a.play("celebrate"));
+      else void a.play("captured", { hold: true });
+    }
+    sound.play(st.winner === human ? "win" : "lose");
+    if (st.winner === human) endGame("You win!", `Checkmate in ${plural(count, "move")} against ${levelLabel(level)}.`, 2.4);
+    else endGame("Checkmate", `${levelLabel(level)} mates you in ${plural(count, "move")}.`, 2.4);
+  } else {
+    sound.play("draw");
+    endGame("Draw", `Drawn by ${st.drawReason?.replace(/-/g, " ") ?? "agreement"} after ${plural(count, "move")}.`, 1.2);
   }
+}
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+/** The game is over: forget the saved game, then show the result screen after a moment. */
+function endGame(title: string, text: string, delay: number): void {
+  gameOver = true;
+  persist();
+  const gen = generation;
+  void tweens.wait(delay).then(() => {
+    if (gen !== generation || mode !== "game") return;
+    clearSelection();
+    menu.setGameOver(title, text);
+    menu.show("over");
+    sound.setScene("over");
+  });
 }
 
 // ---------------------------------------------------------------- camera
@@ -472,13 +510,115 @@ function newGame(color: Color, fen = START_FEN): void {
   gameOver = false;
   busy = false;
   rebuild(true);
+  enterGame();
+  sound.play("start");
+  persist();
   void flyCamera(color);
   setStatus(turnText());
   if (chess.turn() !== human) void tweens.wait(0.9).then(() => engineMove());
 }
 
+/** Set up a saved game on the board (no animation). False if it doesn't replay. */
+function loadPosition(g: SavedGame): boolean {
+  generation++;
+  clearSelection();
+  try {
+    chess.load(g.startFen);
+    for (const uci of g.moves) chess.play(uci);
+  } catch {
+    chess.load(START_FEN);
+    startFen = START_FEN; moves = []; human = "white";
+    rebuild(false);
+    return false;
+  }
+  startFen = g.startFen;
+  moves = [...g.moves];
+  human = g.human;
+  level = g.level;
+  gameOver = chess.status().state !== "playing";
+  busy = false;
+  rebuild(false);
+  return true;
+}
+
+function continueGame(): void {
+  const saved = loadGame();
+  if (saved === null || !loadPosition(saved) || gameOver) { menu.push("new"); return; }
+  enterGame();
+  void flyCamera(human);
+  setStatus(turnText());
+  if (chess.turn() !== human) void tweens.wait(0.9).then(() => engineMove());
+}
+
+/** The game in progress survives a reload; a finished one doesn't. */
+function persist(): void {
+  saveGame(mode === "game" && !gameOver ? { startFen, moves, human, level } : null);
+}
+
+/** The Continue button's line: side, engine and move of the saved game. */
+function savedInfo(): string | null {
+  const g = loadGame();
+  if (g === null) return null;
+  return `${g.human === "white" ? "White" : "Black"} vs ${levelLabel(g.level)} · move ${Math.floor(g.moves.length / 2) + 1}`;
+}
+
+function enterGame(): void {
+  mode = "game";
+  menu.close();
+  sound.setScene("game");
+  hudEl.hidden = false;
+  statusEl.hidden = false;
+  controls.enabled = true;
+}
+
+function toTitle(): void {
+  generation++;                                     // drop a pending engine reply
+  mode = "title";
+  busy = false;
+  clearSelection();
+  hudEl.hidden = true;
+  statusEl.hidden = true;
+  $("promo").hidden = true;
+  controls.enabled = false;
+  orbit = Math.atan2(camera.position.x, camera.position.z);
+  menu.setContinue(savedInfo());
+  menu.show("title");
+  sound.setScene("title");
+}
+
+function openPause(): void {
+  if (mode !== "game") return;
+  clearSelection();
+  controls.enabled = false;
+  if (gameOver) { menu.show("over"); sound.setScene("over"); return; }
+  const turn = chess.turn() === human ? "your move" : "engine to move";
+  menu.setPauseInfo(`You play ${human} against ${levelLabel(level)} · move ${Math.floor(moves.length / 2) + 1}, ${turn}`);
+  menu.show("pause");
+  sound.setScene("pause");
+}
+
+function resume(): void {
+  menu.close();
+  controls.enabled = mode === "game";
+  if (mode === "game") sound.setScene(gameOver ? "over" : "game");
+}
+
+function resign(): void {
+  if (mode !== "game" || gameOver) return;
+  generation++;
+  busy = false;
+  setStatus("You resigned.");
+  gameOver = true;
+  persist();
+  for (const a of actors.values()) if (a.type === "king" && a.color === human) void a.play("captured", { hold: true });
+  sound.play("lose");
+  sound.setScene("over");
+  menu.setGameOver("You resigned", moves.length === 0 ? `${levelLabel(level)} wins.` : `${levelLabel(level)} wins after ${plural(Math.ceil(moves.length / 2), "move")}.`);
+  menu.show("over");
+}
+
 function undo(): void {
-  if (moves.length === 0) return;
+  if (mode !== "game" || moves.length === 0) return;
   generation++;
   clearSelection();
   // take back to the last position where it was the human's move
@@ -486,23 +626,42 @@ function undo(): void {
   gameOver = false;
   busy = false;
   rebuild(false);
+  persist();
   setStatus(turnText());
   if (chess.turn() !== human) void engineMove();
 }
 
-const levelSelect = $<HTMLSelectElement>("level");
-for (let l = 1; l <= 10; l++) {
-  const o = document.createElement("option");
-  o.value = String(l);
-  o.textContent = `${l} · ${levelSettings(l as Level).name}`;
-  levelSelect.append(o);
-}
-levelSelect.value = String(level);
-levelSelect.onchange = () => { level = Number(levelSelect.value) as Level; };
-$("new-white").onclick = () => newGame("white");
-$("new-black").onclick = () => newGame("black");
+const flip = () => void flyCamera(camera.position.z >= 0 ? "black" : "white");
 $("undo").onclick = () => undo();
-$("flip").onclick = () => void flyCamera(camera.position.z >= 0 ? "black" : "white");
+$("flip").onclick = flip;
+$("menu-open").onclick = () => openPause();
+// a tick for every menu and HUD button (setting changes included)
+for (const id of ["menu", "hud", "promo"]) $(id).addEventListener("click", (e) => { if ((e.target as HTMLElement).closest("button")) sound.play("click"); });
+
+const menu = new Menu(settings, {
+  start: (color, l) => { level = l; menu.close(); newGame(color); },
+  continueGame,
+  resume,
+  undo: () => { resume(); undo(); },
+  resign,
+  rematch: () => { menu.close(); newGame(human); },
+  review: () => { resume(); setStatus(turnText()); },
+  toTitle,
+  quit: () => (globalThis as { nativeApp?: { quit(): void } }).nativeApp?.quit(),
+  settingsChanged: () => {
+    key.castShadow = settings.shadows;
+    if (selected !== null) select(selected);
+    refreshMarks();
+  },
+});
+
+addEventListener("keydown", (e) => {
+  if (menu.key(e)) { e.preventDefault(); return; }
+  if (mode !== "game" || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === "Escape") { e.preventDefault(); openPause(); }
+  else if (e.key === "u" || e.key === "U") undo();
+  else if (e.key === "f" || e.key === "F") flip();
+});
 
 // ---------------------------------------------------------------- loop
 
@@ -520,34 +679,56 @@ addEventListener("resize", () => {
 });
 
 const timer = new THREE.Timer();
+let orbit = 0;
 function frame(time: number): void {
   timer.update(time);
-  const dt = Math.min(0.05, timer.getDelta());
+  const real = Math.min(0.05, timer.getDelta());
+  // the pause menu stops the game clock: animations, the engine's reply and its landing wait
+  const paused = mode === "game" && menu.isOpen() && !gameOver;
+  const dt = paused ? 0 : real * SPEED_SCALE[settings.speed];
   tweens.update(dt);
   for (const a of liveActors) a.mixer.update(dt);
-  controls.update();
+  if (mode === "title") {
+    // a slow turn around the board behind the main menu
+    orbit += real * 0.07;
+    const r = 15.5, h = 7.2;
+    camera.position.set(Math.sin(orbit) * r, h, Math.cos(orbit) * r);
+    camera.lookAt(controls.target);
+  } else {
+    controls.update();
+  }
   renderer.render(scene, camera);
 }
 
 async function start(): Promise<void> {
   resize();
-  camera.position.copy(cameraHome("white")).multiplyScalar(1.25);
-  camera.lookAt(controls.target);
-  setStatus("Loading pieces…");
-  await loadPieces(new URL("./models/", location.href).href);
+  controls.enabled = false;
+  const bar = $("loading-progress");
+  bar.style.width = "8%";
+  await loadPieces(new URL("./models/", location.href).href, (done, total) => {
+    bar.style.width = `${Math.round(8 + 92 * done / total)}%`;
+  });
+  // behind the title: the saved game if there is one, else the starting position
+  const saved = loadGame();
+  if (saved === null || !loadPosition(saved)) chess.load(START_FEN);
+  rebuild(true);
+  orbit = human === "white" ? 0.35 : Math.PI + 0.35;
   renderer.setAnimationLoop(frame);
-  newGame("white");
-  $("loading").hidden = true;
+  toTitle();
+  // fade the loading screen out over the title (its CSS transition), then take it away
+  const loading = $("loading");
+  loading.classList.add("done");
+  setTimeout(() => { loading.hidden = true; }, 450);
 }
 
 // Small hook for automated checks and the console.
 Object.assign(window, {
   web3d: {
     chess,
-    state: () => ({ fen: chess.fen(), moves: [...moves], busy, human, gameOver, status: statusEl.textContent }),
+    state: () => ({ fen: chess.fen(), moves: [...moves], busy, human, gameOver, mode, menu: menu.current, status: statusEl.textContent }),
     move: (uci: string) => {
       const mv = chess.legalMoves().find((m) => m.uci === uci);
-      if (!mv || busy || chess.turn() !== human) return false;
+      if (!mv || mode !== "game" || busy || chess.turn() !== human) return false;
       void humanMove(mv);
       return true;
     },
@@ -559,7 +740,9 @@ Object.assign(window, {
       return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height];
     },
     newGame,
-    setLevel: (l: Level) => { level = l; levelSelect.value = String(l); },
+    setLevel: (l: Level) => { level = l; },
+    openMenu: () => openPause(),
+    toTitle,
   },
 });
 

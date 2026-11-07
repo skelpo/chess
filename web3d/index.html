@@ -2,55 +2,239 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>tuichess 3D</title>
 <meta name="description" content="Play the tuichess engine on a 3D board, in your browser.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='8' height='8' fill='%23ad8e62'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23ad8e62'/%3E%3Crect x='8' width='8' height='8' fill='%238a6a43'/%3E%3Crect y='8' width='8' height='8' fill='%238a6a43'/%3E%3C/svg%3E">
 <style>
+/* Everything here is drawn by the browser on the web and by @bloomengine/web's CSS engine in the
+   native app: flex, grid, gradients, shadows, transitions, keyframes, :hover, :focus-visible and
+   [aria-pressed]. No backdrop-filter (Bloom doesn't blur) and no emoji. */
 :root {
-  --bg: #0f1012; --panel: rgba(23, 24, 27, .86); --line: #2a2c31; --text: #e6e3dc; --dim: #9a968d;
-  --accent: #6fbf73; --link: #8ab4f8;
+  --bg: #0f1012; --panel: rgba(21, 22, 25, .9); --panel-2: rgba(255, 255, 255, .035); --line: #2a2c31; --line-2: #3a3d44;
+  --text: #e6e3dc; --dim: #9a968d; --faint: #6c6961;
+  --accent: #6fbf73; --accent-2: #82cf86; --wood: #c9a878;
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.5 var(--mono); overflow: hidden; }
 #view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-.hud { position: fixed; left: 16px; right: 16px; top: 12px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; pointer-events: none; }
-.hud > * { pointer-events: auto; }
-.logo { font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: .02em; }
-.logo span { color: var(--accent); }
-.controls { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
-button, select { font: inherit; font-size: 13px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
-button:hover, select:hover { border-color: #444851; }
-#status { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
-#promo { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; text-align: center; }
-#promo p { margin: 0 0 10px; color: var(--dim); }
-#promo button { font-size: 22px; padding: 6px 14px; }
-#loading { position: fixed; inset: 0; display: grid; place-items: center; color: var(--dim); pointer-events: none; }
+button { font: inherit; font-size: 13px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s; }
+button:hover { border-color: var(--line-2); background: rgba(34, 35, 40, .95); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #0f1012; font-weight: 700; }
+button.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+button.quiet { background: transparent; border-color: transparent; color: var(--dim); }
+button.quiet:hover { color: var(--text); background: var(--panel-2); border-color: var(--line); }
 [hidden] { display: none !important; }
+
+/* ---- in game: the HUD on top, the status pill at the bottom ---- */
+.hud { position: fixed; left: calc(16px + env(safe-area-inset-left)); right: calc(16px + env(safe-area-inset-right)); top: calc(12px + env(safe-area-inset-top));
+  display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.logo { font-weight: 700; font-size: 15px; letter-spacing: .02em; color: var(--text); text-shadow: 0 1px 3px rgba(0,0,0,.75), 0 0 8px rgba(0,0,0,.45); }
+.logo span { color: var(--accent); }
+.controls { display: flex; gap: 6px; margin-left: auto; }
+.controls button { padding: 6px 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .3); }
+#status { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 999px; padding: 7px 18px; white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; box-shadow: 0 6px 20px rgba(0, 0, 0, .35); }
+#promo { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; text-align: center; box-shadow: 0 18px 50px rgba(0, 0, 0, .5); animation: rise .18s ease-out; }
+#promo p { margin: 0 0 12px; color: var(--dim); }
+#promo div { display: flex; gap: 8px; }
+#promo button { font-size: 30px; line-height: 1; width: 58px; height: 58px; padding: 0; border-radius: 12px; }
+
+/* ---- loading screen ---- */
+#loading { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  transition: opacity .4s ease-out; }
+#loading.done { opacity: 0; pointer-events: none; }
+#loading .knight { font-size: 96px; line-height: 1; color: var(--wood); }
+#loading .loading-title { font-weight: 700; font-size: 20px; letter-spacing: .02em; }
+#loading .loading-title span { color: var(--accent); }
+#loading .loading-bar { width: 180px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+#loading-progress { width: 0; height: 100%; background: var(--accent); transition: width .2s ease-out; }
+
+/* ---- menu: an HTML overlay over the canvas ---- */
+.menu { position: fixed; inset: 0; display: grid; place-items: center; overflow-y: auto;
+  padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+  background: radial-gradient(ellipse at center, rgba(12, 13, 15, .5), rgba(12, 13, 15, .9)); animation: fade .2s ease-out; }
+.menu.title { background: radial-gradient(ellipse at center, rgba(12, 13, 15, .2), rgba(12, 13, 15, .85) 75%); }
+.screen { width: min(440px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 26px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5); animation: rise .22s ease-out; }
+.screen h2 { font-size: 20px; margin: 0 0 4px; }
+.screen .lead { color: var(--dim); margin: 0 0 20px; }
+.screen p { color: var(--dim); margin: 0 0 16px; }
+.screen nav { display: grid; gap: 10px; margin-top: 20px; }
+.screen nav button { width: 100%; font-size: 15px; padding: 12px 16px; border-radius: 11px; }
+.screen nav.row { grid-template-columns: 1fr 1fr; }
+@media (max-width: 480px) { .screen { padding: 22px 18px; } }
+
+/* the title: no card, the board turns behind it */
+.menu.title .screen { background: none; border-color: transparent; box-shadow: none; text-align: center; width: min(360px, 100%); }
+.wordmark { font-size: 56px; line-height: 1; font-weight: 800; letter-spacing: .01em; margin: 0; text-shadow: 0 4px 24px rgba(0, 0, 0, .9), 0 0 3px rgba(0, 0, 0, .8); }
+.wordmark span { color: var(--accent); }
+@media (max-width: 480px) { .wordmark { font-size: 46px; } }
+.tagline { color: var(--text); margin: 12px 0 28px; letter-spacing: .04em; text-shadow: 0 2px 14px rgba(0, 0, 0, .9), 0 0 3px rgba(0, 0, 0, .8); }
+.menu.title nav { gap: 10px; }
+.menu.title nav button { box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+#continue small { display: block; font-size: 12px; font-weight: 400; opacity: .75; margin-top: 1px; }
+.foot { margin-top: 26px; font-size: 12px; color: var(--dim); text-shadow: 0 1px 6px rgba(0, 0, 0, .9); }
+
+/* options: a label (with a hint under it) and a control on the right */
+.group { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px; margin-bottom: 12px; }
+.group-title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 0 0 6px 2px; }
+.opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.opt:first-child { border-top: 0; }
+.opt .label small { display: block; font-size: 11px; color: var(--faint); }
+.seg { display: inline-flex; align-items: center; flex: none; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: rgba(0, 0, 0, .2); }
+.seg button { border: 0; border-radius: 0; background: transparent; padding: 6px 12px; }
+.seg button:hover { background: var(--panel-2); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #0f1012; font-weight: 700; }
+.seg output { min-width: 128px; text-align: center; padding: 6px 4px; font-weight: 700; }
+.meter { display: flex; gap: 4px; margin: 2px 0 8px; }
+.meter i { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.meter i.on { background: var(--accent); }
+#level-note { font-size: 12px; margin: 0; }
+.keys { display: grid; gap: 8px; margin: 0; }
+.keys div { display: flex; align-items: center; gap: 12px; }
+kbd { min-width: 64px; text-align: center; font: inherit; font-size: 12px; background: #1c1d21; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 2px 8px; }
+.result { font-size: 26px; margin-bottom: 6px; }
+@keyframes fade { from { opacity: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
 </style>
 </head>
 <body>
 <canvas id="view"></canvas>
-<div class="hud">
-  <a class="logo" href="https://tuichess.dev/">tui<span>chess</span> 3D</a>
+<div class="hud" id="hud" hidden>
+  <a class="logo">tui<span>chess</span></a>
   <div class="controls">
-    <button id="new-white" title="New game, you play white">New · white</button>
-    <button id="new-black" title="New game, you play black">New · black</button>
-    <select id="level" title="Engine level"></select>
-    <button id="undo" title="Take back your last move">Undo</button>
-    <button id="flip" title="Turn the camera to the other side">Flip</button>
+    <button id="undo" title="Take back your last move (U)">Undo</button>
+    <button id="flip" title="Turn the camera to the other side (F)">Flip</button>
+    <button id="menu-open" title="Menu (Esc)">Menu</button>
   </div>
 </div>
-<div id="status">Loading…</div>
+<div id="status" hidden>Loading…</div>
 <div id="promo" hidden>
   <p>Promote to</p>
-  <button data-p="q" title="Queen">♛</button>
-  <button data-p="r" title="Rook">♜</button>
-  <button data-p="b" title="Bishop">♝</button>
-  <button data-p="n" title="Knight">♞</button>
+  <div>
+    <button data-p="q" title="Queen">♛</button>
+    <button data-p="r" title="Rook">♜</button>
+    <button data-p="b" title="Bishop">♝</button>
+    <button data-p="n" title="Knight">♞</button>
+  </div>
 </div>
-<div id="loading"></div>
+
+<div id="menu" class="menu" hidden>
+  <section class="screen" id="screen-title" hidden>
+    <h1 class="wordmark">tui<span>chess</span></h1>
+    <p class="tagline">Chess on a 3D board</p>
+    <nav>
+      <button class="primary" id="continue" data-action="continue" hidden>Continue game<small id="continue-info"></small></button>
+      <button data-action="open:new">New game</button>
+      <button data-action="open:settings">Settings</button>
+      <button data-action="open:help">How to play</button>
+      <button id="quit" data-action="quit" hidden>Quit</button>
+    </nav>
+    <div class="foot">tuichess.dev</div>
+  </section>
+
+  <section class="screen" id="screen-new" hidden>
+    <h2>New game</h2>
+    <p class="lead">You against the tuichess engine.</p>
+    <div class="group">
+      <div class="opt"><span class="label">Play as</span>
+        <div class="seg" data-setting="color"><button data-value="white">White</button><button data-value="black">Black</button><button data-value="random">Random</button></div>
+      </div>
+      <div class="opt"><span class="label">Engine</span>
+        <div class="seg"><button data-action="level:-1" title="Easier">‹</button><output id="level-value">4 · Casual</output><button data-action="level:1" title="Stronger">›</button></div>
+      </div>
+      <div class="opt" style="display: block">
+        <div class="meter" id="level-meter"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <p id="level-note">Searches 3 plies deep. Makes the odd mistake.</p>
+      </div>
+    </div>
+    <nav class="row">
+      <button data-action="back">Back</button>
+      <button class="primary" data-action="start">Start game</button>
+    </nav>
+  </section>
+
+  <section class="screen" id="screen-settings" hidden>
+    <h2>Settings</h2>
+    <p class="lead">Saved on this device.</p>
+    <div class="group-title">Board</div>
+    <div class="group">
+      <div class="opt"><span class="label">Move hints<small>Dots where a piece can go</small></span>
+        <div class="seg" data-setting="hints"><button data-value="on">On</button><button data-value="off">Off</button></div>
+      </div>
+      <div class="opt"><span class="label">Last move<small>Mark the squares it used</small></span>
+        <div class="seg" data-setting="lastMove"><button data-value="on">On</button><button data-value="off">Off</button></div>
+      </div>
+    </div>
+    <div class="group-title">Graphics</div>
+    <div class="group">
+      <div class="opt"><span class="label">Shadows</span>
+        <div class="seg" data-setting="shadows"><button data-value="on">On</button><button data-value="off">Off</button></div>
+      </div>
+      <div class="opt"><span class="label">Animation</span>
+        <div class="seg" data-setting="speed"><button data-value="slow">Slow</button><button data-value="normal">Normal</button><button data-value="fast">Fast</button></div>
+      </div>
+    </div>
+    <nav>
+      <button data-action="back">Back</button>
+    </nav>
+  </section>
+
+  <section class="screen" id="screen-help" hidden>
+    <h2>How to play</h2>
+    <p class="for-mouse">Click one of your pieces, then one of the marked squares. The engine replies.</p>
+    <p class="for-touch" hidden>Tap one of your pieces, then one of the marked squares. The engine replies.</p>
+    <div class="group">
+      <div class="keys" style="padding: 10px 0">
+        <div><kbd>Drag</kbd><span>Turn the camera</span></div>
+        <div class="for-mouse"><kbd>Wheel</kbd><span>Zoom</span></div>
+        <div class="for-touch" hidden><kbd>Pinch</kbd><span>Zoom</span></div>
+        <div class="for-mouse"><kbd>U</kbd><span>Take back your move</span></div>
+        <div class="for-mouse"><kbd>F</kbd><span>Flip the board</span></div>
+        <div class="for-mouse"><kbd>Esc</kbd><span>Menu</span></div>
+      </div>
+    </div>
+    <p>Your game is saved as you play: Continue on the title screen picks it up.</p>
+    <nav>
+      <button data-action="back">Back</button>
+    </nav>
+  </section>
+
+  <section class="screen" id="screen-pause" hidden>
+    <h2>Paused</h2>
+    <p class="lead" id="pause-info"></p>
+    <nav>
+      <button class="primary" data-action="resume">Resume</button>
+      <button data-action="undo">Take back move</button>
+      <button data-action="open:new">New game</button>
+      <button data-action="open:settings">Settings</button>
+      <button data-action="resign">Resign</button>
+      <button class="quiet" data-action="title">Main menu</button>
+    </nav>
+  </section>
+
+  <section class="screen" id="screen-over" hidden>
+    <h2 class="result" id="over-title"></h2>
+    <p class="lead" id="over-text"></p>
+    <nav>
+      <button class="primary" data-action="rematch">Rematch</button>
+      <button data-action="open:new">New game</button>
+      <button data-action="review">Look at the board</button>
+      <button class="quiet" data-action="title">Main menu</button>
+    </nav>
+  </section>
+</div>
+<div id="loading">
+  <div class="knight">♞</div>
+  <div class="loading-title">tui<span>chess</span></div>
+  <div class="loading-bar"><div id="loading-progress"></div></div>
+</div>
 <script type="module" src="./main.js"></script>
 </body>
 </html>
