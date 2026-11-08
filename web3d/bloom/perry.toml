@@ -4,7 +4,7 @@ entry = "main.ts"
 bundle_id = "com.skelpo.tuichess"
 display_name = "tuichess"
 version = "1.0"
-build_number = 2
+build_number = 3
 features = ["ios-game-loop"]
 
 [ios]
