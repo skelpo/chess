@@ -8,13 +8,16 @@ import { configureThree } from "@bloomengine/three/config";
 import type { Object3D, Mesh, MeshStandardMaterial } from "three";
 
 const home = process.env["TUICHESS_HOME"];
+// BLOOM_WIDTH/BLOOM_HEIGHT size the window (store screenshots); BLOOM_NO_QUIT=1 hides Quit, as on Apple TV
+const size = (name: string, fallback: number): number => Number(process.env[name] ?? "") || fallback;
 configure({
   app: "tuichess",
   // a native app starts its music with the app, not with the first tap
   autoplay: true,
   title: "tuichess",
-  width: 1280,
-  height: 800,
+  width: size("BLOOM_WIDTH", 1280),
+  height: size("BLOOM_HEIGHT", 800),
+  nativeApp: process.env["BLOOM_NO_QUIT"] !== "1",
   root: new URL("../", import.meta.url).pathname,   // web3d/
   bundle: "web3d",                                    // assets/web3d/ in an app bundle (stage-assets.sh)
   served: "public/",                                  // Vite serves public/ as the site's root

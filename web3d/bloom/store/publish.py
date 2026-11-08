@@ -9,6 +9,10 @@
     python3 web3d/bloom/store/publish.py submit               # submit the iOS version for review
     python3 web3d/bloom/store/publish.py status
 
+Add --platform mac or --platform tv to work on the Mac or Apple TV version (iOS by default). Their
+listing texts come from listing.json's "platforms" overrides; screenshots from <dir>/mac/*.png
+(2880x1800) and <dir>/tv/*.png (1920x1080). The app info, age rating and price are shared.
+
 The build itself is uploaded with `xcrun altool --upload-app` (see README.md).
 
 App Review rejected the first submission (2026-11-05) under Guideline 2.1, Information Needed: it
@@ -38,8 +42,27 @@ def app_info():
     return next(i for i in infos if i["attributes"]["appStoreState"] != "READY_FOR_SALE")
 
 
-def ios_version():
-    vs = api("GET", f"/v1/apps/{APP}/appStoreVersions", params={"filter[platform]": "IOS"})["data"]
+# --platform ios|mac|tv picks the App Store version a command works on (default: ios)
+PLATFORMS = {"ios": "IOS", "mac": "MAC_OS", "tv": "TV_OS"}
+PLATFORM = "IOS"
+if "--platform" in sys.argv:
+    i = sys.argv.index("--platform")
+    PLATFORM = PLATFORMS[sys.argv[i + 1]]
+    del sys.argv[i:i + 2]
+
+# screenshot folders and the display type each one is: <dir>/<folder>/*.png
+SCREENSHOTS = {"IOS": (("iphone", "APP_IPHONE_67"), ("ipad", "APP_IPAD_PRO_3GEN_129")),
+               "MAC_OS": (("mac", "APP_DESKTOP"),),
+               "TV_OS": (("tv", "APP_APPLE_TV"),)}
+
+
+def text(key):
+    """A listing text for this platform: listing.json's platforms.<PLATFORM>.<key>, else <key>."""
+    return L.get("platforms", {}).get(PLATFORM, {}).get(key, L[key])
+
+
+def platform_version():
+    vs = api("GET", f"/v1/apps/{APP}/appStoreVersions", params={"filter[platform]": PLATFORM})["data"]
     editable = [v for v in vs if v["attributes"]["appStoreState"] in
                 ("PREPARE_FOR_SUBMISSION", "DEVELOPER_REJECTED", "REJECTED", "METADATA_REJECTED", "WAITING_FOR_REVIEW", "INVALID_BINARY")]
     return editable[0]
@@ -80,11 +103,11 @@ def listing():
     api("PATCH", f"/v1/ageRatingDeclarations/{rating['id']}", {"data": {"type": "ageRatingDeclarations", "id": rating["id"], "attributes": attrs}})
     print("age rating: no objectionable content")
 
-    v = ios_version()
+    v = platform_version()
     api("PATCH", f"/v1/appStoreVersions/{v['id']}", {"data": {"type": "appStoreVersions", "id": v["id"], "attributes": {
         "copyright": L["copyright"], "releaseType": L["releaseType"]}}})
     localization(f"/v1/appStoreVersions/{v['id']}/appStoreVersionLocalizations", "appStoreVersion", v["id"], "appStoreVersionLocalizations",
-                 {"description": L["description"], "keywords": L["keywords"], "promotionalText": L["promotionalText"],
+                 {"description": text("description"), "keywords": text("keywords"), "promotionalText": text("promotionalText"),
                   "supportUrl": L["supportUrl"], "marketingUrl": L["marketingUrl"]})
     print("version", v["attributes"]["versionString"] + ":", "description, keywords, URLs, copyright, release", L["releaseType"])
 
@@ -100,7 +123,7 @@ def listing():
                 break
     if contact is None:
         sys.exit("no App Review contact found on " + L["reviewContactFrom"])
-    attrs = {**contact, "demoAccountRequired": False, "notes": L["reviewNotes"]}
+    attrs = {**contact, "demoAccountRequired": False, "notes": text("reviewNotes")}
     d = (api("GET", f"/v1/appStoreVersions/{v['id']}/appStoreReviewDetail") or {}).get("data")
     if d:
         api("PATCH", f"/v1/appStoreReviewDetails/{d['id']}", {"data": {"type": "appStoreReviewDetails", "id": d["id"], "attributes": attrs}})
@@ -158,7 +181,7 @@ def upload_screenshot(set_id, path):
 
 
 def review_detail():
-    v = ios_version()
+    v = platform_version()
     d = (api("GET", f"/v1/appStoreVersions/{v['id']}/appStoreReviewDetail") or {}).get("data")
     if d is None:
         sys.exit("no App Review info on the version yet: run `publish.py listing` first")
@@ -190,12 +213,12 @@ def review_video(path):
 
 
 def screenshots(folder):
-    v = ios_version()
+    v = platform_version()
     loc = next(l for l in api("GET", f"/v1/appStoreVersions/{v['id']}/appStoreVersionLocalizations")["data"]
                if l["attributes"]["locale"] == L["locale"])
     sets = {s["attributes"]["screenshotDisplayType"]: s for s in
             api("GET", f"/v1/appStoreVersionLocalizations/{loc['id']}/appScreenshotSets")["data"]}
-    for kind, display in (("iphone", "APP_IPHONE_67"), ("ipad", "APP_IPAD_PRO_3GEN_129")):
+    for kind, display in SCREENSHOTS[PLATFORM]:
         files = sorted(glob.glob(os.path.join(folder, kind, "*.png")))
         if not files:
             continue
@@ -225,30 +248,31 @@ def screenshots(folder):
 def build(version, number):
     for _ in range(60):
         bs = api("GET", "/v1/builds", params={"filter[app]": APP, "filter[version]": number,
-                                               "filter[preReleaseVersion.version]": version})["data"]
+                                               "filter[preReleaseVersion.version]": version,
+                                               "filter[preReleaseVersion.platform]": PLATFORM})["data"]
         if bs and bs[0]["attributes"]["processingState"] == "VALID":
             break
         print("build", version, number, bs[0]["attributes"]["processingState"] if bs else "not there yet", "- waiting")
         time.sleep(30)
     else:
         sys.exit("build not processed")
-    v = ios_version()
+    v = platform_version()
     api("PATCH", f"/v1/appStoreVersions/{v['id']}/relationships/build", {"data": {"type": "builds", "id": bs[0]["id"]}})
     print("build", version, number, "attached to version", v["attributes"]["versionString"])
 
 
 def submit():
-    v = ios_version()
-    # the reviewNotes promise a screen recording: never submit without one (Guideline 2.1)
+    v = platform_version()
+    # reviewNotes that promise a screen recording: never submit without one (Guideline 2.1)
     d = review_detail()
-    if d["attributes"].get("notes") != L["reviewNotes"]:
+    if d["attributes"].get("notes") != text("reviewNotes"):
         sys.exit("App Review notes differ from listing.json: run `publish.py listing` first")
     done = [a for a in review_attachments(d["id"]) if a["attributes"]["assetDeliveryState"]["state"] == "COMPLETE"]
-    if not done:
+    if "SCREEN RECORDING" in text("reviewNotes") and not done:
         sys.exit("no screen recording attached for App Review: run `publish.py review-video <file>` first")
     # after a rejection the version stays in its old submission (UNRESOLVED_ISSUES):
     # mark the rejected items resolved and send that submission again
-    open_ = api("GET", "/v1/reviewSubmissions", params={"filter[app]": APP, "filter[platform]": "IOS",
+    open_ = api("GET", "/v1/reviewSubmissions", params={"filter[app]": APP, "filter[platform]": PLATFORM,
                                                          "filter[state]": "UNRESOLVED_ISSUES"})["data"]
     if open_:
         sub = open_[0]
@@ -257,7 +281,7 @@ def submit():
                 api("PATCH", f"/v1/reviewSubmissionItems/{item['id']}", {"data": {"type": "reviewSubmissionItems",
                     "id": item["id"], "attributes": {"resolved": True}}})
     else:
-        sub = api("POST", "/v1/reviewSubmissions", {"data": {"type": "reviewSubmissions", "attributes": {"platform": "IOS"},
+        sub = api("POST", "/v1/reviewSubmissions", {"data": {"type": "reviewSubmissions", "attributes": {"platform": PLATFORM},
             "relationships": {"app": {"data": {"type": "apps", "id": APP}}}}})["data"]
         api("POST", "/v1/reviewSubmissionItems", {"data": {"type": "reviewSubmissionItems", "relationships": {
             "reviewSubmission": {"data": {"type": "reviewSubmissions", "id": sub["id"]}},
@@ -268,15 +292,15 @@ def submit():
 
 
 def status():
-    v = ios_version()
-    print("version", v["attributes"]["versionString"], v["attributes"]["appStoreState"])
+    v = platform_version()
+    print(PLATFORM, "version", v["attributes"]["versionString"], v["attributes"]["appStoreState"])
     b = (api("GET", f"/v1/appStoreVersions/{v['id']}/build") or {}).get("data")
     print("build:", b and (b["attributes"]["version"], b["attributes"]["processingState"]))
     d = (api("GET", f"/v1/appStoreVersions/{v['id']}/appStoreReviewDetail") or {}).get("data")
     if d is None:
         print("review info: none (run listing)")
     else:
-        print("review notes:", "current" if d["attributes"].get("notes") == L["reviewNotes"] else "differ from listing.json")
+        print("review notes:", "current" if d["attributes"].get("notes") == text("reviewNotes") else "differ from listing.json")
         print("review attachments:", [(a["attributes"]["fileName"], a["attributes"]["assetDeliveryState"]["state"])
                                       for a in review_attachments(d["id"])] or "none")
 
