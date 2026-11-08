@@ -246,11 +246,22 @@ def submit():
     done = [a for a in review_attachments(d["id"]) if a["attributes"]["assetDeliveryState"]["state"] == "COMPLETE"]
     if not done:
         sys.exit("no screen recording attached for App Review: run `publish.py review-video <file>` first")
-    sub = api("POST", "/v1/reviewSubmissions", {"data": {"type": "reviewSubmissions", "attributes": {"platform": "IOS"},
-        "relationships": {"app": {"data": {"type": "apps", "id": APP}}}}})["data"]
-    api("POST", "/v1/reviewSubmissionItems", {"data": {"type": "reviewSubmissionItems", "relationships": {
-        "reviewSubmission": {"data": {"type": "reviewSubmissions", "id": sub["id"]}},
-        "appStoreVersion": {"data": {"type": "appStoreVersions", "id": v["id"]}}}}})
+    # after a rejection the version stays in its old submission (UNRESOLVED_ISSUES):
+    # mark the rejected items resolved and send that submission again
+    open_ = api("GET", "/v1/reviewSubmissions", params={"filter[app]": APP, "filter[platform]": "IOS",
+                                                         "filter[state]": "UNRESOLVED_ISSUES"})["data"]
+    if open_:
+        sub = open_[0]
+        for item in api("GET", f"/v1/reviewSubmissions/{sub['id']}/items")["data"]:
+            if item["attributes"]["state"] == "REJECTED":
+                api("PATCH", f"/v1/reviewSubmissionItems/{item['id']}", {"data": {"type": "reviewSubmissionItems",
+                    "id": item["id"], "attributes": {"resolved": True}}})
+    else:
+        sub = api("POST", "/v1/reviewSubmissions", {"data": {"type": "reviewSubmissions", "attributes": {"platform": "IOS"},
+            "relationships": {"app": {"data": {"type": "apps", "id": APP}}}}})["data"]
+        api("POST", "/v1/reviewSubmissionItems", {"data": {"type": "reviewSubmissionItems", "relationships": {
+            "reviewSubmission": {"data": {"type": "reviewSubmissions", "id": sub["id"]}},
+            "appStoreVersion": {"data": {"type": "appStoreVersions", "id": v["id"]}}}}})
     r = api("PATCH", f"/v1/reviewSubmissions/{sub['id']}", {"data": {"type": "reviewSubmissions", "id": sub["id"],
         "attributes": {"submitted": True}}})["data"]
     print("submitted for review:", r["attributes"]["state"])
