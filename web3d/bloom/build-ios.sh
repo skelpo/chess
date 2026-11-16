@@ -16,7 +16,7 @@
 #   DIST_PROFILE      App Store .mobileprovision for $BUNDLE_ID (required for appstore)
 #   PERRY_IOS_LIBS    Perry's runtime/stdlib/UI libs for the target, when perry can't find them itself
 #                     (a wrapper that sets PERRY_RUNTIME_DIR to the macOS libs hides them; see README.md)
-#   PERRY_TVOS_LIBS   the same for tvOS (default: ~/projects/perry/worktrees/perry-tvos/target/aarch64-apple-tvos/release)
+#   PERRY_TVOS_LIBS   the same for tvOS (default: ~/projects/perry/worktrees/perry-main-latest/target/aarch64-apple-tvos/release)
 #   PERRY_NIGHTLY     the nightly toolchain Perry's tvOS libs were built with (default nightly-2026-10-04)
 #   PERRY_FLAGS       more `perry compile` flags
 #   SKIP_BUILD=1      package, sign and install the last build again without compiling
@@ -43,10 +43,17 @@ if [ -z "$PERRY_IOS_LIBS" ]; then
   [ -n "$W" ] && [ -d "$W/../$TRIPLE/release" ] && PERRY_IOS_LIBS="$W/../$TRIPLE/release"
 fi
 if [ "$OS" = tvOS ]; then
-  # tvOS is a tier-3 Rust target: Perry's libs come from a build with -Zbuild-std (README.md), and
+  # tvOS: Perry's libs come from a build with -Zbuild-std on $PERRY_NIGHTLY, in the Perry checkout
+  # (again whenever its compiler is rebuilt, or the link misses js_* symbols):
+  #   cargo +nightly-2026-10-04 build -Zbuild-std --release --target aarch64-apple-tvos -p perry-ui-tvos
+  #   cargo +nightly-2026-10-04 build -Zbuild-std --release --target aarch64-apple-tvos \
+  #     -p perry-runtime-static -p perry-stdlib-static --no-default-features \
+  #     --features perry-runtime/default,perry-runtime/ios-game-loop,perry-stdlib/<each of stdlib's `full` but crypto>
+  #   scripts/gc_call_effects/sidecars.sh target/aarch64-apple-tvos/release
+  # (ios-game-loop is the runtime's main(); crypto is vendored OpenSSL, which has no tvOS configuration), and
   # Perry builds Bloom's tvOS lib with `cargo +nightly`; a cargo shim makes that the same nightly,
   # so the two share one std (or the link misses the allocator shims).
-  PERRY_IOS_LIBS="${PERRY_TVOS_LIBS:-$HOME/projects/perry/worktrees/perry-tvos/target/aarch64-apple-tvos/release}"
+  PERRY_IOS_LIBS="${PERRY_TVOS_LIBS:-$HOME/projects/perry/worktrees/perry-main-latest/target/aarch64-apple-tvos/release}"
   SHIM="$PWD/$OUT/cargo-shim"
   mkdir -p "$SHIM"
   cat > "$SHIM/cargo" <<'EOF'
