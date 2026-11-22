@@ -14,6 +14,30 @@ This needs Perry, and three repos checked out next to this one: the Bloom engine
 [@bloomengine/three](https://github.com/Bloom-Engine/three) (`../bloom/three`). `build.sh` links them
 into `node_modules/@bloomengine` and compiles with `bloom-three`'s module aliases.
 
+## Windows
+
+The same `build.sh`, from Git Bash:
+
+```bash
+sh web3d/bloom/build.sh          # -> web3d/bloom/dist/tuichess3d.exe, dxcompiler.dll, dxil.dll, assets/
+```
+
+- `node_modules/@bloomengine/*` are directory junctions there (symlinks need Developer Mode).
+- The build copies `dxcompiler.dll` and `dxil.dll` from the Windows SDK next to the exe
+  (the engine's `tools/fetch-dxc.ps1`). Without them wgpu has no DX12 backend and the app stops
+  at boot with "Failed to create surface".
+- The exe is a GUI app (`--windows-subsystem windows`), so Explorer opens no console window.
+  `WINDOWS_SUBSYSTEM=console` builds one that keeps it.
+- `dist/` is the whole app: the exe finds `assets/` next to itself from any working folder.
+- `localStorage` goes to `%APPDATA%\tuichess\web3d-storage.json`, next to the terminal app's files.
+- Perry: v0.5.1665's Windows codegen refuses modules whose stack map is followed by a COFF
+  `.def`/`.scl`/`.endef` symbol definition ("unrecognised directive `.def` inside the stack-map
+  block"). This app has four of them, so it needs a Perry with that fix
+  ([PerryTS/perry#15169](https://github.com/PerryTS/perry/pull/15169)), and @bloomengine/web
+  with its Windows path fixes ([Bloom-Engine/web#2](https://github.com/Bloom-Engine/web/pull/2)). A Perry built from
+  source uses its checkout's runtime: set `PERRY_RUNTIME_DIR` to the folder with
+  `perry_runtime.lib` when the libraries come from a release.
+
 ## How it works
 
 The generic parts are packages; this folder holds only what is about this app.
